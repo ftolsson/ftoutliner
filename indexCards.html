@@ -1,0 +1,1238 @@
+<script>
+
+function expandOrCollapseSections(){
+
+	mylog()
+
+	let allSections = $$(".section")
+
+	mylog("surely we can do that even if no present?")
+	mylog(allSections.length)
+
+	let removeIt = false
+	if ($(".level2")?.classList.contains("collapsedSection")){removeIt = true}
+
+	for (let section of allSections){
+		if (section.classList.contains("level1")){continue}
+
+		if (removeIt){
+			section.classList.remove("collapsedSection")
+		}else{
+			section.classList.add("collapsedSection")
+		}
+	}
+
+	$id("flexiContainer").scrollTo(0, 0)
+	setButtonForExpandedSections()
+	recalculateHeights() // in order to scroll back on screen if ending up outside
+
+}
+
+
+
+function anArrowWasClicked(theClickedThing, triggeredWithKey){
+
+	mylog()
+	if (!theClickedThing)return
+	//mylog("this was clicked: " + theClickedThing.classList )
+
+	let closestSectionAbove = theClickedThing.closest(".section")
+
+	if (theClickedThing.classList.contains("sectionArrow")){
+
+		if(!event.altKey && !triggeredWithKey){
+			closestSectionAbove.classList.toggle("collapsedSection")
+		}else{
+
+			let value = !closestSectionAbove.classList.contains("collapsedSection")
+			let sections = $$(".section:not(.level1)")
+
+			for (let section of sections){
+				section.classList.toggle("collapsedSection", value)
+			}
+		}
+		setAllButtons()
+		rememberCardState()
+		return
+	}
+
+	if(!event.altKey && !triggeredWithKey){	
+			
+		if([...closestSectionAbove.classList].includes("isExpanded")){
+			closestSectionAbove.classList.remove("isExpanded")
+			theClickedThing.classList.remove("expanded")
+		}else{
+			closestSectionAbove.classList.add("isExpanded")
+			theClickedThing.classList.add("expanded")
+		}
+	}else{
+
+		let doCollapse = [...closestSectionAbove.classList].includes("isExpanded")
+			// alertThis(closestSectionAbove.classList, doCollapse)
+			
+		let sections = $$(".section")
+		for(section of sections){
+			//if ([...section.classList].includes("level1")){continue}
+			if(doCollapse){
+				section.classList.remove("isExpanded")
+			}else{
+				section.classList.add("isExpanded")
+			}
+		}
+
+		let arrows = $$(".arrowForIndexCards")
+		for(arrow of arrows){
+			if(doCollapse){
+				arrow.classList.remove("expanded")
+			}else{
+				arrow.classList.add("expanded")
+			}
+		}
+
+		mylog("going to recalc now")
+		$id("flexiContainer").scrollTo(0, 0)
+		let timeToWait = doCollapse ? 0 : 300
+		setTimeout(function(){
+			recalculateHeights() // in order to scroll back on screen if ending up outside
+		}, 300)
+	}
+
+	setAllButtons()
+	rememberCardState()
+}
+
+
+function rememberCardState(){
+	mylog()
+
+	if(!outline){return}
+	if(outline.length == 0 ){return}
+
+	outlineBeforeUpdate = JSON.parse(JSON.stringify(outline))
+
+	
+	// let sections = $$(".section:not(.countMeOut)") //this avoids counting clones of section when dragging-and-dropping. See ifYesToMove()
+	let sections = $$(".section:not(.countMeOut, .countMeOut .section)") //this avoids counting clones of section when dragging-and-dropping. See ifYesToMove()
+	cardStateForScenes = []
+	cardStateForSections = []
+	let sectionNumber = 0
+
+	// Beat.call("Beat.alert('"+sections.length+"')")
+
+
+	for (section of sections){
+
+	// for (let i = 0; i < outlineBeforeUpdate.length; i++){
+
+		// if(outlineBeforeUpdate[i].typeAsString != "Section"){continue}
+
+		// section = $id(sectionNumber)
+
+		//remmed out the below on 2022-08-17
+		//if(section.classList.contains("level1"))continue //THIS IS THE PROBLEM: We SHOULD save the state for acts too!
+		
+		let a = [...section.classList].includes("isExpanded")
+		let b = [...section.classList].includes("collapsedSection")
+		//let elementNumber = section.id
+		if(a){section.classList.add("noAnimation")}
+		if(b){section.classList.add("noAnimation")}
+		let c = section.getBoundingClientRect()
+		
+		cardStateForScenes[sectionNumber] = a
+		cardStateForSections[sectionNumber] = b
+		
+		sectionNumber ++
+	}
+	mylog("REMEMBERED THIS MANY CARDSTATES: " + cardStateForScenes.length + "(for this many sections" + sections.length + ")")
+}
+
+function makeCardStateEqual(){
+	mylog()
+
+	if(!outlineBeforeUpdate || outlineBeforeUpdate.length == 0 || !cardStateForScenes || !cardStateForSections){
+		return
+	}
+
+	mylog(`at this point, there are ${$$(".section").length} sections on screen`)
+	mylog(`and the cardstate arrays are ${cardStateForScenes.length} + ${cardStateForSections.length} long`)
+
+	//first: is the number of sections equal?
+	let newSections = []
+		for (let num = 0; num < outline.length; num ++) {
+			if(outline[num].typeAsString == "Section" && outline[num].sectionDepth > 1) //2022-06-16 added sectiondepth -- does this help with anomaly?
+			newSections.push(num)
+		}
+		
+	let oldSections = []
+		for (let num = 0; num < outlineBeforeUpdate.length; num ++) {
+			if(outlineBeforeUpdate[num].typeAsString == "Section" && outlineBeforeUpdate[num].sectionDepth > 1) //2022-06-16 added sectiondepth -- does this help with anomaly?
+			oldSections.push(num)
+		}
+	
+	mylog("created old and new sections, they were: OLD = " + oldSections.length + ", NEW =" + newSections.length)
+	mylog("the card states have the lengths: " + cardStateForScenes.length + " and " + cardStateForSections.length)
+	
+
+	if (oldSections.length == newSections.length){
+
+		mylog("decided they were equally long")
+
+		let forwardMismatch = false
+		let backwardMismatch = false
+		
+		for (let i = 0; i < newSections.length; i ++){
+			
+			//mylog ("walking thru matching stuff " + i)
+
+			if(outline[newSections[i]].string == outlineBeforeUpdate[oldSections[i]].string){ //reasonably unchanged element
+				//mylog("match!")
+				continue
+			}else{
+				forwardMismatch = i
+				mylog ("found a mismatch going forward")
+				break
+			}
+		}
+
+		if(forwardMismatch){
+			mylog("so now comparing from the back")
+			for (let i = newSections.length - 1; i >= forwardMismatch; i --){
+				
+				//mylog("we're walking again...")
+
+				if(outline[newSections[i]].string == outlineBeforeUpdate[oldSections[i]].string){ //reasonably unchanged element
+					continue
+				}else{
+					backwardMismatch = i
+					mylog ("and found one going backward too")
+					break
+				}
+			}
+		}
+		
+		if (!forwardMismatch || forwardMismatch == backwardMismatch) {
+			//this just means a section was renamed, so all is well. 
+			//return and use the saved values as is.
+			mylog("We decided either nothing changed, or it's probably just a renamed section")
+
+			outlineBeforeUpdate = JSON.parse(JSON.stringify(outline))
+			// rememberCardState()
+			return
+
+		}else{
+
+			//this means one or more sections have been shuffled around.
+			//let's compare and give old values to sections in their new places
+
+			mylog("does this cause error if moving last scene?")
+
+				let forwardMove
+					for (i = forwardMismatch; i < outline.length; i ++){
+
+						if (outline[newSections[i]]?.string == outlineBeforeUpdate[oldSections[forwardMismatch]]?.string){
+							forwardMove = i - forwardMismatch
+							break
+						}
+					}
+				let numberOfSections = 1
+					while (outline[newSections[i + numberOfSections]]?.string == outlineBeforeUpdate[oldSections[forwardMismatch + numberOfSections]]?.string){
+						numberOfSections ++
+						//fixed an error above with the conditional questionmark, but will this kill something?
+				}
+				
+				for (i = forwardMismatch; i < forwardMismatch + numberOfSections; i++ ){					
+					scenevalue = cardStateForScenes[i]
+					sectionvalue = cardStateForSections[i]
+
+					cardStateForScenes.splice(i + forwardMove + numberOfSections, 0, scenevalue)
+					cardStateForSections.splice(i + forwardMove + numberOfSections, 0, sectionvalue)
+				}
+				cardStateForScenes.splice(forwardMismatch, numberOfSections)
+				cardStateForSections.splice(forwardMismatch, numberOfSections)
+
+			outlineBeforeUpdate = JSON.parse(JSON.stringify(outline))
+			return
+		}
+	}
+
+	mylog("from here remains math if a section was either added or removed. (they could be more than one if made from the doc!")
+	//from here remains math if a section was either added or removed. 
+	//NOTE: they could be more than one if made by pasting or selecting a chunk and deleting in the doc window
+	//that is still not fixed!
+
+	if (newSections.length < oldSections.length){
+
+		// a section was deleted. Find it:
+
+		let forwardMismatch = false
+		
+		for (let i = 0; i < newSections.length; i ++){
+			
+			//mylog ("walking thru matching stuff in mismatching outlines" + i)
+
+			if(outline[newSections[i]].string == outlineBeforeUpdate[oldSections[i]].string){ //reasonably unchanged element
+				continue
+			}else{
+				forwardMismatch = i
+				mylog ("found a mismatch going forward")
+				break
+			}
+		}
+
+		cardStateForScenes.splice(forwardMismatch, 1) //remove it
+		cardStateForSections.splice(forwardMismatch, 1) //remove it
+	}
+
+	if (newSections.length > oldSections.length){
+
+		mylog("a section was inserted, because old length was " + oldSections.length + " Find it:")
+		// a section was inserted. Find it:
+
+		let forwardMismatch = false
+
+		for (let i = 0; i < newSections.length; i ++){
+		
+			//mylog ("walking thru matching stuff in mismatching outlines" + i)
+
+			if(outline[newSections[i]].string == outlineBeforeUpdate[oldSections[i]]?.string){ //reasonably unchanged element
+				continue
+			}else{
+				forwardMismatch = i
+				mylog ("found a mismatch going forward")
+				break
+			}
+		}
+		
+		mylog("BEFORE SPLICING: " + newSections.length + " > " + cardStateForScenes.length)
+
+		cardStateForScenes.splice(forwardMismatch, 0, true) //insert it
+		cardStateForSections.splice(forwardMismatch, 0, false) //insert it
+
+		mylog("SHOULD BE DONE: " + newSections.length + " == " + cardStateForScenes.length)
+	}
+
+	outlineBeforeUpdate = JSON.parse(JSON.stringify(outline))
+	return
+
+}
+
+function recallCardState(){
+
+	mylog("=========================================")
+	mylog("=========================================")
+	mylog("=========================================")
+	mylog("when we get here, there are " + $$(".section").length + " sections in the document.") 
+	mylog("The cardstates are this long: " + cardStateForScenes.length + " and " + cardStateForSections.length)
+	mylog("====================================")
+	mylog(cardStateForScenes)
+	mylog("====================================")
+	mylog(cardStateForSections)
+	mylog("====================================")
+	
+	if(!outlineBeforeUpdate || outlineBeforeUpdate.length == 0){
+		
+		if (cardStateForScenes.length == 0){ // so as to run on first run even if no previous outline
+		// return
+		// }else{
+			// this sets All scenes open + All sections closed if opening file without saved defaults
+			
+			//let sections = $$(".section:not(.level1)") //added :not here 2022-06-16 -- does that help with anomaly?
+			let sections = $$(".section") //removed it again 2022-08-17 bc scenes following acts were collapsed!?
+			let i = 0
+			for (section of sections){
+				// section.classList.add("isExpanded")
+				// section.classList.add("collapsedSection")
+				cardStateForScenes.push(true)
+				cardStateForSections.push(true)
+				i ++
+			}
+		}else{
+			mylog("so this happened: there is no outlineBeforeUpdate, so this is first run")
+			mylog("the length of the two cardstates are..." + cardStateForScenes.length + " and " + cardStateForSections.length)
+		}
+	}
+
+	if(outlineBeforeUpdate.length > 0){
+		makeCardStateEqual()
+	}
+				
+	//let sections = $$(".section:not(.level1)") //added :not here 2022-06-16 -- does that help with anomaly?
+	let sections = $$(".section") //removed again 2022-08-17 same reason as above
+	mylog("and the number of sections is " + sections.length)
+
+	if (sections.length != cardStateForScenes.length ||
+		sections.length != cardStateForSections.length){
+			mylog("this shouldn't happen, but cardState arrays & actual number of sections differ!")
+		return
+	}
+
+	let allStuff = $$(".synopsiscontainer, .scene")
+	for (stuff of allStuff){
+		stuff.classList.add("noAnimation")
+		let redraw = stuff.getBoundingClientRect()
+	}
+
+		for (let i = 0; i < sections.length; i++){
+
+			sections[i].classList.toggle("isExpanded", cardStateForScenes[i])
+			sections[i].classList.toggle("collapsedSection", cardStateForSections[i])
+			let redraw = sections[i].getBoundingClientRect()
+		}
+
+	allStuff = $$(".synopsiscontainer, .scene")
+	for (stuff of allStuff){
+		stuff.classList.remove("noAnimation")
+		let redraw = stuff.getBoundingClientRect()
+	}
+	
+	mylog("end of recall state")
+
+}
+
+
+function indexCardEditor(theElement){
+
+	mylog()
+
+	if($id("synEditBox"))return
+	
+	//position the cursor at the click first!
+	let clickPosition = {}
+		clickPosition.x = event.pageX
+		clickPosition.y = event.pageY
+
+	let synopsisContainer = theElement.closest(".synopsiscontainer")
+		synopsisContainer.classList.remove("isSelected")
+		synopsisContainer.parentElement.classList.remove("isSelected")
+		synopsisContainer.classList.add("noHover")
+		synopsisContainer.parentElement.classList.add("noHover")
+	let theClickedId = theElement.id
+
+	let scrollPosition = synopsisContainer.scrollTop
+
+	//pass here: the containerObject with or without synopsis in it
+	if(document.getElementById('editBox')) document.getElementById('editBox').remove()
+    if(document.getElementById('youAreHere')) document.getElementById('youAreHere').remove()
+
+	let synEditBox = document.createElement("div")
+		synEditBox.id = "synEditBox"
+	let attributes = window.getComputedStyle(synopsisContainer)
+		if (attributes.backgroundColor == "rgba(0, 0, 0, 0)") attributes = window.getComputedStyle(synopsisContainer.closest(".scene, .section"))
+					
+	let measures = synopsisContainer.getBoundingClientRect()
+		synEditBox.classList.add("synopsiscontainer")
+		// synEditBox.classList.add("noHover")
+		// synEditBox.classList.remove("isSelected")
+		synEditBox.style.backgroundColor = attributes.backgroundColor
+		synEditBox.style.backgroundImage = "none"
+		synEditBox.style.color = "black"
+		synEditBox.style.border = attributes.border
+			if(indexCardMode) synEditBox.style.position = "absolute"
+			if(areScenesProportional == 0) synEditBox.style.position = "relative"
+		synEditBox.style.top = 0 + "px"
+		synEditBox.style.left = 0 + "px"
+		console.log(synopsisContainer.closest(".scene, .section").classList)
+			if(indexCardMode 
+					&& !synopsisContainer.closest(".scene, .section").classList.contains("level1")
+					&& !synopsisContainer.closest(".scene, .section").classList.contains("special")){
+				synEditBox.style.height = measures.height + "px"
+			}else{
+				synEditBox.style.height = "auto"
+			}
+		synEditBox.style.width = measures.width + "px"
+		synEditBox.style.whiteSpace = "normal"
+		synEditBox.style.overflowY = "auto"
+		synEditBox.style.zIndex = "9999"
+
+		synEditBox.contentEditable = true
+		synEditBox.draggable = false
+
+		
+		let allCurrentSynopsis = synopsisContainer.querySelectorAll(".synopsis")
+		for (synopse of allCurrentSynopsis){
+			
+			let synDiv = document.createElement("div")
+				synDiv.id = synopse.id
+				synDiv.dataset.theId = synopse.id
+				synDiv.classList = synopse.classList
+				synDiv.classList.remove("isSelected")
+				synDiv.classList.add("clickThru")
+				synDiv.dataset.classes = synDiv.classList
+				synDiv.draggable = false
+				synDiv.innerHTML = synopse.innerHTML
+				synDiv.dataset.beforeEdit = synopse.innerHTML
+				synDiv.style.color = synopse.style.color
+				synDiv.style.setProperty("--localSynopsisColor", getComputedStyle(synopse).getPropertyValue("--localSynopsisColor"))
+				synDiv.style.opacity = "1"
+
+			synEditBox.appendChild(synDiv)
+
+		}
+
+		if (allCurrentSynopsis.length == 0){
+
+			let synDiv = document.createElement("div")
+				synDiv.id = synopsisContainer.closest(".scene, .section").id + "_0"
+				synDiv.classList.add("synopsis")
+				synDiv.classList.add("clickThru")
+				synDiv.dataset.classes = ""
+				synDiv.innerHTML = " <br/>"
+				synDiv.dataset.beforeEdit = ""
+
+			synEditBox.appendChild(synDiv)
+		}
+
+
+	// synopsisContainer.appendChild(synEditBox)
+	synopsisContainer.insertAdjacentElement("afterbegin", synEditBox)
+
+	console.log(synEditBox)
+
+	let blurListener = new AbortController()
+
+	addConfirmButtons(synopsisContainer, blurListener)
+	
+	$id("synEditBox").focus()
+	$id("synEditBox").addEventListener("blur", function(){
+		exitFromIndexCardEditor(true)},
+		{ signal: blurListener.signal }
+		)
+	$id("synEditBox").addEventListener("paste", function(e){
+		
+		e.preventDefault()
+		let text = (e.originalEvent || e).clipboardData.getData('text/plain'); //pastes manually
+		let sel = window.getSelection()
+		let range = sel.getRangeAt(0)
+
+		if(!range.collapsed){
+			range.deleteContents()
+			fixContentEditableWeirdness()
+
+			if (sel.anchorNode != sel.focusNode){
+				//This is a fix for when entire div (or span across several) is selected!
+				let node = document.createElement("div")
+					node.classList.add("synopsis")
+					node.classList.add("clickThru")
+					node.dataset.beforeEdit = ""
+					node.innerHTML = " "
+				range.insertNode(node)
+				range.setStart(node, 1)
+				range.setEnd(node, 1)
+			}
+			range.collapse(false)
+		}
+		let node = document.createTextNode(text)
+		range.insertNode(node)
+		range.collapse(false)
+	}
+	)
+
+	synEditBox.classList.add("noHover")
+	let allSelected = $$(".isSelected")
+	for (selected of allSelected) selected.classList.remove("isSelected")
+
+
+	weAreCurrentlyEditingText = true
+	let allDraggables = $$("[draggable=true]")
+	for (draggable of allDraggables) {
+		draggable.draggable = false
+		draggable.classList.add("usedToBeDraggable")
+	}
+	
+    document.removeEventListener("keydown", checkWhatKeyGotPressed)
+    document.addEventListener('keydown', synEditBoxListen)
+    document.addEventListener('selectionchange', fixContentEditableWeirdness)
+
+	synEditBox.scrollTop = scrollPosition
+	//clickPosition.y += scrollPosition
+
+	//finally position 
+	setInitialCaretPosition(theElement, clickPosition)
+    
+}
+
+function addConfirmButtons(synopsisContainer, blurListener){
+
+	mylog()
+
+	let boxPos = synopsisContainer.getBoundingClientRect()
+	let boxScroll = flexiContainer.scrollTop
+
+	removeConfirmButtons()
+	
+	let cancelButton = document.createElement("div")
+		cancelButton.id = "cancelButton"
+		cancelButton.style.position = "absolute"
+		cancelButton.style.left = boxPos.x - 10 + "px"
+		cancelButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
+		// cancelButton.classList.add("addButton")
+		cancelButton.classList.add("confirmButtons")
+		cancelButton.innerHTML = "×"
+		cancelButton.style.color = "#F33"
+		
+		flexiContainer.appendChild(cancelButton)
+		
+		let okButton = document.createElement("div")
+		okButton.id = "okButton"
+		okButton.style.position = "absolute"
+		okButton.style.left = boxPos.x - 10 + boxPos.width + "px"
+		okButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
+		// okButton.classList.add("addButton")
+		okButton.classList.add("confirmButtons")
+		okButton.innerHTML = "OK"
+
+	flexiContainer.appendChild(okButton)
+
+	okButton.addEventListener("mousedown", function(){
+		blurListener.abort();
+		event.stopImmediatePropagation()
+		event.stopPropagation()
+		exitFromIndexCardEditor(true)},
+		true)
+	cancelButton.addEventListener("mousedown", function(){
+		blurListener.abort();
+		event.stopImmediatePropagation()
+		event.stopPropagation()
+		exitFromIndexCardEditor(false)},
+		true)
+
+}
+
+function removeConfirmButtons(){
+
+	$id("cancelButton")?.remove()
+	$id("okButton")?.remove()
+
+}
+
+function fixContentEditableWeirdness(){
+
+	mylog()
+
+	//1. FIX (-ish) for the caret falling outside of allowed divs when deleting all contents on a line
+
+	let sel = window.getSelection()
+
+	if (sel.anchorNode == $id("synEditBox")) {
+		brs = synEditBox.getElementsByTagName("br");
+		for (br of brs) br.parentNode.removeChild(br)
+
+		range = sel.getRangeAt(0)
+		newNode = document.createElement("div");
+		newNode.id = ""
+		newNode.classList.add("synopsis")
+		newNode.classList.add("clickThru")
+		newNode.innerHTML = " <br>"
+		range.insertNode(newNode)
+
+		let range2 = document.createRange();
+			range2.setStart(newNode, 0);
+			range2.collapse(false);
+		sel.removeAllRanges();
+		sel.addRange(range);
+
+	}
+
+	//2. FIX (I hope) for taking a colorclass distributed when hitting ENTER, and storing it in dataset until parsing time
+
+	if (sel.anchorOffset == 0){
+		//console.log(sel.anchorNode.classList || sel.anchorNode.parentElement.classList)
+		let classes = new Set(Array.from(sel.anchorNode?.classList || sel.anchorNode?.parentElement?.classList || ""))
+			classes.delete("synopsis")
+			classes.delete("clickThru")
+		let colClass = Array.from(classes.values())
+			if(colClass.length > 0){
+				let col = colClass[0].charAt(0).toUpperCase() + colClass[0].slice(1)
+				if (sel.anchorNode.tagName == "DIV") {
+					sel.anchorNode.dataset.color = col
+				}else{
+					sel.anchorNode.parentElement.dataset.color = col
+				}
+			}
+	}
+
+	//3. FIX for removing color-inside color when backspacing into a colored synopsis
+
+	if (spans = synEditBox.querySelectorAll("span")){
+
+		for (span of spans){
+
+			let parentDiv = span.parentElement
+			let range = document.createRange()
+				range.selectNodeContents(parentDiv)
+
+				text = document.createTextNode(range.cloneContents().textContent)
+			
+			let curpos = sel.anchorOffset
+				range.deleteContents()
+				range.insertNode(text)
+			let curnode = sel.anchorNode
+				range.setEnd(parentDiv.childNodes[0], curpos)
+				range.collapse(false)
+
+			sel.removeAllRanges();
+			sel.addRange(range);
+
+		}
+	}
+}
+
+function synEditBoxListen(){
+
+	mylog()
+
+	//NOTE: must catch ENTER, and add own new div -- or else .id will be repeated. Stupid contenteditable!
+	//This is now done by checking for re-apperaing id:s when parsing result instead
+
+    if (event.key == "Escape"){event.preventDefault(); exitFromIndexCardEditor(false); return}
+    if (event.key == "Enter" && event.metaKey){event.preventDefault(); exitFromIndexCardEditor(true); return}
+    
+	if (event.key == "z" && event.metaKey && !event.shiftKey){event.preventDefault(); document.execCommand("undo", false); return}
+	if (event.key == "z" && event.metaKey && event.shiftKey){event.preventDefault(); document.execCommand("redo", false); return}
+
+	if (["b", "u", "i", "k"].includes(event.key) && event.metaKey){event.preventDefault(); return}
+    	
+}
+
+function exitFromIndexCardEditor(confirmed){
+
+	mylog()
+
+	if(event.relatedTarget?.classList.contains("confirmButtons"))return
+
+	if ($$(".synopsiscontainer:has(#synEditBox) > .synopsis") == $$("#synEditBox > .synopsis")) confirmed = false
+
+
+	$id("synEditBox").removeEventListener("blur", function(){exitFromIndexCardEditor(true)})
+	document.removeEventListener('keydown', synEditBoxListen)
+	document.removeEventListener('selectionchange', fixContentEditableWeirdness)
+	document.addEventListener('keydown', checkWhatKeyGotPressed)
+	removeConfirmButtons()
+
+	let allDraggables = $$(".usedToBeDraggable")
+	for (draggable of allDraggables) {
+		draggable.draggable = true
+		draggable.classList.remove("usedToBeDraggable")
+	}
+	
+	coverContainer.classList.remove("lessBlur")
+    coverContainer.style.display = "none"
+	
+	if(confirmed){
+		$id("synEditBox").classList.add("wait")
+		let doUpdate = parseIndexCardPostEditing()
+		if(doUpdate){
+			weAreChangingColors = true
+			startSmallUpdate()
+		}
+	}else{
+		$id("synEditBox").remove()
+	}
+
+	weAreCurrentlyEditingText = false
+}
+
+function compareArrays(initial, changed) {
+
+	mylog()
+
+  	let result = [];
+
+  	let initialIds = initial.map(function(item) {
+    	return item.id;
+  	});
+  	let changedIds = changed.map(function(item) {
+    	return item.id;
+  	});
+
+
+  	let deletedIds = initialIds.filter(function(id) {
+    	return changedIds.indexOf(id) === -1;
+  	});
+  	let addedIds = changedIds.filter(function(id) {
+    	return initialIds.indexOf(id) === -1;
+  	});
+	  let changedItems = initialIds.filter(function(id) {
+    	return changedIds.indexOf(id) !== -1 && (changed[changedIds.indexOf(id)].innerText !== initial[initialIds.indexOf(id)].innerText);
+  	});
+  	let unchangedIds = initialIds.filter(function(id) {
+    	return changedIds.indexOf(id) !== -1 && (changed[changedIds.indexOf(id)].innerText === initial[initialIds.indexOf(id)].innerText);
+  	});
+
+  	initial.forEach(function(item) {
+    	if (deletedIds.indexOf(item.id) !== -1) {
+      		item.dataset.result = 'deleted';
+      		result.push(item);
+    	} else if (unchangedIds.indexOf(item.id) !== -1) {
+      		item.dataset.result = 'unchanged';
+      		result.push(item);
+    	} else if (changedItems.indexOf(item.id) !== -1) {
+			item.dataset.result = 'changed';
+			item.dataset.changeTo = changed[changedIds.indexOf(item.id)].innerText
+			//if(col = window.getComputedStyle(item).backgroundColor) item.dataset.color = col
+			result.push(item)
+		}
+  	});
+
+	changed.forEach(function(item) {
+    	if (addedIds.indexOf(item.id) !== -1) {
+      		item.dataset.result = 'added';
+			//if(col = window.getComputedStyle(item).backgroundColor) item.dataset.color = col
+      		result.push(item);
+    	}
+  	});
+
+  	return result;
+}
+
+function parseIndexCardPostEditing(){
+
+	mylog()
+
+	disableUpdating()
+
+	
+	let preEditDivs = Array.from($$(".synopsiscontainer:has(#synEditBox) > .synopsis"))
+	let postEditDivs = Array.from($$("#synEditBox > .synopsis"))
+	let resultDivs = []
+
+	let previousIds = []
+	for (post of postEditDivs){
+
+		// if(post.innerText.trim() == ""){}
+		if (post.id == "") post.id = previousIds[previousIds.length - 1] || "0"
+
+		while (previousIds.indexOf(post.id) > -1) post.id += ".1"
+		previousIds.push(post.id)
+	}
+
+	resultDivs = compareArrays(preEditDivs, postEditDivs)
+		let changesWasMade = false
+			for (let resultDiv of resultDivs){
+				if (resultDiv.dataset.result != "unchanged") changesWasMade = true
+			}
+
+	if(!changesWasMade){
+		synEditBox.remove()
+		return false
+	}
+
+	resultDivs.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
+
+		//Now time to loop the result array BACKWARDS (so that INDEX/POSITIONS remains true) and take the decided actions
+		resultDivs = resultDivs.reverse()
+		let insertionPoint = Array.from($$(".synopsiscontainer:has(#synEditBox) > .synopsis"))?.at(-1)?.dataset.lineEnd || $(".synopsiscontainer:has(#synEditBox)").closest(".scene, .section").dataset.lineEnd
+		
+		for (result of resultDivs){
+
+			if (result.dataset.result == "added" && result.innerText.trim() != ""){
+				
+				let colorstring = ""
+					if (result.dataset.color) colorstring += " [[color " + result.dataset.color + "]]"
+
+				let string = "`= " + result.innerText + colorstring+ "\n`"
+				let doThis = `Beat.addString(${string}, ${insertionPoint})`.replaceAll("\n", "\\n")
+					// console.log(doThis)
+					Beat.call(doThis)
+			}
+
+			if(result.dataset.result == "deleted"){
+				
+				insertionPoint = result.dataset.line
+				let endPoint = result.dataset.lineEnd - insertionPoint
+				let string = "`\n`"
+				let doThis = `Beat.replaceRange(${insertionPoint}, ${endPoint}, ${string})`.replaceAll("\n", "\\n")
+					// console.log(doThis)
+					Beat.call(doThis)
+			}
+
+			if(result.dataset.result == "changed"){
+
+				let colorstring = ""
+					if (result.dataset.color) colorstring += " [[color " + result.dataset.color + "]]"
+
+				insertionPoint = result.dataset.line
+				let endPoint = result.dataset.lineEnd - insertionPoint
+				let string = `"\n"`
+					if (result.dataset.changeTo.trim() > "") string = "`= " + result.dataset.changeTo + colorstring + "\n`"
+				let doThis = `Beat.replaceRange(${insertionPoint}, ${endPoint}, ${string})`.replaceAll("\n", "\\n")
+					// console.log(doThis)
+					Beat.call(doThis)
+
+			}
+
+			if(result.dataset.result == "unchanged"){
+				insertionPoint = result.dataset.line
+				//but do nothing
+			}
+		}
+
+	enableUpdating()
+
+	return true
+
+}
+
+function setInitialCaretPosition(div, clickPosition) {
+
+	mylog()
+
+	const range = document.createRange();
+	
+	let child
+	for (child of synEditBox.children){
+
+		bottomY = child.getBoundingClientRect().top + child.getBoundingClientRect().height
+		
+		if (bottomY > clickPosition.y){
+			break
+		}
+	}	
+	//so now we know what synopsis to dig deeper into
+
+	let pos
+	let prevxpos = child.getBoundingClientRect().left // 0
+	let prevypos = child.getBoundingClientRect().top // 0
+	for (pos = 0; pos < child.childNodes[0].length + 1; pos++) {
+		
+		range.setStart(child.childNodes[0], 0)
+		range.setEnd(child.childNodes[0], pos)
+		let text = range.toString()
+		range.collapse(false)
+		
+		xpos = range.getBoundingClientRect().right
+		ypos = range.getBoundingClientRect().bottom
+		if (ypos > prevypos && text.charCodeAt(text.length-1) == 32)continue //disregard line end or else it will stop there.
+
+		if (prevypos > clickPosition.y && ypos > prevypos){ 
+			//litteraly means we are on the NEXT line, AFTER the one we clicked
+			//implicitly means we clicked to the right of the last character on a line
+			range.setEnd(child.childNodes[0], pos - 2)
+			break
+		}
+		
+		if (xpos > clickPosition.x && ypos > clickPosition.y){
+			//means we've found the spot
+			if(prevxpos + ((xpos-prevxpos) / 2) > clickPosition.x){
+				range.setEnd(child.childNodes[0], pos - 1)
+			}
+			break
+		}
+		prevxpos = xpos
+		prevypos = ypos
+	}
+
+	range.collapse(false)
+
+	let sel = window.getSelection();
+		sel.removeAllRanges();
+  		sel.addRange(range);
+
+  	return
+}
+
+function enableUpdating(){
+
+Beat.call(`
+	Beat.onTextChangeDisabled = false
+	Beat.onOutlineChangeDisabled = false
+	Beat.onSelectionChangeDisabled = false
+	`)
+
+}
+
+function disableUpdating(){
+
+Beat.call(`
+Beat.onTextChangeDisabled = true
+Beat.onOutlineChangeDisabled = true
+Beat.onSelectionChangeDisabled = true
+`)
+
+}
+
+</script>
+
+<style>
+
+#synEditBox{
+
+	scroll-behavior: auto !important;
+	
+}
+
+#flexiContainer:not(.indexcards) #synEditBox .synopsis{
+
+	color: white
+
+}
+
+.synopsiscontainer:has(#synEditBox) {
+
+	pointer-events: none;
+
+}
+
+.synopsiscontainer:has(#synEditBox) > .synopsis{
+
+	opacity: 0;
+	display: none;
+
+}
+
+/*new behavior for act and special with hidden synopsiscontainer 1 of 2*/
+.indexcards .level1 > .synopsiscontainer:not(:has(.synopsis)):not(:hover),
+.indexcards .special > .synopsiscontainer:not(:has(.synopsis)):not(:hover),
+.showSynopsisInScenes:not(.indexcards) .section > .synopsiscontainer:not(:has(.synopsis)):not(:hover){
+
+	border: none !important;
+
+	min-height: 0px !important;
+	height: 0px !important;
+	margin: 0px !important;
+	padding: 0px !important;
+	top: 0px !important;
+	margin-top: -2px; 
+
+}
+
+.showSynopsisInScenes:not(.indexcards) .section:not(:has( .synopsis)) > .section-heading{
+
+	margin-bottom: 0 !important;
+
+}
+
+.indexcards .section:is(.level1, .special) > #synEditBox,
+.indexcards .section:is(.level1, .special) > .synopsiscontainer:has(#synEditBox),
+.showSynopsisInScenes:not(.indexcards) #synEditBox,
+.showSynopsisInScenes:not(.indexcards) .synopsiscontainer:has(#synEditBox) {
+
+	/* height: 100% !important; */
+	height: auto !important;
+	max-height: 100% !important;
+	min-height: calc(14px * var(--fontSizeFactor)) !important;
+	/* border: 1px solid goldenrod;
+
+	overflow: auto; */
+
+	box-shadow: 0 0 0 3px black;
+
+}
+
+.indexcards .section:is(.level1, .special):has(#synEditBox) > .section-heading,
+.indexcards .section:is(.level1, .special) > #synEditBox,
+.indexcards .section:is(.level1, .special) > .synopsiscontainer:has(#synEditBox){
+
+	box-shadow: none !important;
+	color: inherit !important;
+}
+
+.showSynopsisInScenes:not(.indexcards) .section:has( > .synopsiscontainer > #synEditBox) > .section-heading{
+
+	background: black !important;
+	color: white !important;
+
+	box-shadow: 0 0 0 3px black;
+}
+
+/* .showSynopsisInScenes:not(.indexcards) .synopsiscontainer:has(#synEditBox)::before{
+
+	opacity: 1;
+
+} */
+
+/*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
+.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
+.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .section:has( > .section-heading:hover) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .scene:hover > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .synopsiscontainer:hover {
+
+	min-height: calc(14px * var(--fontSizeFactor)) !important;
+	transition: min-height 0.2s !important;
+
+}
+
+/*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
+.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .scene:hover > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .synopsiscontainer:empty:hover::after {
+
+	content: "double click to add synopsis";
+	text-align: center;
+	font-size: calc(8px * var(--fontSizeFactor));
+	font-weight: normal;
+	font-style: normal;
+	
+	opacity: 0.6;
+	
+	position: absolute;
+	height: calc(8px * var(--fontSizeFactor));
+	top: calc(0px * var(--fontSizeFactor));
+	width: 100%;
+
+
+}
+
+
+.indexcards .level1:not(:has( > .section-heading:hover)) > .synopsiscontainer,
+.indexcards .special:not(:has( > .section-heading:hover)) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards) .section:not(:has( > .section-heading:hover)) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards) .scene:not(:hover) > .synopsiscontainer {
+
+	min-height: 0;
+	/* transition-delay: min-height 0.2s; */
+	transition: min-height 0.2s !important;
+
+}
+
+
+.indexcards .scene:has(#synEditBox){
+
+	box-shadow: 0px 0px 0px 2px black/*,
+				0px 0px 120px 120px rgba(0,0,0,0.4);*/
+	;
+
+	z-index: 990;
+
+}
+
+.indexcards .scene:has(#synEditBox)::before{
+
+	/* display: none; */
+
+}
+
+
+#flexiContainer:has(#synEditBox) .scene:not(:has(#synEditBox)),
+#flexiContainer:has(#synEditBox) .section:not(:has( > .synopsiscontainer > #synEditBox)) > .synopsiscontainer,
+#flexiContainer:has(#synEditBox) .section:not(:has( > .synopsiscontainer > #synEditBox)) > .section-heading {
+
+	opacity: 0.6;
+	transition: 0.5s;
+
+}
+
+#flexiContainer:has(#synEditBox) .section:not(:has( > .synopsiscontainer > #synEditBox))::before {
+
+	opacity: 0;
+	border-width: 0;
+	transition: 0.5s 
+
+}
+
+
+.indexcards .section:not(.level1):has( > .synopsiscontainer > #synEditBox) > .section-heading {
+
+	z-index: 990;
+
+	box-shadow: 0px 0px 0px 2px black;
+
+	/* scale: 1.05 !important;
+	translate: 0 5%;
+
+	transition: 0.2s; */
+
+}
+
+.indexcards .section:not(.level1):has( > .synopsiscontainer > #synEditBox) > .synopsiscontainer {
+
+	box-shadow: 0px 1px 0px 2px black;
+
+	/* scale: 1.05 !important;
+	translate: 0 5%; */
+
+	/* margin-bottom: calc(0px + 0.1 * var(--indexCardHeight)) !important; */
+
+	/* transition: 0.2s; */
+
+}
+
+.promoteButtons,
+.confirmButtons{
+
+    margin: 0px !important;
+    padding: 0px !important;
+
+    position: absolute;
+
+    border-radius: 50%;
+    height: 20px !important;
+    width: 20px !important;
+
+    background: rgba(0,0,0,1);
+    border: 2px white solid;
+    color: white !important;
+
+    text-align: center;
+    font-size: 12px !important;
+	line-height: 16px !important;
+    font-weight: bold;
+    font-style: normal;
+
+    z-index: 9999;
+    pointer-events: all !important;
+
+    /* overflow:hidden; */
+
+	box-shadow: 0px 0px 4px rgba(0,0,0,0.4);
+
+    /* transform: translate(-110%, -110%); */
+
+}
+
+.promoteButtons::after,
+.confirmButtons::after{
+
+	/* box-sizing: border-box !important; */
+
+	position: absolute;
+	content: "";
+	left: 50%;
+	top: 50%;
+	width: 100%;
+	height: 100%;
+
+	translate: -50% -50%; 
+
+	border: 20px solid transparent;
+	border-radius: 50%;
+
+}
+
+.promoteButtons:hover::after,
+.confirmButtons:hover::after{
+
+	border-color: rgba(255, 255, 255, 0.1);
+	transition: 0.2s;
+
+}
+
+.promoteButtons:hover{
+
+	background: #ccc;
+	color: black !important;
+
+}
+
+#okButton{
+
+	font-size: 9px !important;
+
+}
+
+#okButton:hover{
+
+	background: hsl(90, 100%, 25%);
+
+}
+
+#cancelButton:hover{
+
+	background: hsl(0, 100%, 30%);
+
+}
+
+</style>
