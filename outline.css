@@ -18,7 +18,7 @@ MARK: -Root
 	--showPageNum: none;
 	--showSceneLength: none;
 
-	--columnWidth: 100px; /*initial value*/
+	--columnWidth: 100px; /*initial value*/ /*PURGE?*/
 	
 	--putPopupHereX: 0;
 	--putPopupHereY: 0;
@@ -150,7 +150,7 @@ ______FLEXICONTAINER{}
 	overflow-y: scroll;
 	overflow-x: hidden;
 
-	transition: width 0.4s, margin-left 0.4s;
+	transition: width 0.4s, margin-left 0.4s, padding-right 0.2s; /* padding used for page-numbers */
 
 }
 
@@ -262,7 +262,7 @@ __________BASIC ELEMENTS{}
 	overflow: hidden;
 	text-overflow: ellipsis;
 
-	transition: font-size 0.1s, line-height 0.1s, height 0.1s;
+	transition: font-size 0.1s, line-height 0.1s, height 0.1s, margin 0.2s;
 }
 
 .level1 {
@@ -332,6 +332,14 @@ __________BASIC ELEMENTS{}
 
 	box-shadow: 0 1rem 2rem hsl(0 0% 0% / 20%); 
 	transition: height 0.1s, width 0.2s;
+
+	height: calc(var(--flexibleHeight) * var(--heightFactor));
+
+}
+
+#flexiContainer.nonProportionalMode .isExpanded > .scene{
+
+	height: calc(var(--fixedHeight) * var(--fontSizeFactor)) !important;
 
 }
 
@@ -706,56 +714,134 @@ __________PAGE BREAK REREPRESENTATIONS{}
 		
 }
 
-.pageDivider {
-	display: none;
+/* #flexiContainer.showPageDividers{
+
+	padding-right: 10px !important;
+
+} */
+
+#flexiContainer.showPageDividers.always:not(.indexcards, .nonProportionalMode) :is(.scene, .orphanText),
+#flexiContainer.showPageDividers:not(.always, .indexcards, .nonProportionalMode) .level1:hover :is(.scene, .orphanText){
+
+	margin-right: calc(2px + (10px * var(--fontSizeFactor))) !important;
+	transition: height 0.1s, width 0.2s, margin 0.2s;
+
 }
 
-#flexiContainer.showPageDividers.always:not(.indexcards):not(.nonProportionalMode) .level1 .pageDivider,
-#flexiContainer.showPageDividers:not(.indexcards):not(.nonProportionalMode) .level1:hover .pageDivider{
+#flexiContainer.showPageDividers:not(.indexcards, .nonProportionalMode) .level1{
 
-	display: inline-block;
+	/* background-color: teal; */
+	pointer-events: all !important;
+
+}
+
+#flexiContainer.showPageDividers:not(.indexcards, .nonProportionalMode) .level1:hover{
+
+	/* background-color: hotpink; */
+}
+
+.pageDivider,
+.pageDivider::after{
+
+
+	color: var(--pageDividerColor);
+	border-color: var(--pageDividerColor);
 	
+	
+	
+}
+
+.pageDivider {
+
+	transition: font-size 0.2s, width 0.2s, right 0.2s;
+	transition-delay: color 500ms, border-color 0.5s !important;
+
+	--pageDividerColor: rgba(255,255,255,0);
+
+	display: none;
+
 	position: absolute;
-	pointer-events: none !important;
+	right: calc(-10px - (10px * var(--fontSizeFactor)));
+	width: calc(10px + (10px * var(--fontSizeFactor)));
+	height: auto;
 
 	/* border-top: 2px solid transparent;
 	border-left: 3px solid var(--pageBackground);
 	border-right: 3px solid var(--pageBackground);
 	border-bottom: 2px solid transparent; */
-
-	color: white;
-	border-top: 1px dotted white;
-
-	width: calc(100% + 18px);
-	left: 0px;
-	height: 0px;
-
+	
 	opacity: 0.6;
 
-	font-size: calc(7px * var(--fontSizeFactor));
-	line-height: calc(7px * var(--fontSizeFactor));
+	font-size: calc(8px * var(--fontSizeFactor));
+	line-height: calc(8px * var(--fontSizeFactor));
 	text-align: right !important;
 	/* padding-right: calc(100% + 20px); */
 
-	z-index: -100;
+	z-index: 1000;
+	pointer-events: all;
+
+}
+
+#flexiContainer.showPageDividers:not(.indexcards):not(.nonProportionalMode) .pageDivider{
+
+	display: inline-block; /* to enable transitions, it is displayed but transparent until...*/
+
+}
+
+#flexiContainer.showPageDividers.always:not(.indexcards):not(.nonProportionalMode) .level1 .pageDivider,
+#flexiContainer.showPageDividers:not(.indexcards):not(.nonProportionalMode) .level1:hover .pageDivider{
+
+	--pageDividerColor: rgba(255,255,255,1); /*and now we set the color to visible*/
+	
 }
 
  .pageDivider::after{
 
 	position: absolute;
+	top: -1px;
+	right: 0;
+	
 	content: " ";
-	top: -4px;
-	border-bottom: 0px solid transparent;
-	border-left: 3px solid var(--pageBackground);
-	border-right: 3px solid var(--pageBackground);
-	border-bottom-left-radius : 60px;
-	border-bottom-right-radius : 60px;
-	width: calc(100% + 0px);
+	
+	width: calc(10px + (10px * var(--fontSizeFactor)));
+	height: 100%;
+	background-color: transparent;
 
-	height: 4px;
-	left: -1px
+	border-top: 1px dotted var(--pageDividerColor);
+	/*border-top-color: inherit !important;  */
+
+	/* pointer-events: none !important; */
+
+	z-index: -1000 !important;
 
 } 
+
+.pageDivider:hover{
+	
+	opacity: 1 !important;
+	text-shadow: 0 0 1px --pageDividerColor
+	/* font-weight: bold; */
+	
+}
+
+.pageDivider:hover::after{
+
+	/* border-color: rgba(255,255,255,1) !important; */
+
+	/* background-color: rgba(0,0,0,0.8) */
+	width: inherit !important;
+
+	/* border-width: 3px !important; */
+	/*transition: width 0.2s;
+	pointer-events: none; */
+
+}
+
+.scene:has(.pageDivider:hover){
+
+	background-image: transparent !important;
+
+}
 
 /*
 MARK: -OK: Wider Acts
@@ -1467,7 +1553,27 @@ p.tooltipInfo{
 	display: none ;
 }
 
-.loggingIsOn .indicator p { /*for debugging purposes only*/
+.loggingIsOn .indicator p{
+
+	display: block !important; /*block for on*/
+	float: right !important;
+	padding: 1.5px 2px !important;
+	height: 16px;
+	width: 45px;
+	background-color: red !important;
+	margin-top: -8px !important;
+	margin-right: -1px !important;
+	text-align: right !important;
+	color: white !important;
+	font-size: 10px !important;
+	font-weight: bold !important;
+
+	clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%, 0 50%);
+	border-radius: 0 4px 4px 0;
+
+}
+
+nope.loggingIsOn .indicator p { /*for debugging purposes only*/
 	display: block !important; /*block for on*/
 	float: right !important;
 	padding: 0px 2px !important;
@@ -1673,12 +1779,12 @@ p.tooltipInfo{
 	
 /* --- HOVER COMES AFTER ALL COLORS --- */
 
-.scene:not(.noHover)/*:not(.synopsiscontainer)*/:not(.uncolorAllScenesBut .scene):not(.indexcards .scene):not(:has(.marker:hover, .synopsis:hover)):hover{
+.scene:not(.noHover)/*:not(.synopsiscontainer)*/:not(.uncolorAllScenesBut .scene):not(.indexcards .scene):not(:has(.marker:hover, .synopsis:hover, .pageDivider:hover)):hover{
 	background-image: -webkit-linear-gradient(top, rgba(20,20,20,0.60), rgba(20,20,20,0.60) 100%) !important;
 	color: white !important;
 }
 
-.scene:not(.noHover)/*:not(.synopsiscontainer)*/:not(.uncolorAllScenesBut .scene):not(:has(.synopsis:hover)):hover > .sceneheading{
+.scene:not(.noHover)/*:not(.synopsiscontainer)*/:not(.uncolorAllScenesBut .scene):not(:has(.marker:hover, .synopsis:hover, .pageDivider:hover)):hover > .sceneheading{
 	/* color: inherit !important; */
 	color: white !important;
 }
@@ -2736,6 +2842,19 @@ html[data-outdoors='1'] .widerButtonOn{
 
 	fill: black !important;
 
+}
+
+html[data-outdoors='1'] .pageDivider {
+
+	--pageDividerColor: rgba(0,0,0,0) !important;
+
+}
+
+html[data-outdoors='1'] #flexiContainer.showPageDividers.always:not(.indexcards):not(.nonProportionalMode) .level1 .pageDivider,
+html[data-outdoors='1'] #flexiContainer.showPageDividers:not(.indexcards):not(.nonProportionalMode) .level1:hover .pageDivider{
+
+	--pageDividerColor: rgba(0,0,0,1) !important; 
+	
 }
 
 /*

@@ -302,12 +302,10 @@ function editContent(ev) {
             }
         
     mylog("the result is" + kindOf)
-    console.log("the result is " + kindOf)
 
     // creating the editbox
     // NEW: after 220704, the rest is in a setTimeOut, and delayed if widen happens
     mylog("about to create the editBox")
-    console.log("about to create the editBox")
 
     setTimeout(function(){
 
@@ -319,12 +317,10 @@ function editContent(ev) {
             editBox.classList.add("editBox")
             editBox.classList.add(kindOf)
 
-        //copy sizes etc from 
+        //copy sizes etc from original
 
         let sizes = theElement.getBoundingClientRect()
-        // let sceneSizeWrong = theElement.closest(".scene")?.getBoundingClientRect() || false
-        console.log(theElement, theElement.closest(".scene"))
-        console.log(sizes, sceneSize, JSON.stringify(sceneSize.height), sceneSize.webkitLogicalHeight)
+        
         let leftIndent = 0
             if($id("notepanel")?.classList?.contains("expanded") && kindOf != "inNote"){
                 leftIndent = $id("notepanel").getBoundingClientRect().width
@@ -385,11 +381,8 @@ function editContent(ev) {
 
         editBoxResizeObserver = new ResizeObserver(entries => {
             for (entry of entries){
-                console.log("🍑", entry, entry.classList)
-                let xtra = theElement.classList.contains("section-heading") ? 0 : 0
-                theElement.style.height = entry.contentRect.height + xtra + "px"
-                // theElement.style.maxHeight = "auto "
-                console.log(entry.contentRect.height, theElement.style.height, theElement.getBoundingClientRect().height)
+                //let xtra = theElement.classList.contains("section-heading") ? 0 : 0
+                theElement.style.height = entry.contentRect.height + /*xtra +*/ "px"
             }
         })
         editBoxResizeObserver.observe($(".editBox"))

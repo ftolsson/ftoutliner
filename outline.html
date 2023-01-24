@@ -240,9 +240,9 @@ function hover() {
 	currentlyHoveredElement = element // keeps it in mind for ALT-pressing
 	mylog("sending to addbutton...")
 
-		if (altIsBeingPressed){
-			addPromoteButtons(element)
-		}
+		// if (altIsBeingPressed){
+			
+		// }
 
 		try{
 			insertAddButton(element)
@@ -266,12 +266,17 @@ function hiddenSlugPopup(element) {
 		x = x - width + 20
 	}
 
-	$id('flexiContainer').innerHTML += 
-		"<div id='hiddenSceneTitlePopup' class='clickThru sceneTitlePopup'>" + element.innerHTML + "</div>"
-		$id('hiddenSceneTitlePopup').style.left = (x + 10) + "px"
-		$id('hiddenSceneTitlePopup').style.top = (y - 22) + "px"
-		$id('hiddenSceneTitlePopup').style.maxWidth = width + "px"
-		$id('hiddenSceneTitlePopup').style.backgroundColor = color
+	let hiddenSceneTitlePopupDiv = document.createElement("div")
+		hiddenSceneTitlePopupDiv.id = "hiddenSceneTitlePopup"
+		hiddenSceneTitlePopupDiv.innerHTML = element.innerHTML
+		hiddenSceneTitlePopupDiv.classList.add("clickThru")
+		hiddenSceneTitlePopupDiv.classList.add("sceneTitlePopup")
+		hiddenSceneTitlePopupDiv.style.left = (x + 10) + "px"
+		hiddenSceneTitlePopupDiv.style.top = (y - 22) + "px"
+		hiddenSceneTitlePopupDiv.style.maxWidth = width + "px"
+		hiddenSceneTitlePopupDiv.style.backgroundColor = color
+		
+		flexiContainer.appendChild(hiddenSceneTitlePopupDiv)
 
 	clearTimeout(popupTimer)
 	let elementToGivePopup = $id('hiddenSceneTitlePopup')
@@ -678,7 +683,6 @@ function divMaker(location, fullupdate){
 						}else{
 							sectionDiv.classList.add(color.toLowerCase())
 							let localColor = getComputedStyle(document.documentElement).getPropertyValue(`--${color.toLowerCase()}`)
-							console.log(localColor)
 							sectionDiv.style.setProperty("--localColor", `hsl(var(--${color.toLowerCase()}))`)
 						}
 					}
@@ -761,8 +765,9 @@ function divMaker(location, fullupdate){
 						orphanDiv.style.height = `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
 						//}
 						
-						if(pageBreaks && pageBreaks[num])addPageBreak(orphanDiv)
-							
+						if(pageBreaks && pageBreaks[num]) addPageBreak(orphanDiv)
+						if(pageDividers[num]) insertDividersIn(orphanDiv)
+						
 						sectionDiv.appendChild(sectionheaderDiv)
 						sectionDiv.appendChild(orphanDiv)
 						orphanDiv.appendChild(sectionSynConDiv)
@@ -772,6 +777,8 @@ function divMaker(location, fullupdate){
 						sectionDiv.appendChild(sectionheaderDiv)
 						sectionDiv.appendChild(sectionSynConDiv)
 					}
+
+				// if(pageDividers[num]) {insertDividersIn(sectionDiv)} //adding page line for section too
 
 				parentSection.appendChild(sectionDiv)
 
@@ -889,7 +896,7 @@ function divMaker(location, fullupdate){
 				sceneDiv.appendChild(sceneheadingDiv)
 				sceneDiv.appendChild(sceneSynConDiv)
 
-				if(pageBreaks && pageBreaks[num])addPageBreak(sceneDiv)
+			if(pageBreaks && pageBreaks[num])addPageBreak(sceneDiv)
 
 				function addPageBreak(whereToAdd){
 
@@ -903,29 +910,31 @@ function divMaker(location, fullupdate){
 						while(outline[num + nextActualScene] && outline[num + nextActualScene].typeAsString == "Synopse"){nextActualScene ++}
 					blankDiv.dataset.line = outline[num + nextActualScene]?.sceneStart - 4
 					blankDiv.dataset.length = outline[num + nextActualScene]?.sceneStart - 1
-					// blankDiv.innerHTML = outline[num + 1]?.sceneStart - 4
 
 					whereToAdd.appendChild(blankDiv)
 
 				}
 
-				if(pageDividers[num]){
+			if(pageDividers[num]) {insertDividersIn(sceneDiv)}
 
-					console.log(pageDividers, pageBreaks)
-
-					//sceneheadingDiv.innerHTML = [...pageDividers[num]] + sceneheadingDiv.innerHTML
+				function insertDividersIn(whereToAdd){
 
 					for (let p = 0; p < pageDividers[num].length - (pageBreaks[num] ? 1 : 0); p++){
+
+						let reduceFirstScene = newFlexi.querySelector(".scene, .orphan") ? 0 : 1 //or else first pg number is 2...
+						let approxBreakPos = currentItem.sceneStart + ((currentItem.sceneEnd - currentItem.sceneStart) * pageDividers[num][p]/currentItem.numberOfPages) 
 
 						let divider = document.createElement("div")
 							divider.id = "divider" + num + "-" + p
 							divider.classList.add("pageDivider")
-							divider.innerHTML = Math.trunc(currentItem.startsOnPage + 1 + p)
-							divider.dataset.line = currentItem.line.position
+							divider.innerHTML = Math.trunc(currentItem.startsOnPage + 1 + p - reduceFirstScene)
+							// divider.dataset.line = currentItem.line.position
+							divider.dataset.line = approxBreakPos
 
 							divider.style.top = 100 * pageDividers[num][p]/currentItem.numberOfPages + "%"
+							// divider.style.height = 100 / currentItem.numberOfPages + "%"
 
-						sceneDiv.appendChild(divider)
+						whereToAdd.appendChild(divider)
 
 					}
 				}
@@ -1135,6 +1144,7 @@ function recalculatePages(){
 	
 	let startsOnPage = 1
 	let elementNumber = 0
+	let firstObjectWithDivider = true
 
 		pageDividers = []
 
@@ -1145,13 +1155,18 @@ function recalculatePages(){
 			//if((currentLine.typeAsString != "Heading" && currentLine.typeAsString != "Synopse") || currentLine.omitted == true){
 			if((currentLine.typeAsString == "Synopse") || currentLine.omitted == true || currentLine.titlePage){
 				outline[elementNumber].startsOnPage = startsOnPage
-				outline[elementNumber].numberOfPages = 0 //just a test 2022-09-05
+				outline[elementNumber].numberOfPages = 0 
 				elementNumber ++
 			 	continue
 			}
 	
 		outline[elementNumber].startsOnPage = startsOnPage 
 		outline[elementNumber].numberOfPages = pages[elementNumber]
+
+				//temporarily adding this here instead of after
+					//subsequently moved this into .beatPlugin code instead
+				//let extraLineForHeadings = (currentLine.typeAsString == "Heading" && !pageBreaks[elementNumber]) ? 2/58 : 0
+				//	startsOnPage += extraLineForHeadings
 
 				if(pageBreaks && pageBreaks[elementNumber]) {
 
@@ -1163,9 +1178,15 @@ function recalculatePages(){
 				}
 
 				//let's try to add page dividers
-				if (Math.trunc(startsOnPage + outline[elementNumber].numberOfPages) >= Math.trunc(startsOnPage)){
-
+				if (pages[elementNumber] > 0 &&
+					(Math.trunc(startsOnPage + outline[elementNumber].numberOfPages) >= Math.trunc(startsOnPage) ||
+					outline[elementNumber].startsOnPage > Math.ceil(outline[elementNumber - 1]?.startsOnPage + outline[elementNumber - 1]?.numberOfPages)  ||
+					firstObjectWithDivider)
+					){
+							
+					//this adds the PG1 line to the first object with a length:
 					let numberOfDividers = Math.trunc(startsOnPage + outline[elementNumber].numberOfPages) - Math.trunc(startsOnPage)
+						if (firstObjectWithDivider){ numberOfDividers ++ }
 						pageDividers[elementNumber] = []
 
 					for (let i = 0; i < numberOfDividers; i++){
@@ -1174,39 +1195,42 @@ function recalculatePages(){
 						pageDividers[elementNumber].push(lengthToDivider)
 
 					}
+					firstObjectWithDivider = false
 				}
 
+				//This is now put BEFORE the divider-adder, so moved away from here
+				//let extraLineForHeadings = (currentLine.typeAsString == "Heading" && !pageBreaks[elementNumber]) ? 2/58 : 0
+		
 		//In prep for next round -- this is where next scene will start.
-		let extraLineForHeadings = (currentLine.typeAsString == "Heading" && !pageBreaks[elementNumber]) ? 2/58 : 0
-		startsOnPage += outline[elementNumber].numberOfPages + extraLineForHeadings
+		startsOnPage += outline[elementNumber].numberOfPages // + extraLineForHeadings
 
 		elementNumber ++
 	}
 }
 
-function recalculateHeights(wherefrom){
-	let inTime = new Date()
+function putOntoScreen() {
 
+	let theIndicatorIsInElement = $id("youAreHere")?.getAttribute('data-outlineElementCount')
+
+	if (theIndicatorIsInElement && theIndicatorIsInElement > 0){
+		if(isThisOffScreen($id(theIndicatorIsInElement))){
+			scrollNicelyIntoView($id(theIndicatorIsInElement))
+		}	
+	}
+}
+
+function recalculateHeights(wherefrom){
+	
 	mylog()
 	mylog("from: " + JSON.stringify(recalculateHeights.caller.name))
 	mylog("OLD VALUE: " + getComputedStyle(document.documentElement).getPropertyValue('--heightFactor'))
 
 	let theIndicator = $id("youAreHere")
-	let theIndicatorIsInElement = theIndicator?.getAttribute('data-outlineElementCount')
 
-	let allScenes = $$(".scene")
+	let allScenes = $$(".scene, .orphanText")
 	let allSections = $$(".section")
 	let allActs = $$(".level1")
-
-	let numberOfActs = allActs.length
-	let actLength = [] 
-	let sectionsPerAct = [] 
 	
-	for (let i = 0; i < numberOfActs + 1; i++){
-		actLength.push(0)
-		sectionsPerAct.push(0)
-	}
-
 	if ((allScenes.length == 0 && allSections.length == 0) || !outline || outline.length == 0){
 		mylog("returns from recalculateHeights because no scenes and no sections")
 		return} 
@@ -1236,99 +1260,70 @@ function recalculateHeights(wherefrom){
 		return
 	}
 
-	function putOntoScreen() {
-
-		if (theIndicatorIsInElement && theIndicatorIsInElement > 0){
-			// alertThis(theIndicatorIsInElement)
-			if(isThisOffScreen($id(theIndicatorIsInElement))){
-				scrollNicelyIntoView($id(theIndicatorIsInElement))
-			}	
-		}
-	}
-
 	if(areScenesProportional != 1){ //would be better if this were a class instead! 
-		for (scene of allScenes){
-			scene.style.height = "calc(var(--fixedHeight) * var(--fontSizeFactor))"
-			// scene.style.minHeight = "5px" //removed when the class was added. Because... why 5px?
-		}
+				
 		if(theIndicator){
 			let a = getComputedStyle(theRoot).getPropertyValue('--fixedHeight')
 			let theIndicatorPosition = "calc(var(--fixedHeight) * var(--fontSizeFactor) * 2 / 3)"
 				if (a = "auto"){theIndicatorPosition = "calc(11px * var(--fontSizeFactor))"}
 			theIndicator.style.top = theIndicatorPosition
 		}
+		
 		putOntoScreen()
 		return	
-	}else{
-		for (scene of allScenes){
-			scene.style.minHeight = ""	
-			scene.style.height = `calc(${outline[scene.id].numberOfPages}px * var(--heightFactor))`
-		}
 	}
-
-	mylog("sceneOfAllScenes")
-
-		for (scene of allScenes){
-
-			let myLength = Number(scene.getAttribute('data-length-of-scene')) || 0
-			let thisAct = Number(scene.getAttribute('data-in-act')) || 0
-
-			if(!scene.closest(".boneyard")){ //the exclusion of boneyard is so that when much in boneyard it may not be longest act
-			actLength[thisAct] += myLength
-			}
-		}
-
-	mylog("sectionOfAllSections")
-
-	for (section of allSections) {
-
-		if(section.id < 0)continue
-
-			let thisAct = Number(section.getAttribute('data-in-act'));
-			sectionsPerAct[thisAct] ++ 
-
-			mylog(section.id + " has... " + outline[section.id].numberOfPages)
-
-			if (section.id > -1 && !section.closest(".boneyard")){  //why is this not > -1? (was > 0, but then orphan after ACT I is not added to total!
-																	//also: the exclusion of boneyard is so that when much in boneyard it may not be longest act
-				actLength[thisAct] += outline[section.id].numberOfPages || 0 //added so as to incorporate orphan text into total
-			}
-		}
-
-	let theLongestAct = Math.max(...actLength)
-	let theMostSections = Math.max(...sectionsPerAct)
 	
-	let whichActHasLongestScenes = actLength.indexOf(theLongestAct)
-	let whichActHasMostSections = sectionsPerAct.indexOf(theMostSections)
+	// The rest is for proportional only 
+	//==================================
+
+	console.time("recalculateHeights")
+
+	//new section-height-collector
+		let newSectionHeights = []
+		let newSceneHeights = []
+		for (act of allActs){
+
+			if (act.classList.contains(".boneyard")) break
+
+			let sectionsInAct = act.querySelectorAll(".section-heading") //this includes the act itself
+			let scenesInAct = act.querySelectorAll(".scene, .orphanText")
+			let sectionHeightForAct = 0
+			for (sec of sectionsInAct) {
+
+				let measures = window.getComputedStyle(sec)
+				sectionHeightForAct += sec.getBoundingClientRect().height + parseInt(measures.marginBottom) + parseInt(measures.marginTop)
+			}
+			let sceneHeightForAct = 0
+			for (scn of scenesInAct){
+
+				sceneHeightForAct += Number(scn.dataset.lengthOfScene)
+				
+				// the following will produce undexpected results after a while -- bug in webkit?
+				// scn.style.height = "calc(" + scn.dataset.lengthOfScene + "px * var(--heightFactor)" //scn.dataset.lengthOfScene
+				
+				scn.style.minHeight = ""
+				scn.style.setProperty("--flexibleHeight", scn.dataset.lengthOfScene + "px")
+
+			}
+			newSectionHeights.push(sectionHeightForAct)
+			newSceneHeights.push(sceneHeightForAct)
+		}
+
+	let theLongestAct = Math.max(...newSceneHeights)
+	let theMostSections = Math.max(...newSectionHeights)
+	
+	let whichActHasLongestScenes = newSceneHeights.indexOf(theLongestAct)
+	let whichActHasMostSections = newSectionHeights.indexOf(theMostSections)
 	
 	let windowHeight = $id('flexiContainer').getBoundingClientRect().height
-	let spaceToDistribute = windowHeight 
-			- (($(".level1 > .section-heading")?.getBoundingClientRect().height || 0)
-			+ ($(".level1 > .section-heading")?.style.paddingTop) || 0)
-			- ($(".level1")?.style.paddingTop || 0)
-			- ($(".showActLength")?.style.height || 0)
-			- ($(".level1")?.style.marginBottom || 0)
-			- 20 //some extra margin just to make it look less cramped
-			
-			mylog("windowheight: " + windowHeight)
-			mylog("spaceToDistribute: " + spaceToDistribute)
 
-	unDistributableHeight = windowHeight - spaceToDistribute //only used for exporting
-	let scenesHaveMoreSpace = (spaceToDistribute - (4 + 17 * currentZoomLevel) * (sectionsPerAct[whichActHasLongestScenes] + 1) - theLongestAct) / theLongestAct
-	let sectionsHaveMoreSpace = (spaceToDistribute - (4 + 17 * currentZoomLevel) * (theMostSections + 1) - actLength[whichActHasMostSections]) / actLength[whichActHasMostSections]
+	let spaceToBreatheAndForPageNumbers = 80
+	let newSpaceToDistribute = windowHeight - spaceToBreatheAndForPageNumbers
 
-			// let tmp = document.createElement("div")
-			// 	tmp.id = "heightCheck"
-			// 	tmp.style.position = "absolute"
-			// 	tmp.style.backgroundColor = "rgba(255,0,0,0.3"
-			// 	tmp.style.width = "10px"
-			// 	tmp.style.height = spaceToDistribute + "px"
-			// 	tmp.style.top = $(".level1 > .section-heading").getBoundingClientRect().height + $(".level1 > .section-heading").style.paddingTop + "px"
-			// 	tmp.style.left = "0 px"
-			// 	tmp.innerHTML = ((scenesHaveMoreSpace < sectionsHaveMoreSpace) ? "scenes" : "sections")
-			// 	tmp.overflow = "visible"
-			// if ($id("heightCheck")){$id("heightCheck").remove()}
-			// $id("flexiContainer").appendChild(tmp)
+		unDistributableHeight = windowHeight - newSpaceToDistribute //only used for exporting
+	
+	let scenesHaveMoreSpace = (newSpaceToDistribute - newSectionHeights[whichActHasLongestScenes] - theLongestAct) / theLongestAct
+	let sectionsHaveMoreSpace = (newSpaceToDistribute - (theMostSections) - newSceneHeights[whichActHasMostSections]) / newSceneHeights[whichActHasMostSections]
 	
 	let heightFactor =  Math.min(scenesHaveMoreSpace, sectionsHaveMoreSpace)
 		paperHeightFactor = 72 * (29.7 / 2.54) * heightFactor / (windowHeight - 200) //was-160, and before that -120 
@@ -1343,18 +1338,23 @@ function recalculateHeights(wherefrom){
 		putOntoScreen()
 
 	//let outTime = new Date()
+	console.timeEnd("recalculateHeights")
 }
 
-function positionTheIndicator(theIndicator){
-			
-	mylog(theIndicator)
+function positionTheIndicator(){
+	
+	mylog()
+
+	let theIndicator = $id("youAreHere")
+	if(!theIndicator)return
 
 		let theIndicatorPercentage
 	
-		theIndicatorIsInElement = theIndicator.getAttribute('data-outlineElementCount');
+		let theIndicatorIsInElement = theIndicator.getAttribute('data-outlineElementCount');
 		theIndicatorPercentage = Number(theIndicator.getAttribute('data-percentageIntoScene'));
 
-			let theIndicatorParentHeight = Number(parseInt(window.getComputedStyle(theIndicator.parentNode).getPropertyValue("height")));
+			// let theIndicatorParentHeight = Number(parseInt(window.getComputedStyle(theIndicator.parentNode).getPropertyValue("height")));
+			let theIndicatorParentHeight = parseInt(theIndicator.parentNode.getBoundingClientRect().height);
 			let theIndicatorPosition = theIndicatorParentHeight * theIndicatorPercentage
 			if (theIndicatorPercentage == -1) {theIndicatorPosition = 11 * currentZoomLevel}
 			theIndicator.style.top = theIndicatorPosition + "px"
@@ -1408,7 +1408,7 @@ function youAreHere(location, length, positionChangeOnly){
 
 	if(location == 0 ){location = -999} //hacky way to avoid errors when no location at all, yet process when zero
 
-	if(fullTypeTimer || !location || outline.length < 1 || weAreCurrentlyEditingText){
+	if(fullTypeTimer || !location || !outline || outline.length < 1 || weAreCurrentlyEditingText){
 		if(document.getElementById('youAreHere')){document.getElementById('youAreHere').remove()}
 		mylog("CANCELING YOU ARE HERE")
 		return
@@ -1496,6 +1496,9 @@ function youAreHere(location, length, positionChangeOnly){
 				}
 			}
 		}
+
+		let weReOnPage = placeToPutIndicator.querySelectorAll(".pageDivider")
+		//while (!weReOnPage && whichSceneAreWeIn > -1) weReOnPage = 
 		
 		let theIndicatorHTML = "<div " + 
 		"id='youAreHere' " +
@@ -1823,14 +1826,11 @@ function __________LISTENING (){}
 function checkWhatKeyGotPressed(someoneJustPressed) {
 	mylog("checkWhatKeyGotPressed(" + someoneJustPressed.key + ")")
 	
-	if (someoneJustPressed.key == " " && !someoneJustPressed.altKey) {event.preventDefault(); setSharedScreen()}
-	if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
-	if (someoneJustPressed.key == "," && someoneJustPressed.metaKey) {event.preventDefault(); if(!$id("advancedSettings").open)$id("advancedSettings").showModal(); setAllButtons()}
-
-
-	if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); forceRestart()}
+	//if (someoneJustPressed.key == " " && !someoneJustPressed.altKey) {event.preventDefault(); setSharedScreen()}
+	//if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
+	
+	//if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); forceRestart()}
 	if (someoneJustPressed.key == "ä" && !someoneJustPressed.altKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
-	if (someoneJustPressed.key == "ö" && !someoneJustPressed.altKey) {event.preventDefault(); Beat.call(`Beat.alert(navigator.appVersion)`)}
 	
 
 
@@ -1885,7 +1885,6 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 
 	if (someoneJustPressed.key == "a" && event.ctrlKey) {event.preventDefault(); selectAllElements(true)}
 	if (someoneJustPressed.key == "a" && event.metaKey) {event.preventDefault(); selectAllElements(false)}
-
 	if (someoneJustPressed.key == "b" && event.metaKey) {event.preventDefault(); addShowHideBoneyard(); return}
 	if (someoneJustPressed.key == "b") {event.preventDefault(); toggleDisplayBeats()}
 
@@ -1898,8 +1897,9 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 			reevaluateColorContrast()
 		}
 		setAllButtons()
-		return}
-		if (someoneJustPressed.key == "c") {event.preventDefault(); toggleColorScheme()}
+		return
+	}
+	if (someoneJustPressed.key == "c") {event.preventDefault(); toggleColorScheme()}
 		
 	if (someoneJustPressed.key == "d" && event.metaKey) {event.preventDefault(); deselectAllElements(false)}
 	if (someoneJustPressed.key == "d") {event.preventDefault(); expandOrCollapseSections(); return}
@@ -1946,6 +1946,8 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 
 
 	// 2. NON-LETTERS
+
+	if (someoneJustPressed.key == "," && someoneJustPressed.metaKey) {event.preventDefault(); if(!$id("advancedSettings").open)$id("advancedSettings").showModal(); setAllButtons()}
 
 	if (someoneJustPressed.key == "*") {event.preventDefault(); toggleShowRevisions()}
 	
@@ -2023,8 +2025,9 @@ function somethingWasClicked() {
 	let theButton = event.button
 	let rightClick = event.ctrlKey || theButton == 2
 	let length
-	
-	// alertThis(theClickedThing.getAttribute("data-line"),theClickedThing.classList)
+
+	// console.log(theClickedThing)
+	// console.log(theClickedThing.closest(".scene, .section")?.id, outline[theClickedThing.closest(".scene, .section")?.id])
 
 	let a = [...theClickedThing.classList]
 
@@ -2367,6 +2370,8 @@ function __________TOGGLERS(){}
 	flexiContainer.classList.toggle(classToToggle)
 	$id(buttonId).checked = flexiContainer.classList.contains(classToToggle)
 
+	if(classToToggle=="dualSectionLines")recalculateHeights()
+
 	saveCurrentState()
 
 }
@@ -2548,6 +2553,7 @@ function toggleShowPageNumbers() {
 	}
 		
 	whatArePageNumbers = theRoot.style.getPropertyValue('--showPageNum');
+	recalculateHeights()
 	setAllButtons()
 }
 
@@ -2759,7 +2765,6 @@ function toggleProportional(absolute) {
 		document.getElementById("flexiContainer").classList.remove("nonProportionalMode")
 		document.getElementById("indexCardButton").innerHTML = outlineIcon
 
-
 	}
 	else
 	{
@@ -2849,6 +2854,8 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 			// if (a.includes("sceneheading") || a.includes("section") || a.includes("thisIsASynopsis")){
 			// Beat.call("Beat.setSelectedRange(" + gotoIndex + "," + outline[theClickedThing.getAttribute("data-elementCount")].sceneLength + ")")
 			// }
+
+	if (classes.includes("pageDivider")) return
 
 	let elementColor = window.getComputedStyle(theClickedThing).backgroundColor
 	let textColor
@@ -2982,7 +2989,10 @@ function zoomSizes(key){
 	theRoot.style.setProperty('--fontSizeFactor', newZoomLevel)
 	currentZoomLevel = newZoomLevel
 
-	recalculateHeights("from zoomSizes")
+	setTimeout(() => {
+		
+		recalculateHeights("from zoomSizes")
+	}, 300);
 	saveCurrentState()
 
 	if (notesAreDisplayed){displayNotes()}

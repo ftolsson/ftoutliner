@@ -34,7 +34,9 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 
 	mylog()
 	if (!theClickedThing)return
+	if (!indexCardMode && areScenesProportional) return
 	//mylog("this was clicked: " + theClickedThing.classList )
+
 
 	let closestSectionAbove = theClickedThing.closest(".section")
 
@@ -431,7 +433,6 @@ function indexCardEditor(theElement){
 			if(areScenesProportional == 0) synEditBox.style.position = "relative"
 		synEditBox.style.top = 0 + "px"
 		synEditBox.style.left = 0 + "px"
-		console.log(synopsisContainer.closest(".scene, .section").classList)
 			if(indexCardMode 
 					&& !synopsisContainer.closest(".scene, .section").classList.contains("level1")
 					&& !synopsisContainer.closest(".scene, .section").classList.contains("special")){
@@ -485,8 +486,6 @@ function indexCardEditor(theElement){
 
 	// synopsisContainer.appendChild(synEditBox)
 	synopsisContainer.insertAdjacentElement("afterbegin", synEditBox)
-
-	console.log(synEditBox)
 
 	let blurListener = new AbortController()
 
@@ -583,6 +582,16 @@ function addConfirmButtons(synopsisContainer, blurListener){
 
 	flexiContainer.appendChild(okButton)
 
+	editBoxResizeObserver = new ResizeObserver(entries => {
+            for (entry of entries){
+				boxPos = entry.target.getBoundingClientRect()
+				boxScroll = flexiContainer.scrollTop
+                okButton.style.top = boxPos.top + boxPos.height + boxScroll - 10 + "px"
+                cancelButton.style.top = boxPos.top + boxPos.height + boxScroll - 10 + "px"
+            }
+        })
+        editBoxResizeObserver.observe($("#synEditBox"))
+
 	okButton.addEventListener("mousedown", function(){
 		blurListener.abort();
 		event.stopImmediatePropagation()
@@ -599,6 +608,8 @@ function addConfirmButtons(synopsisContainer, blurListener){
 }
 
 function removeConfirmButtons(){
+
+	editBoxResizeObserver?.disconnect()
 
 	$id("cancelButton")?.remove()
 	$id("okButton")?.remove()
@@ -1003,9 +1014,7 @@ Beat.onSelectionChangeDisabled = true
 }
 
 .indexcards .section:is(.level1, .special) > #synEditBox,
-.indexcards .section:is(.level1, .special) > .synopsiscontainer:has(#synEditBox),
-.showSynopsisInScenes:not(.indexcards) #synEditBox,
-.showSynopsisInScenes:not(.indexcards) .synopsiscontainer:has(#synEditBox) {
+.indexcards .section:is(.level1, .special) > .synopsiscontainer:has(#synEditBox) {
 
 	/* height: 100% !important; */
 	height: auto !important;
@@ -1016,6 +1025,49 @@ Beat.onSelectionChangeDisabled = true
 	overflow: auto; */
 
 	box-shadow: 0 0 0 3px black;
+
+}
+
+/* .showSynopsisInScenes:not(.indexcards) #synEditBox, */
+.showSynopsisInScenes:not(.indexcards) .scene .synopsiscontainer:has(#synEditBox) {
+
+	/* height: 100% !important; */
+	height: auto !important;
+	max-height: 100% !important;
+	min-height: calc(14px * var(--fontSizeFactor)) !important;
+	/* border: 1px solid goldenrod;
+
+	overflow: auto; */
+
+	border-left: 4px solid black;
+	border-right: 4px solid black;
+	border-bottom: 1px solid black;
+	box-shadow: inset 0 -3px 0 0 black;
+
+}
+
+.showSynopsisInScenes:not(.indexcards) .section > .synopsiscontainer:has(#synEditBox) {
+
+	height: auto !important;
+	max-height: 100% !important;
+	min-height: calc(14px * var(--fontSizeFactor)) !important;
+
+	box-shadow: inset 0 -4px 0 0 black, -3px 0 0 0 black, 3px 0 0 0 black, inset 1px 0 0 0 black, inset -1px 0 0 0 black !important;
+
+	/* outline: 5px solid gold */
+}
+
+.showSynopsisInScenes:not(.indexcards) .scene:has(#synEditBox) > .sceneheading{
+
+	border: 4px solid black;
+	border-bottom: 1px;
+
+	padding-top: 0px !important;
+
+	top: -10px !important;
+	opacity: 1 !important;
+	border-radius: 3px 3px 0px 0px;
+	background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3));
 
 }
 
@@ -1073,6 +1125,8 @@ Beat.onSelectionChangeDisabled = true
 	top: calc(0px * var(--fontSizeFactor));
 	width: 100%;
 
+	transition-delay: 0.5s;
+	transition-property: min-height height;
 
 }
 
@@ -1172,7 +1226,7 @@ Beat.onSelectionChangeDisabled = true
     font-weight: bold;
     font-style: normal;
 
-    z-index: 9999;
+    /* z-index: 9999; */
     pointer-events: all !important;
 
     /* overflow:hidden; */
@@ -1183,10 +1237,77 @@ Beat.onSelectionChangeDisabled = true
 
 }
 
-.promoteButtons::after,
-.confirmButtons::after{
+.promoteButtons{
 
-	/* box-sizing: border-box !important; */
+	color: rgba(255,255,255,1) !important;
+	background: black !;
+	width: 30px !important;
+	border-radius: 10px;
+
+	z-index: 1 !important;
+	
+	translate: 0 -60%;
+	box-shadow: none;
+
+}
+
+.promoteButtons::before,
+.addButton:not(:hover)::before{
+	content: "";
+
+	width: 9px;
+	height: 9px;
+	background: white;
+
+	position: absolute;
+	top: calc(2.88px * 1.2);
+
+	z-index: -1 !important;
+	
+	clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 66% 33%, 0% 0%);
+	
+}
+
+.addButton:not(:hover)::before{
+
+	rotate: 135deg;
+	left: 3.5px;
+	top: 11px;
+
+	z-index: -1111 !important;
+
+
+}
+
+#promoteButton::before{
+	
+	rotate: -135deg;
+	left: calc(-4.32px * 1.0);
+	z-index: -20 !important;
+	
+}
+
+#demoteButton::before{
+	
+	rotate: 45deg;
+	right: calc(-4.32px * 1.1);
+	z-index: -20 !important;
+
+}
+
+#actioncontainer:has(.addButton:hover) #demoteButton{
+	translate: 50px -60%;
+	opacity: 0.2;
+	transition: translate 0.2s, opacity 0.2s;
+}
+#actioncontainer:has(.addButton:hover) #promoteButton{
+	translate: -50px -60%;
+	opacity: 0.2;
+	transition: translate 0.2s, opacity 0.2s;
+}
+
+/* .promoteButtons::after,
+.confirmButtons::after{
 
 	position: absolute;
 	content: "";
@@ -1205,10 +1326,10 @@ Beat.onSelectionChangeDisabled = true
 .promoteButtons:hover::after,
 .confirmButtons:hover::after{
 
-	border-color: rgba(255, 255, 255, 0.1);
+	border-color: rgba(255, 255, 255, 0.0);
 	transition: 0.2s;
 
-}
+} */
 
 .promoteButtons:hover{
 
