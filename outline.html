@@ -184,6 +184,7 @@ function setAllEventlisteners(){
 		deselectAllElements()
 		closeContextMenu()
 		saveCurrentState()
+		releaseALT()
 		if (document.querySelector(".sceneTitlePopup")){document.querySelector(".sceneTitlePopup").remove()}
 		});	
 	document.addEventListener("mouseover", hover)
@@ -1268,7 +1269,7 @@ function recalculateHeights(wherefrom){
 				if (a = "auto"){theIndicatorPosition = "calc(11px * var(--fontSizeFactor))"}
 			theIndicator.style.top = theIndicatorPosition
 		}
-		
+
 		putOntoScreen()
 		return	
 	}
@@ -1599,6 +1600,7 @@ function saveCurrentState() {
 	mylog("documentSettings done")
 
 	userDefault = {
+		ftoutlinerVersion: userDefault.ftoutlinerVersion,
 		realTimeUpdates: isRealTimeOn,
 		warningsAreOn: warningsAreOn,
 		colorScheme: colorScheme,
@@ -1828,9 +1830,10 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	
 	//if (someoneJustPressed.key == " " && !someoneJustPressed.altKey) {event.preventDefault(); setSharedScreen()}
 	//if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
-	
+
 	//if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); forceRestart()}
 	if (someoneJustPressed.key == "ä" && !someoneJustPressed.altKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
+	if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
 	
 
 
@@ -1988,6 +1991,7 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	// 5. MODIFIERS
 		
 	if (someoneJustPressed.key == "Alt") {
+		mylog("inside ALT")
 		altIsBeingPressed = true
 		$("#flexiContainer").classList.add("showAddButton")
 
@@ -2002,14 +2006,18 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	
 function checkWhatKeyWasReleased(someoneJustReleased){
 	mylog()
-	if (someoneJustReleased.key == "Alt") {
-		altIsBeingPressed = false
-		previouslyHovered = false
-		document.getElementById("printButton").innerHTML = printerIcon
-		$("#flexiContainer").classList.remove("showAddButton")
-		if($id("addButton")){removeAddButton()}
-		removePromoteButtons()
-	}	
+	if (someoneJustReleased.key == "Alt") releaseALT()	
+}
+
+function releaseALT(){
+
+	altIsBeingPressed = false
+	previouslyHovered = false
+	document.getElementById("printButton").innerHTML = printerIcon
+	$("#flexiContainer").classList.remove("showAddButton")
+	if($id("addButton")){removeAddButton()}
+	removePromoteButtons()
+
 }
 
 function somethingWasClicked() {
@@ -2107,8 +2115,8 @@ function somethingWasClicked() {
 				toggleTrackingContainer(true)
 			// }
 			return
-		case "flexiContainer":
-			if($(".wider"))makeWider($(".wider"))
+		// case "flexiContainer":
+		// 	if($(".wider"))makeWider($(".wider"))
 	}
 
 	//ADDED TO FIX WHAT CONSIDERS CLICKED when in Index Card Mode
@@ -2169,6 +2177,36 @@ function somethingWasClicked() {
 			theClickedThing.classList.add('isSelected')
 			return
 			}
+		}
+
+		if (a.includes("synopsis")){
+
+			let allSynopsis = Array.from($$(".synopsis"))
+			let justSelectedSynopsis = allSynopsis.indexOf(theClickedThing)
+			let firstSynopsis = allSynopsis.indexOf(alreadySelectedElements[0])
+			let lastSynopsis = allSynopsis.indexOf(alreadySelectedElements[alreadySelectedElements.length - 1])
+			
+			console.log(justSelectedSynopsis, firstSynopsis, lastSynopsis)
+
+			if (justSelectedSynopsis < firstSynopsis){
+				for (let selectThis = justSelectedSynopsis; selectThis < firstSynopsis; selectThis++ ){
+					allSynopsis[selectThis].classList.add("isSelected")
+				}
+			}
+			if (justSelectedSynopsis > lastSynopsis){
+				for (let selectThis = lastSynopsis; selectThis < justSelectedSynopsis + 1; selectThis++ ){
+					allSynopsis[selectThis].classList.add("isSelected")
+				}
+			}
+			if (firstSynopsis < justSelectedSynopsis && justSelectedSynopsis < lastSynopsis){
+				let selectThis = justSelectedSynopsis
+				do {
+					console.log(selectThis, allSynopsis[selectThis - 1].classList, allSynopsis[selectThis - 1].classList.contains("isSelected"))
+					allSynopsis[selectThis].classList.add("isSelected")
+					selectThis --
+				} while(!allSynopsis[selectThis].classList.contains("isSelected"))
+			}
+			return
 		}
 
 		let closestPredecessor = -1
@@ -3122,7 +3160,17 @@ function mylog(text, isError){
 		Beat.log("*******************************")
 		Beat.log("* ========== ERROR ========== *")
 		Beat.log("*******************************")
-		Beat.log(" ")
+
+		logArray.push(" ")
+		logArray.push("flexiContainerclassList:")
+		logArray.push(flexiContainer.classList)
+		logArray.push("-------------------------")
+		for (var property in documentSetting) {
+  			logArray.push(property + ": " + documentSetting[property])
+		}
+		for (var property in userDefault) {
+  			logArray.push(property + ": " + userDefault[property])
+		}
 		displayErrorMessage(logArray)
 
 }
