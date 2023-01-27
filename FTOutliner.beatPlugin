@@ -3,7 +3,7 @@
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2022
-Version: 1.53
+Version: 1.54
 Compatibility: 1.977
 Type: Tool
 Image: screenshot.jpg
@@ -34,6 +34,8 @@ a {
 */ 
 
 // Beat.openConsole()
+
+Beat.setUserDefault("ftoutlinerVersion", "1.54") 
 
 if (!Beat.compatibleWith(1.977)){
 
@@ -113,8 +115,15 @@ var windowTitle = "FTOutliner"
 
 var outlineJustFired
 
+var viewSubMenuItems = []
+var showSubMenuItems = []
+var notesSubMenuItems = []
+
+
 var htmlWindow = Beat.htmlWindow(html, thePanelWidth, thePanelHeight, function(){Beat.end()});
 	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), thePanelHeight) 
+
+	createMenu(htmlWindow)
 
 // fetchDocumentTitles()
 loopToFetchDocumentTitles()
@@ -124,7 +133,89 @@ setWindowTitle()
 // END OF GLOBAL VARIABLES
 // =======================
 
+function createMenu(htmlWindow){
+
+		viewSubMenuItems.push(Beat.menuItem("Flexible", ["cmd", "shift", "f"], function () {
+			htmlWindow.runJS("toggleProportional('on')")
+		}))
+		viewSubMenuItems.push(Beat.menuItem("Fixed", ["cmd", "shift", "f"], function () {
+			htmlWindow.runJS("toggleProportional('off')")
+		}))
+		viewSubMenuItems.push(Beat.menuItem("Index Cards", ["cmd", "shift", "x"], function () {
+			htmlWindow.runJS("toggleIndexCardMode()")
+		}))
+
+		showSubMenuItems.push(Beat.menuItem("Notes", ["cmd", "shift", "n"], function () {
+			htmlWindow.runJS("toggleDisplayNotes()")
+		}))
+		showSubMenuItems.push(Beat.menuItem("Markers", ["cmd", "shift", "m"], function () {
+			htmlWindow.runJS("toggleDisplayMarkers()")
+		}))
+		showSubMenuItems.push(Beat.menuItem("Reviews", ["cmd", "shift", "r"], function () {
+			htmlWindow.runJS("toggleDisplayReviews()")
+		}))
+		showSubMenuItems.push(Beat.menuItem("Beats", ["cmd", "shift", "b"], function () {
+			htmlWindow.runJS("toggleDisplayBeats()")
+		}))
+
+		notesSubMenuItems.push(Beat.menuItem("Cycle Next", ["cmd", "alt", "\t"], function () {
+			htmlWindow.runJS("cycleNotes(false)")
+
+		}))
+		notesSubMenuItems.push(Beat.menuItem("Cycle Previous", ["cmd", "alt", "shift", "\t"], function () {
+			htmlWindow.runJS("cycleNotes(true)")
+		}))
+		notesSubMenuItems.push(Beat.menuItem("Note Panel", ["cmd", "alt", "§"], function () {
+			htmlWindow.runJS("toggleNotepanel()")
+		}))
+
+
+	let highlightCharacterMenuItem = Beat.menuItem("Highlight Current Character", ["cmd", "alt", "c"], function () {
+			highlightCharacter(false)
+		})
+	let showDialogMenuItem = Beat.menuItem("Show Dialog for Current Character", ["cmd", "alt", "ctrl", "c"], function () {
+			highlightCharacter(true)
+		})
+
+
+	var appMenuItem1 = Beat.menuItem("About FTOutliner", [], function () {
+			htmlWindow.runJS("displayAboutBox()")
+
+})
+
+let viewSubMenu = Beat.submenu("Views", viewSubMenuItems)
+let showSubMenu = Beat.submenu("Show", showSubMenuItems)
+let notesSubMenu = Beat.submenu("Notes", notesSubMenuItems)
+let menuDivider = Beat.separatorMenuItem()
+let appMenu = Beat.menu("FTOutliner", [
+	appMenuItem1, 
+	viewSubMenu, 
+	showSubMenu, 
+	notesSubMenu, 
+	menuDivider,
+	highlightCharacterMenuItem,
+	showDialogMenuItem
+])
+
+}
+
+function updateMenuItem(value){
+
+	console.log(showSubMenuItems)
+	console.log(value)
+	showSubMenuItems[0].on = value
+
+}
+
 Beat.custom = {};
+
+Beat.custom.updateMenu = function(value){
+
+	console.log("local", showSubMenuItems)
+	console.log("local", value)
+	updateMenuItem(value)
+
+}
 
 Beat.custom.reloadCode = function(){
 
@@ -514,6 +605,8 @@ function makeStoringDefaultsDiv(){
 
 	let userDefault = {}
 	let documentSetting = {}
+
+	userDefault.ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion")
 
 	userDefault.isRealTimeOn = Beat.getUserDefault("realTimeUpdates") || 1
 		if(userDefault.isRealTimeOn != 0){userDefault.isRealTimeOn = 1}
@@ -1560,7 +1653,7 @@ function checkForDoubleBlankLines(position){
 	}
 }
 
-Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warningsAreOn, startPosition, endPosition, synopsisMove){
+Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warningsAreOn, startPosition, endPosition, synopsisMove, makeCopy){
 
 	const outline = [...Beat.outline()]
 
@@ -1613,7 +1706,7 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		}
 	}
 
-	htmlWindow.runJS(`ifYesToMove()`)
+	if(!makeCopy) htmlWindow.runJS(`ifYesToMove()`)
 
 	//catch-all to make end of selection not out-of-range
 	endPosition = Math.min(endPosition, Beat.getText().length)
@@ -1632,7 +1725,7 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		theTextToMove = Beat.getText().substring(startPosition, endPosition)
 
 		if (insertionPosition < startPosition) {
-			deleteTheOldText()
+			if(!makeCopy) deleteTheOldText()
 			checkForDoubleBlankLines(startPosition + 1)
 			addTheTextAtNewPosition()
 			checkForDoubleBlankLines(insertionPosition + theTextToMove.length + 4)
@@ -1641,7 +1734,7 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		if (insertionPosition > endPosition) {
 			addTheTextAtNewPosition()
 			checkForDoubleBlankLines(insertionPosition + theTextToMove.length + 4)			
-			deleteTheOldText()
+			if(!makeCopy) deleteTheOldText()
 			checkForDoubleBlankLines(startPosition + 1)
 		}
 
@@ -1691,7 +1784,7 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		let theNewOutlineNumberForFirstMovedScene
 		
 		if (insertionPosition < startPosition) {
-			deleteTheOldText()
+			if(!makeCopy) deleteTheOldText()
 			addTheTextAtNewPosition()
 
 			theNewOutlineNumberForFirstMovedScene = insertBeforeScene
@@ -1699,9 +1792,13 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 
 		if (insertionPosition > endPosition) {
 			addTheTextAtNewPosition()
-			deleteTheOldText()
+			if(!makeCopy) deleteTheOldText()
 			
-			theNewOutlineNumberForFirstMovedScene = insertBeforeScene - (lastScene - firstScene) - 1
+			if(!makeCopy){
+				theNewOutlineNumberForFirstMovedScene = insertBeforeScene - (lastScene - firstScene) - 1
+			}else{
+				theNewOutlineNumberForFirstMovedScene = insertBeforeScene //because if copy, then nothing is deleted
+			}
 		}
 
 		if (sceneBelowDroppedWasOmitted){
@@ -1720,7 +1817,7 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		"document.getElementById('outOfSyncDiv').classList.add('animate'); " +
 		"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
 		"document.getElementById('flexiContainer').classList.add('wait'); " +
-		(synopsisMove ? "startSmallUpdate(false,false,0)},1)" : "startFullUpdate()},999)") 
+		((synopsisMove ||makeCopy) ? "startSmallUpdate(false,false,0)},1)" : "startFullUpdate()},999)") 
 		//the 999 delay here is to allow animation to finish
 
 	htmlWindow.runJS(jsToRun)
@@ -2142,5 +2239,64 @@ Beat.custom.toggleFull = function(){
 	htmlWindow.toggleFullScreen()
 
 }
+
+function highlightCharacter(showBubbles){
+
+	let line = Beat.currentLine
+
+	if(!["Character", "Dialogue", "Parenthetical"].includes(line.typeAsString())) return
+
+	while(line.typeAsString() != "Character"){
+
+		pos = line.position - 1
+		line = Beat.lineAtPosition(pos)
+
+	}
+
+	let name = line.string //.substr(0,1).toUpperCase() + line.string.substr(1).toLowerCase()
+
+	
+	let jsToRun = `toggleSoloCharacter(0, "${name}")`
+	htmlWindow.runJS(jsToRun)
+	
+	if(!showBubbles){
+		return
+	}
+
+	let outline = Beat.outline()
+	let dialogForCharacter = []
+	let collect = false
+
+	for (element of outline){
+
+		let linesForScene = Beat.linesForScene(element)
+		let dialogInScene = []
+
+		for (line of linesForScene){
+
+			if (line.typeAsString() == "Character" && line.string.toUpperCase() == name.toUpperCase()) collect = true
+			if (!["Character", "Dialogue", "Parenthetical"].includes(line.typeAsString())) collect = false
+			if (line.typeAsString() == "Character" && line.string.toUpperCase() != name.toUpperCase()) collect = false
+
+			if (collect) dialogInScene.push({
+				"position": line.position,
+				"string": line.string,
+				"typeAsString": line.typeAsString(),
+				"omitted": line.omitted
+			})
+		}
+		dialogForCharacter.push(dialogInScene)
+	}
+
+	console.log(dialogForCharacter)
+
+	jsToRun = `showCharacterBubbles(${JSON.stringify(dialogForCharacter)}, ${JSON.stringify(name.toUpperCase())})`
+	htmlWindow.runJS(jsToRun)
+	htmlWindow.focus()
+
+}
+
+
+
 
 
