@@ -562,7 +562,7 @@ function addConfirmButtons(synopsisContainer, blurListener){
 	let cancelButton = document.createElement("div")
 		cancelButton.id = "cancelButton"
 		cancelButton.style.position = "absolute"
-		cancelButton.style.left = boxPos.x - 10 + "px"
+		cancelButton.style.left = boxPos.x - flexiContainer.getBoundingClientRect().left - 10 + "px"
 		cancelButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
 		// cancelButton.classList.add("addButton")
 		cancelButton.classList.add("confirmButtons")
@@ -574,7 +574,7 @@ function addConfirmButtons(synopsisContainer, blurListener){
 		let okButton = document.createElement("div")
 		okButton.id = "okButton"
 		okButton.style.position = "absolute"
-		okButton.style.left = boxPos.x - 10 + boxPos.width + "px"
+		okButton.style.left = boxPos.x - flexiContainer.getBoundingClientRect().left - 10 + boxPos.width + "px"
 		okButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
 		// okButton.classList.add("addButton")
 		okButton.classList.add("confirmButtons")
@@ -1094,11 +1094,11 @@ Beat.onSelectionChangeDisabled = true
 } */
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
-.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .section:has( > .section-heading:hover) > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .scene:hover > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .synopsiscontainer:hover {
+.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
+.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .scene:hover > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .synopsiscontainer:hover {
 
 	min-height: calc(14px * var(--fontSizeFactor)) !important;
 	transition: min-height 0.2s !important;
@@ -1106,11 +1106,11 @@ Beat.onSelectionChangeDisabled = true
 }
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.indexcards:not(:has(.editBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .scene:hover > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox)) .synopsiscontainer:empty:hover::after {
+.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .scene:hover > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .synopsiscontainer:empty:hover::after {
 
 	content: "double click to add synopsis";
 	text-align: center;
@@ -1123,6 +1123,7 @@ Beat.onSelectionChangeDisabled = true
 	position: absolute;
 	height: calc(8px * var(--fontSizeFactor));
 	top: calc(0px * var(--fontSizeFactor));
+	left: 0;
 	width: 100%;
 
 	transition-delay: 0.5s;
@@ -1226,7 +1227,7 @@ Beat.onSelectionChangeDisabled = true
     font-weight: bold;
     font-style: normal;
 
-    /* z-index: 9999; */
+    z-index: 9999;
     pointer-events: all !important;
 
     /* overflow:hidden; */
