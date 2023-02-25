@@ -230,7 +230,8 @@ function editContent(ev) {
         return
     }
 
-    if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading") && ![...theElement.classList].includes("notepanelNote")){ //experimental 2023-01-08
+    // if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading") && ![...theElement.classList].includes("notepanelNote")){ //experimental 2023-01-08
+    if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading")){ 
         return
     }
 
@@ -312,7 +313,8 @@ function editContent(ev) {
         let editBox = document.createElement("div")
             editBox.id = "editBox"
             editBox.draggable = false
-            editBox.innerHTML = theOldText
+            // editBox.innerHTML = theOldText
+            editBox.innerText = theOldText
             editBox.contentEditable = "true"
             editBox.classList.add("editBox")
             editBox.classList.add(kindOf)
@@ -330,7 +332,8 @@ function editContent(ev) {
         
         $id("flexiContainer").appendChild(editBox)
 
-            editBox.style.left = (sizes.left - leftIndent) + "px"
+            // editBox.style.left = (sizes.left - leftIndent) + "px"
+            editBox.style.left = (sizes.left - flexiContainer.getBoundingClientRect().left) + "px"
             editBox.style.top = sizes.top + scrolledAmount + "px"
             editBox.style.width = sizes.width + "px"
             // editBox.style.height = sizes.height + "px"
@@ -366,8 +369,8 @@ function editContent(ev) {
         editBox.style.margin = elementCSS.margin
         if (indexCardMode) {
             editBox.style.borderRadius = elementCSS.borderRadius
-        }else{
-            editBox.style.borderRadius = window.getComputedStyle(theElement.closest(".scene, .section")).borderRadius
+        }else if(theElement.closest(".scene, .section")){
+            editBox.style.borderRadius = window.getComputedStyle(theElement.closest(".scene, .section"))?.borderRadius
         }
         editBox.style.borderBottom = elementCSS.borderBottom
 
