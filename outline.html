@@ -51,7 +51,7 @@
 
 <script>
 
-// MARK: - all the buttons are here
+//MARK: - all the buttons are here
 
 document.addEventListener("dblclick", function(event){
 	event.preventDefault()
@@ -82,10 +82,7 @@ if(!document.createElement('dialog').showModal){
 	alertThis("Please update your Safari browser", "Beat plugins use WebKit to run, and FTOutliner uses features that were introduced with Webkit version 613.1.17 (which corresponds to Safari 15.4). \\n\\nPlease update your Safari to at least that version, or you may experience unexpected behavior from FTOutliner.")
 }
 
-
 // GLOBAL UI VARIABLES
-
-//# HEADER
 
 let smallTypeTimer //= null; //setting initial timer to avoid errors	
 let fullTypeTimer //= null;
@@ -1853,14 +1850,15 @@ function __________LISTENING (){}
 function checkWhatKeyGotPressed(someoneJustPressed) {
 	mylog("checkWhatKeyGotPressed(" + someoneJustPressed.key + ")")
 
-	if (event.ctrlKey && event.altKey && event.metaKey) return //because will go through Beat instead
+	//if (event.ctrlKey && event.altKey) return //because all ctrl + alt shortcuts will go through Beat instead
 	
-	if (someoneJustPressed.key == " " && event.ctrlKey && event.altKey && event.metaKey) {event.preventDefault(); setSharedScreen()}
+	//if (someoneJustPressed.key == " " && event.ctrlKey && event.altKey && event.metaKey) {event.preventDefault(); setSharedScreen()}
 	//if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
 
-	//if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); forceRestart()}
-	if (someoneJustPressed.key == "ä" && !someoneJustPressed.altKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
-	if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
+	//DEVELOPMENT SHORTCUTS: 
+		//if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); forceRestart()}
+		if (someoneJustPressed.key == "ä" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
+		//if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
 	
 
 

@@ -583,9 +583,6 @@ function selectSceneChunk(sceneChunk){
 
     if(!sceneChunk) return
 
-    console.log("selecting scenechunk")
-    console.log(sceneChunk)
-
     $$(".selectedSceneChunk").forEach(sceneChunk => {sceneChunk.classList.remove("selectedSceneChunk")})
     sceneChunk.classList.add("selectedSceneChunk")
 
@@ -671,7 +668,7 @@ function updateDialogPanel(){
 
 function showCharacterBubbles(scenesWithDialog, characterName, redraw){
 
-    console.log("showCharBub...", characterName)
+    mylog()
     $id("allDialogFor").selectedIndex = ([...$id("allDialogFor").options].map(option => option.value.toUpperCase())).indexOf(characterName)
     
     let scrolledAmountBeforeRedraw = $id("dialogpanelcontent").scrollTop
@@ -687,7 +684,7 @@ function showCharacterBubbles(scenesWithDialog, characterName, redraw){
         let theId = scenesWithDialog.indexOf(scene)
         let orphanId
             if($id(theId).classList.contains("section")){
-                console.log("found an orphan:" , $id(theId).querySelector(".orphanText")?.id)
+                // console.log("found an orphan:" , $id(theId).querySelector(".orphanText")?.id)
                 orphanId = $id(theId).querySelector(".orphanText")?.id
             }
 
@@ -779,7 +776,6 @@ function showCharacterBubbles(scenesWithDialog, characterName, redraw){
                     scrollNicelyIntoView(chunk.querySelector(".dialogChunk") || chunk, $id("dialogpanelcontent"))
                 }
 
-            console.log("ORPHAN", orphanId)
             $id(orphanId || theId).appendChild(displayNumberOf)
 
         //must set color after "displaynumberof", or else getcomputedstyle delivers blank    
@@ -811,8 +807,6 @@ function showCharacterBubbles(scenesWithDialog, characterName, redraw){
 
     console.timeEnd("bubbles")
 
-    console.log(document.activeElement)
-
 }
 
 function updateDialogPanelOnScroll(){
@@ -821,7 +815,6 @@ function updateDialogPanelOnScroll(){
 
     let elementSizes = hoveredChunk?.querySelector(".chunkHeading").getBoundingClientRect()
         if(elementSizes && $id("connector")){
-            console.log($id("dialogpanelcontent").scrollTop, (elementSizes.top + elementSizes.height/2))
             let chunkCorner = Math.min(Math.max((elementSizes.top + elementSizes.height/2), $id("dialogpanelcontent").getBoundingClientRect().top), $id("dialogpanelcontent").getBoundingClientRect().bottom)
 
             $id("connector")?.style.setProperty("--chunkCorner", chunkCorner + "px")
@@ -867,7 +860,7 @@ function createOrUpdateConnectorFor(element){
                 if (window.getComputedStyle(connectedScene).display == "none"){
                     nextVisibleScene = connectedScene
                     while ($id(Number(nextVisibleScene.id) + 1) && window.getComputedStyle(nextVisibleScene).display == "none") {
-                        console.log("looping: ", nextVisibleScene)
+                        // console.log("looping: ", nextVisibleScene)
                         nextVisibleScene = $id(Number(nextVisibleScene.id) + 1)
                     }
                     nextSceneSizes = nextVisibleScene?.getBoundingClientRect()
@@ -908,7 +901,7 @@ function createOrUpdateConnectorFor(element){
 
 function searchboxlisten(){
 
-    console.log(event)
+    mylog(event)
 
     let keypress = event.key
 
