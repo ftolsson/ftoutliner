@@ -2325,27 +2325,12 @@ function makeWider(theClickedThing, cycledWithKey, shift){
 			})
 			return
 		}
-	
-		// let allActs = $$(".level1")
-		// if(!theClickedThing?.classList.contains("editBox")){
-		// 	allActs.forEach(element => {
-		// 		element.classList.remove("wider")
-		// 	})
-		// }
-		// let theSelection = $$(".isSelected")
 
 		if (theClickedThing) {
 			$(".wider")?.classList.remove("wider")
 			theClickedThing.closest(".level1").classList.add("wider")
 			return
 		}
-		// if(indexCardMode && theSelection.length == 1 && (
-		// 	theSelection[0].classList.contains("section") ||
-		// 	theSelection[0].classList.contains("synopsis") ||
-		// 	theSelection[0].classList.contains("scene")
-		// )){
-		// 	theSelection[0].closest(".level1").classList.add("wider")
-		// }
 
 		if (!cycledWithKey) return
 
@@ -3044,6 +3029,8 @@ function zoomSizes(key){
 		case "0":
 			newZoomLevel = 1
 	}
+
+	if(!newZoomLevel) return //this can happen if we press a legal shortcut but with an extra modifier key. 
 
 	theRoot.style.setProperty('--fontSizeFactor', newZoomLevel)
 	currentZoomLevel = newZoomLevel

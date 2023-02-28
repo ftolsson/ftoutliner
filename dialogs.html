@@ -55,7 +55,7 @@
 	top: 50% !important; 
 	left: 50% !important;
 	transform: translate(-50%, -50%) !important;
-	height: 650px !important;
+	/* min-height: 650px !important; */
 	width: 650px !important; 
 	padding: 40px;
 	background-color:rgba(240,240,240,0.95); 
@@ -759,8 +759,17 @@ white-space: pre-wrap !important;
 	position: absolute !important;
 	padding: 20px !important;
 
-	max-height: unset !important;
-	height: auto !important;
+	/* max-height: unset !important; */
+	/* height: auto !important; *//*somehow, height auto SETS a clipping height rather than adjusting. Very weird. */
+
+	/* line-height: 10px !important; */
+}
+
+#advancedSettings.settingsWindow ul:last-of-type{
+
+	padding-bottom: 50px;
+	/*outline: 2px solid hotpink */
+
 }
 
 #advancedSettings li {
@@ -1007,6 +1016,16 @@ right: 0px !important
 			<input id="buttonForVerticals" type="checkbox">
 			<div class="switch"></div>  
 					<label style="pointer-events: none" for="buttonForVerticals">Show vertical bars for section levels<span class="shortcut" style="float:right">^V</span></label>
+		</li>
+		<li  onclick="advancedTogglers('autoWiden', 'buttonForAutoWiden')">
+			<input id="buttonForAutoWiden" type="checkbox">
+			<div class="switch"></div>  
+					<label style="pointer-events: none" for="buttonForAutoWiden">Automatically widen index cards when editing<span class="shortcut" style="float:right"></span></label>
+		</li>
+		<li  onclick="advancedTogglers('widenedColumnsGetAutoHeight', 'buttonForAutoHeight')">
+			<input id="buttonForAutoHeight" type="checkbox">
+			<div class="switch"></div>  
+					<label style="pointer-events: none" for="buttonForAutoheight">Widened cards also adjust height to fit<span class="shortcut" style="float:right"></span></label>
 		</li>
 	</ul>
 

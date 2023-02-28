@@ -280,6 +280,14 @@ transform: translateY(-3px);
 
 }
 
+.indexcards.widenedColumnsGetAutoHeight .wider .synopsiscontainer{
+
+	height: auto !important;
+	min-height: calc(var(--indexCardHeight) - calc(14px * var(--fontSizeFactor))) !important; 
+
+
+}
+
 .indexcards .scene{
 
 	

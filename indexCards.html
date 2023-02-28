@@ -392,16 +392,18 @@ function recallCardState(){
 }
 
 
-function indexCardEditor(theElement){
+function indexCardEditor(theElement, e){
 
 	mylog()
+
+	console.log(e, event)
 
 	if($id("synEditBox"))return
 	
 	//position the cursor at the click first!
 	let clickPosition = {}
-		clickPosition.x = event.pageX
-		clickPosition.y = event.pageY
+		clickPosition.x = event?.pageX || e.pageX
+		clickPosition.y = event?.pageY || e.pageY
 
 	let synopsisContainer = theElement.closest(".synopsiscontainer")
 		synopsisContainer.classList.remove("isSelected")
@@ -1086,11 +1088,11 @@ Beat.onSelectionChangeDisabled = true
 } */
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
-.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .scene:hover > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .synopsiscontainer:hover {
+.indexcards:not(:has(.editBox,#synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
+.indexcards:not(:has(.editBox,#synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .scene:hover > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .synopsiscontainer:hover {
 
 	min-height: calc(14px * var(--fontSizeFactor)) !important;
 	transition: min-height 0.2s !important;
@@ -1098,11 +1100,11 @@ Beat.onSelectionChangeDisabled = true
 }
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.indexcards:not(:has(.editBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .scene:hover > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, .addButton)) .synopsiscontainer:empty:hover::after {
+.indexcards:not(:has(.editBox, #synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.indexcards:not(:has(.editBox, #synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .scene:hover > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .synopsiscontainer:empty:hover::after {
 
 	content: "double click to add synopsis";
 	text-align: center;
@@ -1187,13 +1189,6 @@ Beat.onSelectionChangeDisabled = true
 .indexcards .section:not(.level1):has( > .synopsiscontainer > #synEditBox) > .synopsiscontainer {
 
 	box-shadow: 0px 1px 0px 2px black;
-
-	/* scale: 1.05 !important;
-	translate: 0 5%; */
-
-	/* margin-bottom: calc(0px + 0.1 * var(--indexCardHeight)) !important; */
-
-	/* transition: 0.2s; */
 
 }
 
