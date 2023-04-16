@@ -41,7 +41,8 @@
 }
 
 #notepanelcontent, 
-#dialogpanelcontent{
+#dialogpanelcontent,
+#scenespanelcontent {
 
     display: none;
 
@@ -62,7 +63,8 @@
 }
 
 #notepanel:has(.notetab.selectedtab) #notepanelcontent, 
-#notepanel:has(.dialogtab.selectedtab) #dialogpanelcontent {
+#notepanel:has(.dialogtab.selectedtab) #dialogpanelcontent,
+#notepanel:has(.scenestab.selectedtab) #scenespanelcontent {
 
     display: unset;
 
@@ -670,6 +672,7 @@ function cycleTabs(clickedElement){
         unShowCharacterBubbles()
         reevaluateColorContrast()
     }
+    if( $(".selectedtab").classList.contains("scenestab") ) { updateScenePanel() } 
 
     console.trace()
     console.log(document.activeElement)

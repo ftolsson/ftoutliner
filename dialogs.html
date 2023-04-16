@@ -801,7 +801,7 @@ white-space: pre-wrap !important;
 #advancedSettings .shortcut{
 
 	position: absolute;
-right: 0px !important
+	right: 0px !important
 
 }
 
@@ -985,6 +985,11 @@ right: 0px !important
 			<input id="buttonForLowerCase" type="checkbox">
 			<div class="switch" onclick="$id('buttonForLowerCase').click()"></div>  
 					<label style="pointer-events: none" for="buttonForLowerCase">Show SECTION capitalization as typed rather than uppercase only<span class="shortcut" style="float:right">^U</span></label>
+		</li>
+		<li onclick="advancedTogglers('showLengthsInSections', 'buttonForSectionLengths')">
+			<input id="buttonForSectionLengths" type="checkbox">
+			<div class="switch" onclick="$id('buttonForSectionLengths').click()"></div>  
+					<label style="pointer-events: none" for="buttonForSectionLengths">Show accumulated length-in-pages for sections<span class="shortcut" style="float:right"></span></label>
 		</li>
 	</ul>
 	<br/>

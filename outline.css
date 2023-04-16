@@ -1159,9 +1159,45 @@ p >.clear{
 	/* margin-top: 2px; */
 	margin-top: calc(1px * var(--fontSizeFactor)) !important;
 	padding: 0px 4px 4px 4px;
-	height: 1px; /*to avoid making sectionheadings higher*/
+	/* height: 1px; to avoid making sectionheadings higher */
+	height: auto; 
+	margin-bottom: calc(-5px * var(--fontSizeFactor));
 	pointer-events: none !important;
+
+	text-align: right;
+
+	/* line-height: calc(11px * var(--fontSizeFactor)) !important; */
+
 	}
+
+.showSectionLength {
+
+	font-weight: normal;
+
+	display: none;
+	padding-left: 0 !important;
+	margin-top: -6px !important;
+
+	height: auto;
+	overflow: visible;
+
+}
+
+#flexiContainer:not(.dualSectionLines) .showSectionLength br {
+	display: none;
+}
+
+#flexiContainer.showLengthsInSections .showSectionLength{
+
+	display: inline;
+
+}
+
+#flexiContainer.showLengthsInSections .showSectionPageNumber{
+
+	font-weight: bold;
+
+}
 
 .expandedNote .showSectionPageNumber{
 	display: none

@@ -62,6 +62,7 @@ var printCSS = Beat.assetAsString("printOutlineCSS.css")
 var indexcards = Beat.assetAsString("indexCards.html")
 var indexcards_css = Beat.assetAsString("indexCards.css")
 var notepanel = Beat.assetAsString("notepanel.html")
+var scenepanel = Beat.assetAsString("scenepanel.html")
 var menu = Beat.assetAsString("menu.html")
 var printing = Beat.assetAsString("printing.html")
 var thePanelWidth, thePanelHeight, thePanelX, thePanelY
@@ -85,6 +86,7 @@ var	html = //storingDefaultsHTML +
 	indexcards +
 	indexcards_css +
 	notepanel +
+	scenepanel +
 	menu +
 	dialogs + //changed
 	printing +
@@ -230,6 +232,7 @@ Beat.custom.reloadHTML = function(){
 	indexcards = Beat.assetAsString("indexCards.html")
 	indexcards_css = Beat.assetAsString("indexCards.css")
 	notepanel = Beat.assetAsString("notepanel.html")
+	scenepanel = Beat.assetAsString("scenepanel.html")
 	menu = Beat.assetAsString("menu.html")
 	printing = Beat.assetAsString("printing.html")
 
@@ -249,6 +252,7 @@ Beat.custom.reloadHTML = function(){
 	indexcards +
 	indexcards_css +
 	notepanel +
+	scenepanel +
 	menu +
 	dialogs + //changed
 	printing +
