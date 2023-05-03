@@ -1,3 +1,11 @@
+v 1.55 (may xx, 2023)
+=====================
+
+* Added advanced setting to optionally show the length of a section in the section header next to its starting page nuber.
+
+BUG FIXES:
+* Fixed a bug where dragging multiple objects of the same type resulted in a dialog saying you can only drag objects of the same type. Which you were already doing. No more of that nonsense.
+
 v 1.54 (February 28, 2023)
 ===========================
 

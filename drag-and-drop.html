@@ -234,8 +234,14 @@ function onDragStart(e) {
 
     //check so that all selected items are of the same kind!
     let draggedObjectTypes = [] 
-    $$(".isSelected").forEach(element => {draggedObjectTypes.push(Array.from(element.classList).filter(cl => ["section", "scene", "synopsis"].includes(cl)))})
-    if(!draggedObjectTypes.every(val => val === draggedObjectTypes[0])){
+    $$(".isSelected").forEach(element => {
+        //draggedObjectTypes.push(Array.from(element.classList).filter(cl => ["section", "scene", "synopsis"].includes(cl)))
+        let filteredClasses = Array.from(element.classList).filter(cl => ["section", "scene", "synopsis"].includes(cl))
+            if (filteredClasses.length > 0) {
+            draggedObjectTypes.push(filteredClasses[0])
+            }
+    })
+    if(!draggedObjectTypes.every(val => {return val === draggedObjectTypes[0]})){
         alertThis("Can not move different element types at once.")
         return
     }
