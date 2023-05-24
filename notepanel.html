@@ -693,16 +693,17 @@ function createNotepanel() {
 
     $id("notepanel").classList.add("expanded") //again, will animate if only added here.
 
-    if(!$(".noteButtons")){
-        $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'>
-                <input type='checkbox' ${documentSetting.noteButtonGreen ? `checked` : ``} id='noteButtonGreen' class='noteButton'>
-                <input type='checkbox' ${documentSetting.noteButtonYellow ? `checked` : ``} id='noteButtonYellow' class='noteButton'>
-                <input type='checkbox' ${documentSetting.noteButtonRed ? `checked` : ``} id='noteButtonRed' class='noteButton'>
-                <input type='checkbox' ${documentSetting.noteButtonMagenta ? `checked` : ``} id='noteButtonMagenta' class='noteButton'>
-                <input type='checkbox' ${documentSetting.noteButtonPurple ? `checked` : ``} id='noteButtonPurple' class='noteButton'>
-                <div id="notepanelReviewIcon"><input type='checkbox' ${documentSetting.noteButtonReview ? `checked` : ``} id='noteButtonReview' class='noteButton'></div>
-            </div>`
-    }
+    //Old notebuttons model
+        // if(!$(".noteButtons")){
+        //     $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'>
+        //             <input type='checkbox' ${documentSetting.noteButtonGreen ? `checked` : ``} id='noteButtonGreen' class='noteButton'>
+        //             <input type='checkbox' ${documentSetting.noteButtonYellow ? `checked` : ``} id='noteButtonYellow' class='noteButton'>
+        //             <input type='checkbox' ${documentSetting.noteButtonRed ? `checked` : ``} id='noteButtonRed' class='noteButton'>
+        //             <input type='checkbox' ${documentSetting.noteButtonMagenta ? `checked` : ``} id='noteButtonMagenta' class='noteButton'>
+        //             <input type='checkbox' ${documentSetting.noteButtonPurple ? `checked` : ``} id='noteButtonPurple' class='noteButton'>
+        //             <div id="notepanelReviewIcon"><input type='checkbox' ${documentSetting.noteButtonReview ? `checked` : ``} id='noteButtonReview' class='noteButton'></div>
+        //         </div>`
+        // }
 
     if($(".dialogtab.selectedtab")){
         setTimeout(function(){
@@ -711,6 +712,52 @@ function createNotepanel() {
     }
 
     setAllButtons()
+}
+
+function notePanelColorButtons(){
+
+    if(!$(".noteButtons")) $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'></div>`
+
+    let notesInPanel = $$(".notepanelNote")
+    let colorsInNotes = [...new Set([...notesInPanel].map(element => element.dataset.color))]
+
+    for (colbtn of colorsInNotes){
+
+        if(!$(`.noteButton[data-color="${colbtn}"]`)){
+
+            let btn = document.createElement("input")
+                btn.type = "checkbox"
+                btn.label = colbtn
+                btn.classList.add("noteButton")
+                btn.id = colbtn
+                btn.dataset.color = colbtn
+                btn.checked = true
+                btn.onclick = function(){
+                        $$(`.notepanelNote[data-color = "${btn.dataset.color}"]`).forEach(note => note.classList.toggle("displayNone", !btn.checked))
+                    }
+                btn.style.display = "inline-block"
+                btn.style.backgroundColor = $(`.notepanelNote[data-color="${colbtn}"]`).style.backgroundColor
+
+                $(".noteButtons").appendChild(btn)
+
+        }    
+    }
+
+    $$(".noteButton").forEach(notebtn => {
+        if(!$(`.notepanelNote[data-color="${notebtn.dataset.color}"]`)) notebtn.remove()
+        })
+
+    // if(!$(".noteButtons")){
+    //     $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'>
+    //             <input type='checkbox' ${documentSetting.noteButtonGreen ? `checked` : ``} id='noteButtonGreen' class='noteButton'>
+    //             <input type='checkbox' ${documentSetting.noteButtonYellow ? `checked` : ``} id='noteButtonYellow' class='noteButton'>
+    //             <input type='checkbox' ${documentSetting.noteButtonRed ? `checked` : ``} id='noteButtonRed' class='noteButton'>
+    //             <input type='checkbox' ${documentSetting.noteButtonMagenta ? `checked` : ``} id='noteButtonMagenta' class='noteButton'>
+    //             <input type='checkbox' ${documentSetting.noteButtonPurple ? `checked` : ``} id='noteButtonPurple' class='noteButton'>
+    //             <div id="notepanelReviewIcon"><input type='checkbox' ${documentSetting.noteButtonReview ? `checked` : ``} id='noteButtonReview' class='noteButton'></div>
+    //         </div>`
+    // }
+
 }
 
 function resizeNotepanel(){
@@ -764,19 +811,6 @@ function updateNotepanel(){
 
     $$(".notepanelNote").forEach(note => {note.remove()})
     $$(".notepanelReview").forEach(note => {note.remove()})
-    
-    // let currentNotes = $$(".notepanelNote")
-    // if (currentNotes.length > 0){
-    //     for (let note of currentNotes){
-    //         note.remove()
-    //     }
-    // }
-    // let currentReviews = $$(".notepanelReview")
-    // if (currentReviews.length > 0){
-    //     for (let review of currentReviews){
-    //         review.remove()
-    //     }
-    // }
 
     if((!globalNotesData && !globalReviewsData) || (globalNotesData?.length == 0 && globalReviewsData?.length == 0)) return
     
@@ -805,12 +839,25 @@ function updateNotepanel(){
                     // `<p class="notepanelHeadline">`+ elementType + `</p>`+
                     // globalNotesData[i].string.replace(/(\[|\])/g, "")
 
-            let colCode = globalNotesData[i].string.replace(/(\[|\])/g, "")
-            if (/^!{1}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF8888"; thisNote.classList.add("redNote")}//"red"}
-            if (/^!{2}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF88FF"; thisNote.classList.add("magentaNote")}//"magenta"}
-            if (/^!{3}/.test(colCode)){thisNote.style.backgroundColor = "#9088FF"; thisNote.classList.add("purpleNote")}//"#8000FF"}
-            if (colCode.startsWith("?")){thisNote.style.backgroundColor = "#88FF88"; thisNote.classList.add("greenNote")}//"lime"}
-            if (!colCode.startsWith("?") && !colCode.startsWith("!")) thisNote.classList.add("yellowNote")
+            // Old color model: 
+            // let colCode = globalNotesData[i].string.replace(/(\[|\])/g, "")
+            // if (/^!{1}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF8888"; thisNote.classList.add("redNote")}//"red"}
+            // if (/^!{2}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF88FF"; thisNote.classList.add("magentaNote")}//"magenta"}
+            // if (/^!{3}/.test(colCode)){thisNote.style.backgroundColor = "#9088FF"; thisNote.classList.add("purpleNote")}//"#8000FF"}
+            // if (colCode.startsWith("?")){thisNote.style.backgroundColor = "#88FF88"; thisNote.classList.add("greenNote")}//"lime"}
+            // if (!colCode.startsWith("?") && !colCode.startsWith("!")) thisNote.classList.add("yellowNote")
+
+            let dummydiv = document.createElement("div")
+                dummydiv.style.backgroundColor = globalNotesData[i].color
+                document.body.appendChild(dummydiv)
+            let colCode = window.getComputedStyle(dummydiv).backgroundColor || "#FFFF00"
+                if (colCode == "rgba(0, 0, 0, 0)") colCode = "rgb(255,255,0)" //"#FFFF00"
+
+                thisNote.style.backgroundColor = lightenColor(colCode, 50)
+                thisNote.dataset.color = colCode 
+                dummydiv.remove()
+
+                if($(`.noteButton[data-color="${colCode}"]`) && !$(`.noteButton[data-color="${colCode}"]`).checked) thisNote.classList.add("displayNone")
 
             // $id("notepanel").appendChild(thisNote)
             $id("notepanelcontent").appendChild(thisNote)
@@ -847,6 +894,8 @@ function updateNotepanel(){
 
         }
     }
+
+    notePanelColorButtons()
 
     mylog("end of update notepanel")
 }

@@ -341,6 +341,7 @@ __________BASIC ELEMENTS{}
 	
 	/* setting margin-top programmatically due to allowing space for orphan material */
 	margin-top: 1px;
+	margin-top: 0px;
     margin-right: 8px;
 	margin-left: 6px;
 	margin-bottom: 0px;
@@ -353,6 +354,7 @@ __________BASIC ELEMENTS{}
 	line-height: calc(14px * var(--fontSizeFactor));
 	
 	border: none; 
+	border: 0.5px solid rgba(0, 0, 0, 0.35);
 	border-radius: 3px;	
 	
 	color: #000;
@@ -364,7 +366,9 @@ __________BASIC ELEMENTS{}
 
 	pointer-events: all;
 
-	box-shadow: 0 1rem 2rem hsl(0 0% 0% / 20%); 
+	box-shadow: 0 1rem 2rem hsl(0 0% 0% / 20%),
+				inset 0.5px 0.5px 0 0px rgba(255, 255, 255, 0.3),
+				inset -0.5px -0.5px 0 0px rgba(0, 0, 0, 0.3); 
 	transition: height 0.1s, width 0.2s;
 
 	height: calc(var(--flexibleHeight) * var(--heightFactor));
@@ -373,13 +377,17 @@ __________BASIC ELEMENTS{}
 
 #flexiContainer.nonProportionalMode .isExpanded > .scene{
 
-	height: calc(var(--fixedHeight) * var(--fontSizeFactor)) !important;
+	height: calc(var(--fixedHeight) * var(--fontSizeFactor) + 1px) !important;
+
+	/* padding-top: 1px;
+	padding-bottom: 1px; */
 
 }
 
 .sceneheading {
 
 	margin-left: 0px;
+	margin-top: -1px;
 
 	padding-left: 6px;
 	padding-right: 4px;
@@ -454,41 +462,6 @@ __________BASIC ELEMENTS{}
 
 	pointer-events: all;
 	
-}
-
-DISABLED.level1 > .synopsiscontainer{
-	
-	/* --localColor: rgba(0,0,0,0.2); */
-	height: auto !important;
-	/* min-height: 14px !important; */
-	
-}
-
-DISABLED.showSynopsisInScenes:not(.indexcards) .synopsiscontainer{
-	display: block;
-	background: none !important;
-	margin: 0;
-	padding: 0;
-
-	position:relative;
-	padding-top: 3px;
-	padding-bottom: 3px;
-}
-
-DISABLED.showSynopsisInScenes:not(.indexcards) .section:not(.level1) > .synopsiscontainer:has( > .synopsis)::before{
-
-	/*PURPOSE: Fixed view, allows faint background to synopsiscontainer of sections*/
-
-	content: "";
-	position: absolute;
-	top: 0px;
-	left: 2px;
-	right: 0;
-	bottom: 0;
-
-	background: var(--localColor) !important;
-	opacity: 0.2;
-
 }
 
 .synopsis,
@@ -711,11 +684,11 @@ __________PAGE BREAK REREPRESENTATIONS{}
 #flexiContainer:not(.indexcards):not(.nonProportionalMode) .blankPage {
 
 	position: absolute !important;
-	left: 0px !important;
-	width: 100% !important;
+	left: -0.5px !important;
+	width: calc(100% + 1px) !important;
 
 	border-top: 10px transparent !important; /* prepare space for cogs */
-	background-image: linear-gradient(transparent, transparent),/*linear-gradient(orange, orange), /* general block background, always goes first, overlapping everything below it */
+	background-image: linear-gradient(transparent, transparent),
 					linear-gradient(to bottom right, 
 						transparent 50.5%, 
 						var(--pageBackground) 50.5%), 
@@ -950,7 +923,9 @@ __________COLLAPSED IN FIXED VIEW{}
 
 	height: 0px !important;
 	margin: 0 !important;
+	margin-top: 1px !important;
 	min-height: 0px !important;
+	border: none !important;
 
 }
 

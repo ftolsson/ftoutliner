@@ -3,8 +3,8 @@
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2022
-Version: 1.54
-Compatibility: 1.985
+Version: 1.60
+Compatibility: 1.995.1
 Type: Tool
 Image: screenshot.jpg
 
@@ -35,14 +35,14 @@ a {
 
 // Beat.openConsole()
 
-Beat.setUserDefault("ftoutlinerVersion", "1.54") //also change in description above!
+Beat.setUserDefault("ftoutlinerVersion", "1.60") //also change in description above!
 
-if (!Beat.compatibleWith(1.985)){
+	// if (!Beat.compatibleWith(1.9951)){
 
-	Beat.alert("You need to update Beat to run FTOutliner",
-		"This version of FTOutliner uses new features introduced in Beat 1.977 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
-	return
-}
+	// 	Beat.alert("You need to update Beat to run FTOutliner",
+	// 		"This version of FTOutliner uses new features introduced in Beat 1.995 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
+	// 	return
+	// }
 
 var backgroundAlreadyRunning = false
 var queueOneMoreFullUpdate = false
@@ -271,12 +271,13 @@ Beat.onEscape(function () {
 
 })
 
+Beat.onOutlineChange(function() { 
 
-Beat.onOutlineChange (function() { 
+	needsFullUpdate = true //this tells onPreviewFinished which update method to use
+	outlineJustFired = true //are we using this? check and delete if not used anymore
+
+	htmlWindow.runJS(`toggleWaitState(true)`)
 	
-	outlineJustFired = true
-	let jsToRun = `startFullUpdate()`	
-	htmlWindow.runJS(jsToRun)
 
 			// PLUGIN: onOutlineChange (THIS FUNCTION) will call...
 			// HTMLWINDOW: startFullUpdate, which will call...
@@ -289,7 +290,7 @@ Beat.onOutlineChange (function() {
 
 Beat.custom.updateEntireOutline = function (location, length, previousOutlineLength) {
 
-	if (backgroundAlreadyRunning){
+	if (backgroundAlreadyRunning) {
 		return}
 
 	fullUpdateInProgress = true		
@@ -300,52 +301,34 @@ Beat.custom.updateEntireOutline = function (location, length, previousOutlineLen
 		`
 		htmlWindow.runJS(jsToRun)
 
-	if(!location){
+	if (!location) {
 		location = Beat.selectedRange().location
 	}
 	
-	let outlineElements = [...Beat.outline()]
-	const paginator = Beat.paginator()
-
-	Beat.dispatch(function(){
+	//Beat.dispatch(function() {
 		Beat.log("          Now entering dispatch")
 
-		backgroundAlreadyRunning = true
+	//	backgroundAlreadyRunning = true
 
-		let pagesForElements = []
-		let pageBreakPositions = []
-		let pages
-		let pageBreaks
-	
-			try{
-
-				for (scene of outlineElements){
-					let returnvalue = paginateThis(scene, paginator)
-						pagesForElements.push(returnvalue[0])
-						pageBreakPositions.push(returnvalue[1] || false)
-						//pagesForElements.push(paginateThis(scene, paginator))
-				}
-				
-				pages = JSON.stringify(pagesForElements)
-				pageBreaks = JSON.stringify(pageBreakPositions)
-				
-			} catch(e) {
-				Beat.dispatch_sync(function(){	
-					htmlWindow.runJS(`mylog("There was an ERROR in the background: updateEntireOutline() ` + e + `", true)`)
-				})
-			}
-		
-		Beat.dispatch_sync(function(){	
+	//	Beat.dispatch_sync(function() {	
 			Beat.log("          dispatch_sync, runJS")
 
-			let tmp = makeJSON() 
-			let json = tmp.json
-			let frontMatter = tmp.frontMatter
+			// Faux values
+			let pages = "[]"
+			let pageBreaks = "[]"
+			let pageBreakPosition = "false"
+
+			// Get the whole paginated JSON + frontMatter (what is this?)
+			let paginatedOutline = outlineWithPagination()
+			let json = JSON.stringify(paginatedOutline)
+			let frontMatter = getFrontMatter()
+
+			//Beat.log(json)
+
 
 			htmlWindow.runJS("updateEverything(" + json + "," + location + "," + length + "," + pages + "," + Beat.getText().length + "," + pageBreaks + "," + frontMatter + ")")
 			
-
-			if(queueOneMoreFullUpdate){
+			if (queueOneMoreFullUpdate) {
 				queueOneMoreFullUpdate = false
 				//Beat.log("Firing another round due to queued up outline change!")
 				Beat.custom.updateEntireOutline()
@@ -360,55 +343,68 @@ Beat.custom.updateEntireOutline = function (location, length, previousOutlineLen
 			// to the paginated data. This is not perfect, but seems to be as good as we can get.
 			
 			outlineJustFired = false
-			Beat.custom.updateOnlyOneScene(location, length)
-		})
-	})
+			//Beat.custom.updateOnlyOneScene(location, length)
+//		})
+//	})
 }
 
-Beat.onTextChange(function (location, length) { 
-	// Beat.log("FIRED: onTextChange -- location is " + location)
 
-	if(outlineJustFired){
-		return
-	}
+// Beat.onTextChange(function (location, length) { 
+// 	// Beat.log("FIRED: onTextChange -- location is " + location)
 
-	if(location){ //check if we are in an outline element and if so disreagard this call
-		let outlineDetector = Beat.currentParser.lineAtIndex(location)
+// 	if(outlineJustFired){
+// 		return
+// 	}
+
+// 	if(location){ //check if we are in an outline element and if so disreagard this call
+// 		let outlineDetector = Beat.currentParser.lineAtIndex(location)
 		
-		if (outlineDetector?.isOutlineElement()){
+// 		if (outlineDetector?.isOutlineElement()){
+// 			return
+// 		}
+// 	}
 
-			//Beat.log("            >>> ENDING onTextChange bc writing in outline")
-			return
-		}
-	}
-
-	if (!fullUpdateInProgress){
-		smallUpdateInProgress = true
-		htmlWindow.runJS("startSmallUpdate(" + location + "," + length + ", " + "1000" + ", " + JSON.stringify(Beat.currentParser?.sceneAtPosition(location)?.typeAsString()) + ")") 
-	}
+// 	if (!fullUpdateInProgress){
+// 		//smallUpdateInProgress = true
+// 		// htmlWindow.runJS("startSmallUpdate(" + location + "," + length + ", " + "1000" + ", " + JSON.stringify(Beat.currentParser?.sceneAtPosition(location)?.typeAsString()) + ")") 
+// 		htmlWindow.runJS(`startUpdate({"location": ${location}, "length": ${length} , "delayTime": ${1000} , "elementType": ${JSON.stringify(Beat.currentParser?.sceneAtPosition(location)?.typeAsString()) }})`) 
+// 	}
 	
-			// PLUGIN: onTextChange (THIS FUNCTION) will call...
-			// HTMLWINDOW: startSmallUpdate, which will call...
-			// PLUGIN: beat.custom.updateOnlyOneScene, which will call...
-			//         makeJSON, then
-			//         paginateThis, which returns to updateOnlyOneScene, which will call...
-			// HTMLWINDOW: updateOneScene
+// 			// PLUGIN: onTextChange (THIS FUNCTION) will call...
+// 			// HTMLWINDOW: startSmallUpdate, which will call...
+// 			// PLUGIN: beat.custom.updateOnlyOneScene, which will call...
+// 			//         makeJSON, then
+// 			//         paginateThis, which returns to updateOnlyOneScene, which will call...
+// 			// HTMLWINDOW: updateOneScene
 
+// })
+
+
+var needsFullUpdate = false
+
+Beat.onPreviewFinished(function(changedIndices) {
+    
+	// This is the earliest index which has changed
+    let index = changedIndices[0]
+
+    if (needsFullUpdate) {
+
+		htmlWindow.runJS("startUpdate()")
+
+    } else {
+		
+		if(!outlineJustFired){
+		htmlWindow.runJS(`startUpdate({"location": ${location}, "length": ${length} , "delayTime": ${1000} , "elementType": ${JSON.stringify(Beat.currentParser?.sceneAtPosition(location)?.typeAsString()) }})`) 
+		}
+    }
 })
 
 Beat.custom.updateOnlyOneScene = function (location, length) {
-	//Beat.log("==================== updateOnlyOneScene, location is" + location)
-	htmlWindow.runJS("document.getElementById('outOfSyncDiv').classList.add('animate')");
-	htmlWindow.runJS("document.getElementById('outOfSyncDiv').style.display = 'block'");
-	htmlWindow.runJS("document.getElementById('flexiContainer').classList.add('wait')");
+	
+	// htmlWindow.runJS("toggleWaitState(true)");
 
 	if(outlineJustFired){
 		//Beat.log("CANCELED UPDATE_ONLY_ONE B/C OutlineJustFired"); 
-		return
-	}
-
-	if (backgroundAlreadyRunning){
-		//Beat.log("          CANCELLED UPDATE ONLY ONE B/C BACKGROUND WAS RUNNING!")
 		return
 	}
 
@@ -419,32 +415,32 @@ Beat.custom.updateOnlyOneScene = function (location, length) {
 			fetchDocumentTitles(a.string)
 		}
 	}
-
-	runCounterText++
-	//Beat.log("Only Once Scene is now RUNNING! " + runCounterText)
 	
-	let outlineElements = Beat.outline()
-	let whichSceneAreWeIn = 0
-	while (outlineElements[whichSceneAreWeIn + 1] && outlineElements[whichSceneAreWeIn + 1].sceneStart < location){
-		whichSceneAreWeIn ++
-	}
-
-	while (outlineElements[whichSceneAreWeIn - 1] && outlineElements[whichSceneAreWeIn].typeAsString() == "Synopse"){whichSceneAreWeIn --} //added to fix static scenes if synopse 21'11'17
-
-	let scene = outlineElements[whichSceneAreWeIn]
-	const paginator = Beat.paginator()
-	let returnvalue = paginateThis(scene, paginator)
-		let pages = returnvalue[0]
-		let pageBreakPosition = returnvalue[1]
-
-	let tmp = makeJSON() 	
-	let json = tmp.json
-	let frontMatter = tmp.frontMatter
+	// Get current scene index
+	let currentScene = Beat.outline().indexOf(Beat.currentScene)
 	
-	htmlWindow.runJS("updateOneScene(" + json + "," + whichSceneAreWeIn + "," + pages + "," + location + "," + length + "," + Beat.getText().length + "," + pageBreakPosition + "," + frontMatter + ")")
+	// Faux values
+	let pages = "[]"
+	let pageBreakPosition = "false"
+
+	// Get the whole paginated JSON + frontMatter (what is this?)
+		let paginatedOutline = outlineWithPagination()
+		let json = JSON.stringify(paginatedOutline)
+	// let json = JSON.stringify(Beat.outline)
+	let frontMatter = getFrontMatter()
+	
+	htmlWindow.runJS("updateOneScene(" + json + "," + currentScene + "," + pages + "," + location + "," + length + "," + Beat.getText().length + "," + pageBreakPosition + "," + frontMatter + ")")
+}
+
+Beat.custom.returnOutlineWithoutPages = function (){
+
+	return JSON.stringify(Beat.outlineAsJSON())
+
 }
 
 Beat.onSelectionChange(function (location, length) {
+
+	// htmlWindow.runJS(`document.getElementById("dumpDiv").innerText = ${location}`)
 	
 	if (fullUpdateInProgress || smallUpdateInProgress){
 		return
@@ -464,96 +460,117 @@ Beat.onSelectionChange(function (location, length) {
 
 function ____________________HELPERS__________(){}
 
-// function paginateThis(scene, paginator, content) { //PREVIOUSLY HAD CONTENT HERE
-function paginateThis(scene, paginator) {
+let pagination
+const paginationManager = Beat.currentPagination()
 
-	//Beat.log("PaginateThis") This is the wildest time-suck. How to avoid?
+function outlineWithPagination() {
+	
+	pagination = paginationManager.finishedPagination
+	let sceneData = []
+	let zeroHeight = []
 
-	let fixedPage
-	let content
-	let pageBreakIndex
+	// Beat.log("🟪🟪🟪" + pagination.pages)
+	// for (let i=0;i < pagination.pages.length; i++) {
+	// 	const page = pagination.pages[i]
+	// 	Beat.log("🟨 Page " + i + ": " + page.representedRange().location + ", " + page.representedRange().length)  
+	// }
+	
+	for (const scene of Beat.outline()) {
+		let data = scene.json()
 
-	try{
+		//original method, now replaced by next line:
+			//data.numberOfPages = pagination.heightForScene(scene) / Beat.currentPagination().maxPageHeight
 
-		content = Beat.linesForScene(scene)	
+		//Here's a fix to give heights to orphan text, i.e. stuff that comes directly after a section:
+			//if(scene.typeAsString() == "Section") 
+			//I have now made it the one and only way to retrieve heights, bc heightForScene incorrectly includes next orphan in its own height.
+			data.numberOfPages = pagination.heightForRange({ location: scene.position, length: scene.length }) / Beat.currentPagination().maxPageHeight
 
-		//pageBreakFinder:
+		data.startsOnPage = pagination.pageNumberAt(scene.position)
+		data.positionOnPage = 0.0
 
-			let subContent = []
-			let addExtraLine = 0
-			
-			for (contentline of content){
-				
-				if(contentline.typeAsString() == "Page Break") {
-					
-					paginator.paginateLines(subContent)
-					pageBreakIndex = (paginator.numberOfPages + paginator.lastPageHeight - (paginator.lastPageHeight > 0 ? (paginator.numberOfPages < 1 ? 0 : 1) : 0))
-					
-					//break // NO: without break, we will do this for the LAST pagebreak in a scene if several. Which seems reasonable!
-				}
-
-				if(contentline.typeAsString() == "Heading") addExtraLine = 2/58
-
-				subContent.push(contentline)
+		//BUG HUNT PART I: Checking for zero-height scenes!
+			if (data.numberOfPages == 0 && data.typeAsString == "Heading" && !data.omitted){ 
+				zeroHeight.push(data)
 			}
 
-		paginateStartTime = new Date ()
-		paginator.paginateLines(content)
+		if (data.startsOnPage > 0) {
+			// Get the (relative) y position of the block for this line
+			// If it's below 0, it's probably an outline element
+			let page = pagination.pages[data.startsOnPage - 1]
+				data.positionOnPage = page?.positionOfBlockForLine(scene.line)
+				if (data.positionOnPage < 0) data.positionOnPage = 0.0;
+		} 
 
-		paginateEndTime = new Date ()
-		timeSpentPaginatingLines += (paginateEndTime.getTime() - paginateStartTime.getTime())
+		//any length of a hidden heading should go into its closest visible parent!
+			if (data.omitted){			
+				let closestVisibleParent = -1
+					while (sceneData.at(closestVisibleParent).omitted && (sceneData.length + closestVisibleParent > 0)){
+						closestVisibleParent --
+					}
+					sceneData.at(closestVisibleParent).numberOfPages += data.numberOfPages
+				data.numberOfPages = 0 //because the height of the omitted scene is now transferred to previous unomitted one
+			}
 
-		let pagesToReduceWith = 0
-		// if (paginator.lastPageHeight > 0){
-		// pagesToReduceWith = (paginator.numberOfPages < 1)? 0 : 1
-		// }
-			if (paginator.lastPageHeight > 0 && paginator.numberOfPages > 0) pagesToReduceWith = 1
-		fixedPage = paginator.numberOfPages + paginator.lastPageHeight - pagesToReduceWith
-
-		// if(accumulatedLastPageHeight) fixedPage = fullPageLengthForBrokenScene
-
-		smallUpdateInProgress = false
-
-		// fixedPage += hackyAbsoluteHeightOfLine / 2 //adds a line before each scene. Since removed, and since changed to HALF a line.
-		fixedPage += addExtraLine
-
-	} catch(e) {
-		Beat.dispatch_sync(function(){	
-			htmlWindow.runJS(`mylog("There was an ERROR in the background: paginatethis() ` + e + `", true)`)
-		})
+		let lines = Beat.linesForScene(scene)
+		let breakLines
+		
+			breakLines = lines.filter(line => line.typeAsString() == "Page Break").map(line => {
+				let previousLine = Beat.currentParser.lineAtIndex(line.range.location - 2)
+				let thispage = pagination.pageNumberAt(line.range.location - 2)
+				let page = pagination.pages[thispage -1]
+				return {"startPageIncFraction": thispage + page?.positionOfBlockForLine(previousLine), "fullpage": pagination.pageNumberAt(line.range.location), "pageBreakIndex": line.range.location}
+			})
+		
+		data.breakLines = breakLines
+		sceneData.push(data)
 	}
 
-	//Beat.log("End of PaginateThis  -- result was " + fixedPage)
-	return [fixedPage, pageBreakIndex]
+		//BUG HUNT PART II: Firing a dialog if there was a zero-height scene
+		if (zeroHeight.length > 0){ 
+			//Beat.alert("Zero Height Happened!", `Check your console log for the ${zeroHeight.length} entries that returned zero.`)
+		}
+
+	return sceneData
 }
 
-function makeJSON(){
-
-	let outlineItems = Beat.outlineAsJSON() 
-	let allLines = Beat.lines()
+function getFrontMatter() {
 	let frontMatter = 0
 
-	//what in the world did I think this one was doing?
-		// for (let i = 0; i < outlineItems.length; i ++){
-		// 	outlineItems[i].pageBreak = "---"
-		// }
-
-	let line
-	for (line of allLines){
+	for (const line of Beat.lines()) {
 		if (line.isTitlePage() || ["Empty", "Synopse"].includes(line.typeAsString())) {
 			frontMatter = line.position + line.range.length
 		}
-		if (!line.isTitlePage() && !["Empty", "Synopse"].includes(line.typeAsString())) {
+		else if (!line.isTitlePage() && !["Empty", "Synopse"].includes(line.typeAsString())) {
 			break
 		}
 	}
-	outlineItems[0].frontMatter = frontMatter //this is NOT shipping it over -- what to do...
 
-    let json = JSON.stringify(outlineItems)
-
-	// Beat.log(outlineItems)
-    return {"json": json, "frontMatter": frontMatter}
+	return frontMatter
 }
+
+// function makeJSON(){
+
+// 	let outlineItems = Beat.outlineAsJSON() 
+// 	let allLines = Beat.lines()
+// 	let frontMatter = 0
+
+// 	let line
+// 	for (line of allLines){
+// 		if (line.isTitlePage() || ["Empty", "Synopse"].includes(line.typeAsString())) {
+// 			frontMatter = line.position + line.range.length
+// 		}
+// 		if (!line.isTitlePage() && !["Empty", "Synopse"].includes(line.typeAsString())) {
+// 			break
+// 		}
+// 	}
+// 	outlineItems[0].frontMatter = frontMatter //this is NOT shipping it over -- what to do...
+
+//     let json = JSON.stringify(outlineItems)
+
+// 	// Beat.log(outlineItems)
+//     return {"json": json, "frontMatter": frontMatter}
+// }
 
 function titleCaseThis(str) {
 	let upper = true;
@@ -567,13 +584,12 @@ function titleCaseThis(str) {
 	  newStr += upper ? str[i].toUpperCase() : str[i].toLowerCase();
 	  upper = false;
 	}
-	// Beat.log("titleCase of " + str + " is now" + newStr)
 	return newStr;
 }
 
 
-
 function ____________________STORING_STUFF___________________(){}
+//#region 
 
 function makeStoringDefaultsDiv(){
 
@@ -726,6 +742,7 @@ Beat.custom.limitWidth = function() {
 	htmlWindow.runJS("someoneResizedTheWindow()")
 
 }
+//#endregion
 
 function ____________________CHARACTER_TRACKING___________________(){}
 
@@ -948,7 +965,7 @@ Beat.custom.changeElementColor = function (elements, newColor){
 		location = Beat.selectedRange().location
 	//}
 
-	htmlWindow.runJS("startSmallUpdate(" + location + ", false, 0)")
+	//htmlWindow.runJS("startSmallUpdate(" + location + ", false, 0)")
 }
 
 function ____________________NOTES__________(){}
@@ -996,38 +1013,47 @@ Beat.custom.collectNotes = function() {
 		let entry = 0
 		let markernumber = 0
 
-		let reg = (/\[\[.*\]\]/)
+		let reg = (/\[\[.*?\]\]/g)
 		
 			let allLines = Beat.lines()
 									
 					for (line of allLines){
-								
-						if (line.typeAsString() == "Synopse" && !Beat.compatibleWith(1.977)){
-							outlineElementNumber ++
-							continue
-						} //only interesting in old synopsis model
 						
 						if (["Heading", "Section"].includes(line.typeAsString())){
 							outlineElementNumber ++
 							lastElementThatWasScene = outlineElementNumber
 						}
 
-						if (!line.note && !line.string.includes("[[")) continue
+						// if (!line.note && !line.string.includes("[[")) continue
+						if (!line.noteData) continue
 
 						//first check: inline notes
 						if(!line.note && line.string.includes("[[")){
-							if(!["Heading", "Section", "Synopse"].includes(line.typeAsString())){
-								let result = reg.exec(line.string)
-								if (result){
-									note[entry] = {}
-									let inlineNote = result[0]
-									let inlineNoteIndex = result.index || 0												
-									//note[entry] = new notesData((line.position + inlineNoteIndex), inlineNote)
-									note[entry].outlineElementNumber = lastElementThatWasScene
-									note[entry].position = (line.position + inlineNoteIndex)
-									note[entry].string = inlineNote
-									entry ++
-								}
+							if(!["Heading", "Section"].includes(line.typeAsString())){
+								//let result = reg.exec(line.string)
+								let result = line.string.match(reg)
+
+								// if (!!result){
+									for (res of result){
+
+										note[entry] = {}
+										let inlineNote = res
+										let inlineNoteIndex = res.index || 0												
+										//note[entry] = new notesData((line.position + inlineNoteIndex), inlineNote)
+										note[entry].outlineElementNumber = lastElementThatWasScene
+										note[entry].position = (line.position + inlineNoteIndex)
+										// note[entry].string = inlineNote
+										note[entry].string = line.noteData()[result.indexOf(res)].content
+										note[entry].color = line.noteData()[result.indexOf(res)].color
+											if(line.string.startsWith("[[!")) note[entry].color = "red"
+											if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
+											if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
+											if(line.string.startsWith("[[?")) note[entry].color = "lime"
+											if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
+										note[entry].type = "note"
+										entry ++
+									}
+								// }
 							}
 						}
 
@@ -1046,25 +1072,36 @@ Beat.custom.collectNotes = function() {
 							note[entry] = {}
 							note[entry].outlineElementNumber = lastElementThatWasScene
 							note[entry].position = line.position
-							note[entry].string = line.string
+							// note[entry].string = line.string
+							note[entry].string = line.noteData()[0].content
+							note[entry].color = line.noteData()[0].color
+								if(line.string.startsWith("[[!")) note[entry].color = "red"
+								if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
+								if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
+								if(line.string.startsWith("[[?")) note[entry].color = "lime"
+								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
+							//Beat.alert(Object.keys(line))
+							note[entry].type = "note"
 							entry ++
 						}
 					}
 				outlineElementNumber ++ //this is redundant, no?
 
+
 			// Cycle all notes and put them in different arrays depending on type.
 			// (This opens for creating new subsets of notes depending on starting term.)
 			for (entry of note){
-				if (entry.string.trim().startsWith("[[marker")){
-					let stringIntoColor = entry.string.trim().toLowerCase().replace(/\[\[marker:*\s*/, "")
+				if (entry.string.trim().startsWith("marker")){
+					let stringIntoColor = entry.string.trim().toLowerCase().replace(/marker:*\s*/, "")
 					stringIntoColor = stringIntoColor.match(/^#+[0-9]+|[a-z]*/)
-					entry.color = stringIntoColor
+					entry.color = entry.color || stringIntoColor
 					if(entry.string.includes(":")){
 						stringIntoStory = entry.string?.replace(/^(.*?):/,"")?.replace(/\]\]/, "")?.toUpperCase()
 						entry.story = stringIntoStory
+						entry.type = "marker"
 					}
 					marker.push(entry)
-				}else if(entry.string.trim().startsWith("[[beat")){
+				}else if(entry.string.trim().startsWith("beat")){
 					let strippedString = entry.string.replace(/\[\[beat\s*/i, "").replace(/\]\]/,"")
 					let stringIntoStory = strippedString?.toUpperCase()
 					if(strippedString.includes(":")){
@@ -2306,7 +2343,22 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 
 }
 
+Beat.custom.test = function(){
 
+	lines = Beat.lines()
+	arr = []
+	for (line of lines) arr.push(line.string)
+	return arr
+
+}
+
+Beat.custom.newDocWithPages = function(){
+
+	
+
+
+
+}
 
 
 

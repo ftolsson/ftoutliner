@@ -496,14 +496,9 @@ function exitEdit(theElement, changesWereConfirmed) {
                 resultingLine = line + newContent
             }
 
-            // alertThis("shownLine: " + shownLine, "line: " + line + "\n" + "line.replace(shownLine, newContent) : " + resultingLine)
-
             if (theElement.classList.contains("heading") && !resultingLine.startsWith(".") && !resultingLine.startsWith("INT") && !resultingLine.startsWith("EXT")){
                 resultingLine = "." + resultingLine
             }
-
-            //Hacky fix to eliminate orphan = after change of outline.line.string for synopsis
-            // if (theElement.classList.contains("synopsis") && (resultingLine.trim() == "=" || resultingLine.trim() == "")){resultingLine = ""}
 
             Beat.call(`
                 Beat.onTextChangeDisabled = true
@@ -518,7 +513,9 @@ function exitEdit(theElement, changesWereConfirmed) {
 		        Beat.onOutlineChangeDisabled = false
 		        Beat.onSelectionChangeDisabled = false`
             )
-            startSmallUpdate(1)
+
+            //startSmallUpdate(1)
+            startImmediateUpdate()
 
         }else{
 

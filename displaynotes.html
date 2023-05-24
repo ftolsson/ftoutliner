@@ -665,6 +665,8 @@ function displayNotes(notesData, markerData, beatData){
 
     for (i=0; i<notesData.length; i++){
 
+        // alertThis(JSON.stringify(notesData))
+
         if(!outline[notesData[i].outlineElementNumber]){
             mylog("i is now " + i + "but number of outline elements is: " + outline.length)
             //THIS IS A BUGGY SITUATION THAT SHOULD NOT OCCUR, yet does at times.
@@ -751,10 +753,11 @@ function displayNotes(notesData, markerData, beatData){
             thisNote = thisNote.replace(/\_(.*)\_/g, "<u>$1</u>")
 
         $id(currentContainer).innerHTML += notesDivStart + thisNote.replace(/^\?*\!*/g, "") + notesDivEnd
-        if (thisNote.startsWith("!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "red"}
-        if (thisNote.startsWith("!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "magenta"}
-        if (thisNote.startsWith("!!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "#8000FF"}
-        if (thisNote.startsWith("?")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "lime"}
+        if (notesData[i].color) $("[data-noteNumber = '" + i + "']").style.backgroundColor = notesData[i].color
+        // if (thisNote.startsWith("!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "red"}
+        // if (thisNote.startsWith("!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "magenta"}
+        // if (thisNote.startsWith("!!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "#8000FF"}
+        // if (thisNote.startsWith("?")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "lime"}
 
         mylog("end of Note Loop")
     }
@@ -811,7 +814,8 @@ function createDocFromNotes(){
 
 function displayMarkers(){
 
-    if (globalMarkerData.length < 1){return}
+    // if (globalMarkerData.length < 1){return}
+    if (globalMarkerData.length < 1 && !$(".marker")) return
 
     mylog()
 
@@ -861,8 +865,8 @@ function displayMarkers(){
 
 function displayBeats(){
    
-    if (globalBeatData.length < 1){return}
-
+    // if (globalBeatData.length < 1){return}
+    if (globalBeatData.length < 1 && !$(".beat")) return
     mylog()
 
     let currentBeats = $$(".beat")
@@ -1123,14 +1127,71 @@ function expandNote(tabWasPressed){
     theExpandedNote.style.left = xPos + "px"
 
     //added to fix color if ! or ? in text:
+    theExpandedNote.style.backgroundColor = lightenColor(window.getComputedStyle(theNote).backgroundColor, 50)
+    // alertThis(lightenColor("#FF55ba", 50), lightenColor("rgb(255,60,30)", 50))
     
-        if (theNote.style.backgroundColor == ("red"))  {theExpandedNote.style.backgroundColor = "#FF8888"}//"red"}
-        if (theNote.style.backgroundColor == ("magenta")) {theExpandedNote.style.backgroundColor = "#FF88FF"}//"magenta"}
-        if (theNote.style.backgroundColor == ("#8000FF")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
-        if (theNote.style.backgroundColor == ("rgb(128, 0, 255)")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
-        if (theNote.style.backgroundColor == ("lime"))  {theExpandedNote.style.backgroundColor = "#88FF88"}//"lime"}
+    //     if (theNote.style.backgroundColor == ("red"))  {theExpandedNote.style.backgroundColor = "#FF8888"}//"red"}
+    //     if (theNote.style.backgroundColor == ("magenta")) {theExpandedNote.style.backgroundColor = "#FF88FF"}//"magenta"}
+    //     if (theNote.style.backgroundColor == ("#8000FF")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
+    //     if (theNote.style.backgroundColor == ("rgb(128, 0, 255)")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
+    //     if (theNote.style.backgroundColor == ("lime"))  {theExpandedNote.style.backgroundColor = "#88FF88"}//"lime"}
 
 }
+
+function lightenColor(color, percent){
+  const validColor = /^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$|^rgb\(\s*(\d{1,3}\s*,\s*){2}\d{1,3}\s*\)$|^rgba\(\s*(\d{1,3}\s*,\s*){3}(\d?\.?\d+)\s*\)$|^hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/;
+  
+  if (!validColor.test(color)) {
+    throw new Error('Invalid color format');
+  }
+
+  let colorModel = '';
+  let colorValues = [];
+
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    if (hex.length === 3) {
+      colorModel = 'hex3';
+      colorValues = hex.split('').map(c => parseInt(c + c, 16));
+    } else if (hex.length === 6) {
+      colorModel = 'hex6';
+      colorValues = hex.match(/.{2}/g).map(c => parseInt(c, 16));
+    }
+  } else if (color.startsWith('rgb')) {
+    if (color.startsWith('rgba')) {
+      colorModel = 'rgba';
+      colorValues = color.match(/\d+\.?\d*/g).map(Number);
+    } else {
+      colorModel = 'rgb';
+      colorValues = color.match(/\d+/g).map(Number);
+    }
+  } else if (color.startsWith('hsl')) {
+    colorModel = 'hsl';
+    colorValues = color.match(/\d+/g).map(Number);
+  }
+
+  const lightenValues = colorValues.map((value, index) => {
+    if (colorModel === 'rgba' && index === 3) {
+      return Math.min(1, value + (1 - value) * (percent / 100));
+    }
+    return Math.min(255, value + (255 - value) * (percent / 100));
+  });
+  
+  switch (colorModel) {
+    case 'hex3':
+      return '#' + lightenValues.map(value => Math.floor(value / 16).toString(16)).join('');
+    case 'hex6':
+      return '#' + lightenValues.map(value => value.toString(16).padStart(2, '0')).join('');
+    case 'rgb':
+      return `rgb(${lightenValues.join(', ')})`;
+    case 'rgba':
+      return `rgba(${lightenValues.slice(0, 3).join(', ')}, ${lightenValues[3]})`;
+    case 'hsl':
+      return `hsl(${lightenValues[0]}, ${lightenValues[1]}%, ${lightenValues[2]}%)`;
+    default:
+      throw new Error('Invalid color format');
+  }
+};
 
 function collapseNote(){
 
@@ -1236,11 +1297,12 @@ function cycleNotes(shift){
 
     mylog(cycle + ", " + cyclables.length)
         
-    if(cyclables[cycle].string.startsWith("[[")) {
+    // if(cyclables[cycle].string.startsWith("[[")) {
+    if(cyclables[cycle].type == "note") {
         selectedNote = globalNotesData.indexOf(cyclables[cycle])
         expandNote(true)
     }else{
-        expandReview($id("review" + globalReviewsData.indexOf(cyclables[cycle])))
+        expandReview($id("review" + globalReviewsData?.indexOf(cyclables[cycle])))
     }
 
     let cycledElement = $("#expandedNote, .expandedReview")

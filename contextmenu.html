@@ -192,8 +192,9 @@ function contextMenu(theRightClickedThing, x, y, rightClick){
 
             }
         
-        weAreChangingColors = true
+        //weAreChangingColors = true
         Beat.call("Beat.custom.changeElementColor(" + JSON.stringify(elementCountArray) + ", '" + item + "')")
+        startImmediateUpdate()
         
         deselectAllElements()
     }   

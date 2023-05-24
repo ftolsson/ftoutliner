@@ -8,7 +8,6 @@
 <div id="buttonRow">
 	<div id="helpButton" class="bottomButton" onclick="mylog('clicked settingsButton'); toggleNewMenu('settingsMenu')"></div>
 	<div id="printButton" class="bottomButton" onclick="mylog('clicked exportButton'); toggleNewMenu('exportMenu')"></div>
-	<div id="dumpDiv"></div>
 	<div id="indexCardButton" class="bottomButton" onclick="mylog('clicked indexCardButton'); toggleNewMenu('indexCardMenu')"></div>
 	<div id="showStuffButton" class="bottomButton" onclick="mylog('clicked stuffButton'); toggleNewMenu('showStuffMenu')"></div>
 	<div id="notesButton" class="bottomButton" onclick="mylog('clicked notesButton'); toggleNewMenu('notesMenu')"></div>
@@ -327,6 +326,7 @@ function __________TIMELINE (){}
 		
 function startFullUpdate(delayTime) { //not getting loc and len from outlinechange anyway so removed now!
 	
+	mylog("FULL CALLED! Location: "  + location + ", length: " + length)
 	actualChangesToScriptInProgress = false //this is for the errorhandler to know what was happening
 
 	//document.getElementById('outOfSyncDiv').classList.add('animate');
@@ -350,7 +350,10 @@ function startFullUpdate(delayTime) { //not getting loc and len from outlinechan
 
 		let timeToWait = weAreChangingColors ? 0 : 1000
 		let callback = function(){
+			mylog("--------------------- full update fires NOW ---------------------------")
 			rememberCardState()
+			// $("#speedometer").classList.toggle("locateme")
+			// Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + "," + (outline.length||'false') + ")")	
 			Beat.call("Beat.custom.updateEntireOutline(false, false," + (outline.length||'false') + ")")	
 			
 		}
@@ -365,11 +368,13 @@ function startFullUpdate(delayTime) { //not getting loc and len from outlinechan
 	// 	if(document.getElementById("youAreHere")){document.getElementById("youAreHere").remove()}
 }
 
-// function updateCaller(){
-// 	Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + "," + (outline.length||'false') + ")")	
-// }
+function updateCaller(){
+	Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + "," + (outline.length||'false') + ")")	
+}
 
 function startSmallUpdate(location, length, delayTime, elementType) {
+
+	mylog('SMALL CALLED! and fullTypeTimer is ' + fullTypeTimer)
 
 	//it may be that this never ever fires, but hey. 
 	if(fullTypeTimer > 0){
@@ -414,63 +419,6 @@ function startSmallUpdate(location, length, delayTime, elementType) {
 		}
 }
 
-var typeTimer
-var cancelNextNormalUpdate = false
-
-function startUpdate(updateObject) {
-
-	console.log("🤬", "normal update")
-	if(cancelNextNormalUpdate){
-		cancelNextNormalUpdate = false
-		console.log("😃", "was cancelled")
-		return
-	}
-
-	let location    = updateObject?.location
-	let length      = updateObject?.length
-	let delayTime   = updateObject?.delayTime
-	let elementType = updateObject?.elementType
-
-	let small = false
-	if (location) small = true
-
-	if(small && elementType && elementType != "Heading"){
-		
-		//Now sending SMALL ==> FULL because seems like we're writing in orphan text")
-
-		small = false
-	}
-	
-if(outline.length < 1){
-	displayEmptyScreenMessage()
-	return}
-
-	//------temporarily not caring about non-realtimers!
-
-	clearTimeout(typeTimer);
-
-	let timeToWait = weAreChangingColors ? 0 : 500
-
-
-
-	let callback
-	if (small) {callback = function(){
-			rememberCardState()
-			Beat.call("Beat.custom.updateOnlyOneScene(" + location + "," + length + ")")
-			}
-		}else{
-			callback = function(){
-			rememberCardState()
-			Beat.call("Beat.custom.updateEntireOutline(false, false," + (outline.length||'false') + ")")	
-			
-		}
-
-		}
-	typeTimer = setTimeout(
-		callback, delayTime || timeToWait
-		); 		
-}
-
 function completeRun(location, length){ //Called AT STARTUP and (when non-realtime) AT FOCUS
 	mylog()
 	
@@ -478,50 +426,6 @@ function completeRun(location, length){ //Called AT STARTUP and (when non-realti
 	weAreChangingColors = true //testing if this speeds up first draw!
 
 	Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + ")")
-}
-
-function startImmediateUpdate(){
-
-	cancelNextNormalUpdate = true
-
-	console.log("😀", "immediateUpdate")
-
-	let temporaryOutline 
-		Beat.callback(() => { return Beat.outlineAsJSON() }, 
-		(result) => { 
-
-			temporaryOutline = JSON.parse(result)
-			frozenOutline = JSON.parse(JSON.stringify(outline))
-		
-			//this updates the outline WITHOUT new pagination, just reusing the previous one -- 2023-05-16
-
-			// if (temporaryOutline.length != outline.length) {
-			// 	completeRun()
-			// 	return
-			// }
-
-			for(i = 0; i < temporaryOutline.length; i ++){
-
-				console.log (temporaryOutline[i].line.string, frozenOutline[i].numberOfPages)
-
-				temporaryOutline[i].numberOfPages = frozenOutline[i].numberOfPages
-				temporaryOutline[i].startsOnPage = frozenOutline[i].startsOnPage
-				temporaryOutline[i].positionOnPage = frozenOutline[i].positionOnPage
-				temporaryOutline[i].breakLines = frozenOutline[i].breakLines
-				temporaryOutline[i].sceneEnd = frozenOutline[i].sceneEnd
-
-			}
-
-			// addSceneEnds()
-			outline = temporaryOutline
-			// findPageDividers()
-			recalculateHeights()
-			divMaker(location)
-
-			toggleWaitState(false)
-
-	}) //end of callback!
-
 }
 
 function updateEverything(json, location, length, pagesAsString, absoluteLength, pageBreakPositions, frontmatter) {
@@ -577,6 +481,7 @@ function updateEverything(json, location, length, pagesAsString, absoluteLength,
 
 function updateOneScene(json, scene, pagesForChangedScene, location, length, absoluteLength, pageBreakForChangedScene, frontmatter){
 	mylog()
+	mylog(json.length + ", location passed is" + location)
 
 	outline = json
 	absoluteTextLength = absoluteLength //making it global...
@@ -635,39 +540,8 @@ function updateOneScene(json, scene, pagesForChangedScene, location, length, abs
 function updateHeights(json){
 
 	outline = json
-
-	let start = 0
-	let end = outline.length
-
-	for (num = start; num < end; num ++) {
-
-		if(outline[num].numberOfPages > 0){
-
-			if (outline[num].typeAsString == "Heading"){
-				 element = $id(num)
-			}else{
-				element = $id("orphanInside" + num)
-			}
-			
-			if(!element){ //this happens if there is length for an orphan that doesn't exist and we need to create it
-			alertThis("yup")
-				startUpdate
-				return
-			}
-
-			if(parseFloat(element?.style.height.substr(5)).toString() != outline[num]?.numberOfPages.toString()) element.style.outline = "6px solid red"
-
-			element.style.height = `calc(${outline[num].numberOfPages}px * var(--heightFactor))`
-			element.dataset.lengthOfScene = outline[num].numberOfPages
-			element.querySelector(".sceneheading") && (element.querySelector(".sceneheading").innerHTML += (outline[num].numberOfPages + ", " +  parseFloat(element?.style.height.substr(5))))
-			if(element.querySelector(".showSceneLength")) element.querySelector(".showSceneLength").innerHTML = numberIntoEights(outline[num].numberOfPages)
-
-		}
-
-	}
-
 	// findPageDividers()
-	recalculateHeights()
+	//recalculateHeights()
 
 }
 
@@ -688,11 +562,7 @@ function addSceneEnds(){
 
 		let nextSameLevelObject = i + 1
 
-		while ((nextSameLevelObject < outline.length) 
-				&& 
-				(hierarchy({...outline[nextSameLevelObject]}) > hierarchy({...outline[i]})
-				||
-				outline[nextSameLevelObject].omitted)){
+		while ((nextSameLevelObject < outline.length) && (hierarchy({...outline[nextSameLevelObject]}) > hierarchy({...outline[i]}))){
 			//if(!outline[nextSameLevelObject + 1]){break}
 			nextSameLevelObject++
 		}
@@ -704,7 +574,7 @@ function addSceneEnds(){
 }
 
 
-function divMaker(location){
+function divMaker(location, fullupdate){
 
 	mylog()
 	mylog("AT START OF DIVMAKER, we have this location: " + location)
@@ -920,8 +790,7 @@ function divMaker(location){
 
 						//FINALLY, this *SHOULD* remove size-related blinkage?
 						//if (areScenesProportional == 1){
-						let temporaryHeight = flexiContainer?.querySelector(`#${orphanDiv.dataset.myId}`)?.style.height || `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
-						orphanDiv.style.height = temporaryHeight
+						orphanDiv.style.height = `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
 						//}
 						
 						if(pageBreaks && pageBreaks[num]) addPageBreak(orphanDiv)
@@ -997,11 +866,10 @@ function divMaker(location){
 					}
 					//FINALLY, this *SHOULD* remove size-related blinkage?
 					if (areScenesProportional == 1){
-						let temporaryHeight = flexiContainer?.querySelector(`#\\${num.toString()}`)?.style.height || `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
-						// sceneDiv.style.height = temporaryHeight
+						sceneDiv.style.height = `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
 					}
 
-					if (currentItem.numberOfPages == 0) sceneDiv.style.outline = "10px solid hotpink"
+					if (currentItem.numberOfPages == 0) sceneDiv.style.outline = "2px solid hotpink"
 
 					let ii = 1
 					while(outline[num-ii] && outline[num - ii].typeAsString == "Synopse"){ii++}
@@ -1050,6 +918,7 @@ function divMaker(location){
 					// // 	sectionSynConDiv.style.backgroundColor = "#bbb"
 					// }
 
+				sceneheadingDiv.innerHTML += currentItem.paginatorRound.toUpperCase() + " "
 				sceneheadingDiv.innerHTML += "<span class='slugtext'>"
 					// if(loggingIsOn){sceneheadingDiv.innerHTML += currentItem.sceneStart + ", " + currentItem.sceneEnd + " -- "}
 					if(loggingIsOn){sceneheadingDiv.innerHTML += "#" + outline.indexOf(currentItem)}
@@ -1376,7 +1245,6 @@ function findPageDividers() {
 		const scene = outline[i]
 		const previousScene = outline[i - 1] || null
 		const nextScene = scenesOnly[scenesOnly.indexOf(outline[i]) + 1] || null
-		// const nextScene = outline[i + 1] || null
 
 		let absolutePos = scene.startsOnPage + scene.positionOnPage
 
@@ -1387,10 +1255,10 @@ function findPageDividers() {
 			}
 		
 		// Finally add all dividers: 
-			let numberOfDividers = ((nextScene?.startsOnPage - scene.startsOnPage 
+			let numberOfDividers = (nextScene?.startsOnPage - scene.startsOnPage 
 									- (nextScene?.positionOnPage == 0 ? 1 : 0 ) // remove divider that should belong to next scene
-									|| Math.floor(scene.positionOnPage + scene.numberOfPages)) // accounts for final scene of script which has no next
 									+ (scene.positionOnPage == 0 ? 1 : 0)) 		// add divider if scene starts at top of page
+									|| Math.floor(scene.positionOnPage + scene.numberOfPages) // accounts for final scene of script which has no next
 
 			if (numberOfDividers > 0){
 			
@@ -1624,14 +1492,13 @@ function youAreHere(location, length, positionChangeOnly){
 		if (outline[whichSceneAreWeIn].typeAsString != "Synopse"){
 			currentParentScroll = false
 		}
-		// while(outline[whichSceneAreWeIn].typeAsString == "Synopse"){
-		while(outline[whichSceneAreWeIn].omitted && areScenesProportional == 1){
+		while(outline[whichSceneAreWeIn].typeAsString == "Synopse"){
 			whichSceneAreWeIn--
 			if(whichSceneAreWeIn < 0){whichSceneAreWeIn = 0; break}
 		}
-		// if(outline[whichSceneAreWeIn].omitted == 1 && areScenesProportional == 1) {
-		// 	return
-		// }	
+		if(outline[whichSceneAreWeIn].omitted == 1 && areScenesProportional == 1) {
+			return
+		}	
 
 		mylog("we are in... " + whichSceneAreWeIn)
 		
@@ -2063,7 +1930,7 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	//if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
 
 	//DEVELOPMENT SHORTCUTS: 
-		// if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); console.log(0.0)}
+		if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); testAsync()}
 		if (someoneJustPressed.key == "ä" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
 		if (someoneJustPressed.key == "ö" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); forceRestart()}
 		//if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
