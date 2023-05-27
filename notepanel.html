@@ -398,6 +398,7 @@ body.notepanelIsBeingResized > * {
     padding-bottom: 1px !important;
 
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
 
 }
@@ -443,6 +444,12 @@ body.notepanelIsBeingResized > * {
 .notepanelNote.isSelected{
     border-color: black !important;
     box-shadow: 0 0 0 0.5px black;
+}
+
+.notepanelNote:hover > .notepanelHeadline{
+
+    padding-right: calc(3px + 12px * var(--fontSizeFactor)) !important;
+
 }
 
 .notepanelHeadline.isSelected,
@@ -643,14 +650,6 @@ body.notepanelIsBeingResized > * {
     pointer-events: none;
 
 }
-
-/* #notepanel:has(.noteButton:not(#noteButtonReview):checked) > .notepanelReview{
-
-    margin-left: 15px;
-    transition: margin 0.2;
-
-} */
-
 
 </style>
 <script>

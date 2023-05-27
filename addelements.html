@@ -148,11 +148,13 @@ p.addSection{
 
     background: #ccc;
     color: black !important;
+    background: yellow;
 
 }
 
 .addButton:hover{
     background: black;
+    background: hotpink;
     color: white !important;
     opacity: 0.9;
     height: 20px !important;
@@ -379,7 +381,8 @@ function addElement(theClickedThing, whatToAdd){
             pages[i] = pages[i - 1]
         }
 
-    startSmallUpdate(position)
+    //startSmallUpdate(position)
+    startImmediateUpdate(position)
 
     removeAddButton()
 }
