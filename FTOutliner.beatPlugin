@@ -1038,19 +1038,28 @@ Beat.custom.collectNotes = function() {
 
 										note[entry] = {}
 										let inlineNote = res
-										let inlineNoteIndex = res.index || 0												
+										let inlineNoteIndex = res.index || 0
+										
 										//note[entry] = new notesData((line.position + inlineNoteIndex), inlineNote)
 										note[entry].outlineElementNumber = lastElementThatWasScene
 										note[entry].position = (line.position + inlineNoteIndex)
 										// note[entry].string = inlineNote
 										note[entry].string = line.noteData()[result.indexOf(res)].content
 										note[entry].color = line.noteData()[result.indexOf(res)].color
-											if(line.string.startsWith("[[!")) note[entry].color = "red"
-											if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
-											if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
-											if(line.string.startsWith("[[?")) note[entry].color = "lime"
-											if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
+											if(res.startsWith("[[!")) note[entry].color = "red"
+											if(res.startsWith("[[!!")) note[entry].color = "magenta"
+											if(res.startsWith("[[!!!")) note[entry].color = "#8000FF"
+											if(res.startsWith("[[?")) note[entry].color = "lime"
+											if(!note[entry].color && (res.match(/(\[\[(\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
 										note[entry].type = "note"
+										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
+
+
+										let notepos = line.range.location + line.string.indexOf(res)
+										let notelen = res.length
+											note[entry].range = {"position": notepos, "length": notelen}
+										note[entry].inline = "1"
+
 										entry ++
 									}
 								// }
@@ -1080,8 +1089,14 @@ Beat.custom.collectNotes = function() {
 								if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
 								if(line.string.startsWith("[[?")) note[entry].color = "lime"
 								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
-							//Beat.alert(Object.keys(line))
 							note[entry].type = "note"
+							note[entry].stringForDisplay = line.string.replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
+
+							let notepos = line.range.location
+							let notelen = line.range.length
+								note[entry].range = {"position": notepos, "length": notelen}
+							note[entry].inline = "0"
+
 							entry ++
 						}
 					}

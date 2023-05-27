@@ -458,18 +458,63 @@
 
 }
 
-#trashbutton{
+.trashbutton{
     fill:  rgba(0,0,0,0.75);
     pointer-events: none;
     opacity: 0.6 !important;
 
 }
-#trashNote:hover > #trashbutton{
+#trashNote:hover > .trashbutton,
+.trashNote:hover{
     fill: rgb(192,0,0) !important;
     opacity: 1 !important;
     
     overflow: visible !important;
     transition: all 0s !important;
+    transition-delay: 0ms !important;
+}
+
+.notepanelNote > .trashNote {
+    
+    position: absolute;
+    right: 2px;
+    top: calc(5px - 2 * var(--fontSizeFactor));
+
+    scale: calc(var(--fontSizeFactor) * 0.8) !important;
+    transform-origin: top right;
+    
+    visibility: hidden;
+    transition: all 0s !important;
+    transition-delay: all 0s !important;
+
+}
+
+.notpanelNote svg{
+    visibility: hidden;
+    transition: all 0s !important;
+    transition-delay: all 0s !important;
+}
+
+.notepanelNote:hover > .trashNote,
+.notepanelNote:hover svg {
+
+    color: white !important;
+    fill: white !important;
+    visibility: visible;
+    z-index: 9999;
+
+    opacity: 1 !important;
+    transition: all 0s !important;
+    transition-delay: all 0s !important;
+    /* outline: 2px solid white */
+
+}
+
+.notepanelNote > .trashNote:hover,
+.notepanelNote > .trashNote:hover > svg {
+
+    fill: rgb(255, 64, 64) !important;
+
 }
 
 </style>
@@ -477,7 +522,7 @@
 <script>
 
 var trashIcon = `
-<svg id="trashbutton" width="110%" height="110%" viewBox="0 0 166 208" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+<svg class="trashbutton" width="100%" height="100%" viewBox="0 0 166 208" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
     <g transform="matrix(1,0,0,1,-326.426,-1615.59)">
         <path d="M485.852,1661.14C485.605,1661.17 485.355,1661.18 485.101,1661.18L335.155,1661.18L348.262,1815.91C348.581,1819.68 351.739,1822.59 355.527,1822.59L465.477,1822.59C469.266,1822.59 472.423,1819.68 472.743,1815.91L485.852,1661.14ZM450.143,1704.86L442.106,1795.83C441.803,1799.26 444.346,1802.3 447.782,1802.6C451.218,1802.9 454.254,1800.36 454.558,1796.92L462.595,1705.96C462.898,1702.52 460.355,1699.49 456.919,1699.18C453.483,1698.88 450.447,1701.42 450.143,1704.86ZM358.017,1705.96L366.054,1796.92C366.358,1800.36 369.394,1802.9 372.83,1802.6C376.266,1802.3 378.809,1799.26 378.506,1795.83L370.469,1704.86C370.165,1701.42 367.129,1698.88 363.693,1699.18C360.257,1699.49 357.714,1702.52 358.017,1705.96ZM389.597,1705.59L392.276,1796.56C392.378,1800.01 395.26,1802.72 398.708,1802.62C402.156,1802.52 404.873,1799.64 404.771,1796.19L402.092,1705.22C401.991,1701.78 399.109,1699.06 395.661,1699.16C392.213,1699.26 389.496,1702.14 389.597,1705.59ZM418.52,1705.22L415.841,1796.19C415.74,1799.64 418.456,1802.52 421.904,1802.62C425.352,1802.72 428.234,1800.01 428.336,1796.56L431.015,1705.59C431.116,1702.14 428.399,1699.26 424.951,1699.16C421.503,1699.06 418.622,1701.78 418.52,1705.22ZM384.347,1628.53L339.471,1628.53C336.877,1628.53 334.477,1629.91 333.171,1632.15L327.417,1642.03C326.103,1644.29 326.095,1647.07 327.396,1649.33C328.696,1651.6 331.107,1652.99 333.718,1652.99L485.101,1652.99C487.711,1652.99 490.122,1651.6 491.423,1649.33C492.724,1647.07 492.715,1644.29 491.401,1642.03L485.648,1632.15C484.341,1629.91 481.942,1628.53 479.347,1628.53L436.657,1628.53C435.606,1625.84 433.63,1623.32 430.704,1621.22C426.134,1617.93 418.817,1615.59 410.502,1615.59C402.188,1615.59 394.871,1617.93 390.3,1621.22C387.375,1623.32 385.399,1625.84 384.347,1628.53Z"/>
     </g>
@@ -734,7 +779,11 @@ function displayNotes(notesData, markerData, beatData){
         }
 
         notesDivStart += "<div class='note collapsed' " 
-        notesDivStart += "data-line='" + notesData[i].position + "' " 
+        // notesDivStart += "data-line='" + notesData[i].position + "' " 
+        notesDivStart += "data-line='" + notesData[i].range.position + "' " 
+        notesDivStart += "data-length='" + notesData[i].range.length + "' " 
+        notesDivStart += "data-color='" + (notesData[i].color || "#FFFF00") + "' " 
+        notesDivStart += "data-inline='" + notesData[i].inline + "' " 
         notesDivStart += "data-noteNumber='" + i + "' "
         notesDivStart += "id='noteNumber" + i + "' "
         notesDivStart += "onmouseenter='expandNote()' " 
@@ -752,7 +801,8 @@ function displayNotes(notesData, markerData, beatData){
             thisNote = thisNote.replace(/\*(.*)\*/g, "<em>$1</em>")
             thisNote = thisNote.replace(/\_(.*)\_/g, "<u>$1</u>")
 
-        $id(currentContainer).innerHTML += notesDivStart + thisNote.replace(/^\?*\!*/g, "") + notesDivEnd
+        // $id(currentContainer).innerHTML += notesDivStart + thisNote.replace(/^\?*\!*/g, "") + notesDivEnd
+        $id(currentContainer).innerHTML += notesDivStart + notesData[i].stringForDisplay + notesDivEnd
         if (notesData[i].color) $("[data-noteNumber = '" + i + "']").style.backgroundColor = notesData[i].color
         // if (thisNote.startsWith("!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "red"}
         // if (thisNote.startsWith("!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "magenta"}
@@ -1100,19 +1150,35 @@ function expandNote(tabWasPressed){
         let a = theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML
         sceneText = a? ('in section ' + theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML) : "before first section"
     }
-
-    let trashDiv = tabWasPressed ? "<div id='trashNote' class='trashNote'>" + trashIcon + "</div>" : ""
+        
+        // tabWasPressed ? "<div id='trashNote' class='trashNote' onclick='deleteNote()'>" + trashIcon + "</div>" : ""
 
     let theExpandedNote = document.createElement("div")
         theExpandedNote.id = "expandedNote"
         expandedClassList.forEach(cl => {theExpandedNote.classList.add(cl)})
         theExpandedNote.innerHTML = "<b class='clickThru padRight'>" +
-                trashDiv +
+                "<div id='placeholder'></div>" +
                 "Note " + sceneText + " </b>" +
                 "<text class='clickThru' id='expandedNoteText'>" + theNoteString + "</text>"
         theExpandedNote.dataset.line = theNote.dataset.line
+        theExpandedNote.dataset.position = theNote.dataset.position
+        theExpandedNote.dataset.length = theNote.dataset.length
+        theExpandedNote.dataset.color = theNote.dataset.color
+        theExpandedNote.dataset.inline = theNote.dataset.inline
         theExpandedNote.style.width = expandedWidth + "px"
-    flexiContainer.appendChild(theExpandedNote)        
+    flexiContainer.appendChild(theExpandedNote)    
+    
+        if (tabWasPressed){
+            let trashDiv = document.createElement("div")
+                trashDiv.id = "trashNote"
+                trashDiv.classList.add("trashNote")
+                trashDiv.innerHTML = trashIcon
+                trashDiv.onclick = () => {deleteNote()}
+
+            // theExpandedNote.appendChild(trashDiv)
+            $id("placeholder").replaceWith(trashDiv)
+        }
+        $id("placeholder")?.remove()
 
     let sizeOfExpandedNote = theExpandedNote.getBoundingClientRect()
 
@@ -1218,6 +1284,25 @@ function collapseNote(){
     let noteToUnselect = document.querySelector('.selectedNote')
     if (noteToUnselect) {noteToUnselect.classList.remove('selectedNote')}
     }
+}
+
+function deleteNote(){
+
+    theClickedThing = event.target
+
+    length = Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.length) + Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.inline)
+	gotoIndex = Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.line)
+    
+	goto(gotoIndex, theClickedThing, length, "#bb8888")
+	
+	Beat.call("Beat.custom.deleteNote(" + (parseInt(gotoIndex)) + ", " + (length) + ")")
+
+    setTimeout(() =>{
+        startImmediateUpdate()
+        collectNotes()
+        updateNotepanel()
+    }, 2000) //this is to let it do its blinking, yet not wait for a timed update on previewfinished
+
 }
 
 function expandReview(theClickedThing){

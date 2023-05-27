@@ -2267,7 +2267,10 @@ function somethingWasClicked() {
 	mylog("somethingWasClicked: " + event.target.classList + event.target.id + event.target)
 	mylog("flexiContainer now has...:" + $id("flexiContainer").classList)
 
-	if(event.target.closest(".bottomButton") || event.target.classList.contains("displayNumberOf")){mylog("return out of clicked"); return}
+	if(event.target.closest(".bottomButton") 
+		|| event.target.classList.contains("displayNumberOf")
+		|| event.target.classList.contains("trashNote")
+		){mylog("return out of clicked"); return}
 	if($id("synEditBox")) return
 
 	let theClickedThing = event.target
@@ -2325,24 +2328,20 @@ function somethingWasClicked() {
 
 	let gotoIndex = Math.max(parseInt(theClickedThing.getAttribute("data-line")), 1)
 	
-	// if (theClickedThing.id == "expandedNote" || theClickedThing.id == "trashNote"){		
-	// 	length = document.getElementById('expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
-	// }
-	
 	switch(theClickedThing.id){
 		case "expandedNote":
 			length = $('#expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
 			gotoIndex = parseInt(theClickedThing.getAttribute("data-line"))		
 			goto(gotoIndex, theClickedThing, (length + 5))
 			return
-		case "trashNote":
-			length = $('#expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
-			gotoIndex = theClickedThing.parentNode.parentNode.getAttribute("data-line")
-			goto(gotoIndex, theClickedThing, (length + 5), "#bb8888")
-			// Beat.call("Beat.timer(1.75, function(){Beat.replaceRange(" + (parseInt(gotoIndex)) + ", " + (length + 4) + ", '')})")
-			Beat.call("Beat.custom.deleteNote(" + (parseInt(gotoIndex)) + ", " + (length + 5) + ")")
-				// perhaps put this as a function in the plugin instead, and add if both previous and next line are empty then delete one of them
-			return
+		// case "trashNote":
+		// 	length = Number(theClickedThing.closest(".expandedNote").dataset.length) + Number(theClickedThing.closest(".expandedNote").dataset.inline)
+		// 	gotoIndex = theClickedThing.parentNode.parentNode.getAttribute("data-line")
+		// 	goto(gotoIndex, theClickedThing, length, "#bb8888")
+		// 	// Beat.call("Beat.timer(1.75, function(){Beat.replaceRange(" + (parseInt(gotoIndex)) + ", " + (length + 4) + ", '')})")
+		// 	Beat.call("Beat.custom.deleteNote(" + (parseInt(gotoIndex)) + ", " + (length) + ")")
+		// 		// perhaps put this as a function in the plugin instead, and add if both previous and next line are empty then delete one of them
+		// 	return
 		case "cover": 
 			if (settingsContainerVisibility==1){
 				toggleSettingsContainer()
@@ -3133,14 +3132,9 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 	}
 
 	if (classes.includes("note") || classes.includes("expandedNote") || classes.includes("notepanelNote")){
-		blinkColor = "#cccc55"
-
-		if(classes.includes("notepanelNote")){
-			let noteNumber = theClickedThing.id.substring("notepanelNote".length)
-			mylog("this is note: ------------------------------------------------- " + noteNumber)
-			// mylog(globalNotesData[noteNumber].string.replace(/\<br\/\>/g, "_"))
-			length = globalNotesData[noteNumber].string.replace(/\<br\/\>/g, "_").length + 1
-		}
+		//blinkColor = rgbToHex(theClickedThing.dataset.color) || "#cccc55"
+		length = Number(theClickedThing.dataset.length) + (Number(theClickedThing.dataset.inline)? 1 : 0)
+		//alertThis(rgbToHex(theClickedThing.dataset.color))
 	}
 
 	blinkColor = blinkColor || "#888888"
@@ -3148,7 +3142,7 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 	//Beat.call("Beat.alert('" + length + "','" + theClickedThing.classList + "')")
 
 	let blinkLength = length || "Beat.currentParser.lineAtIndex(" + gotoIndex + ")?.string?.length + 1"
-	Beat.call("Beat.custom.blinkTheLine(" + gotoIndex + "," + blinkLength + ", '" + blinkColor + "' , '" + textColor + "');")
+		Beat.call("Beat.custom.blinkTheLine(" + gotoIndex + "," + blinkLength + ", '" + blinkColor + "' , '" + textColor + "');")
 		
 		// //This previouse selected a clicked note -- temporarily disabled because blinking is enough?
 			// if ([...theClickedThing.classList].includes("note") || theClickedThing.id == "expandedNote"){
@@ -3157,6 +3151,19 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 			// 	}
 			// 	Beat.call("Beat.setSelectedRange(" + (parseInt(gotoIndex) + 2) + ", " + length + ")")
 			// }
+}
+
+function rgbToHex(rgbString){
+
+	let values = rgbString.replace(/rgb(a)*\(/, "").replace(")", "").split(",")
+	let rgbAsHex = "#"
+	for (value of values){
+			if (rgbAsHex.length == 7){ break }
+			let thisvalue = Number(value).toString(16).toUpperCase()
+				thisvalue = thisvalue.length > 1 ? thisvalue : "0" + thisvalue
+				rgbAsHex += thisvalue
+		}
+	return rgbAsHex
 }
 
 function selectAllElements(altWasPressed) {

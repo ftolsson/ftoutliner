@@ -2192,10 +2192,6 @@ function somethingWasClicked() {
 
 	let gotoIndex = Math.max(parseInt(theClickedThing.getAttribute("data-line")), 1)
 	
-	// if (theClickedThing.id == "expandedNote" || theClickedThing.id == "trashNote"){		
-	// 	length = document.getElementById('expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
-	// }
-	
 	switch(theClickedThing.id){
 		case "expandedNote":
 			length = $('#expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
@@ -2203,7 +2199,9 @@ function somethingWasClicked() {
 			goto(gotoIndex, theClickedThing, (length + 5))
 			return
 		case "trashNote":
-			length = $('#expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
+			// length = $('#expandedNoteText').innerHTML.replace(/\<br\>/g, "\n").length
+			length = theClickedThing.closest(".expandedNote").dataset.length
+			alertThis(length)
 			gotoIndex = theClickedThing.parentNode.parentNode.getAttribute("data-line")
 			goto(gotoIndex, theClickedThing, (length + 5), "#bb8888")
 			// Beat.call("Beat.timer(1.75, function(){Beat.replaceRange(" + (parseInt(gotoIndex)) + ", " + (length + 4) + ", '')})")

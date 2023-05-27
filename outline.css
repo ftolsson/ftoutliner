@@ -2283,11 +2283,14 @@ MARK: -Inline Synopsis
 }
 
 #flexiContainer.nonProportionalMode.showSynopsisInScenes:not(.indexCards) .isExpanded > .scene {
-	min-height: calc(14px * var(--fontSizeFactor)) !important;
+	min-height: calc(15px * var(--fontSizeFactor)) !important;
 	height: auto !important;
 }
 
-.showSynopsisInScenes:not(.indexcards) .scene{
+.showSynopsisInScenes:not(.indexcards) .scene:nth-child(1 of .scene){
+
+	margin-top: 2px !important;
+
 }
 
 .showSynopsisInScenes:not(.indexcards) .scene:not(.hideSlugIfSmall) .sceneheading{

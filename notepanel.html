@@ -404,6 +404,8 @@ body.notepanelIsBeingResized > * {
 
 .notepanelNote{
 
+    position: relative;
+
     font-family: 'Courier Prime', 'Courier New', Courier, monospace;
 
     padding: 4px 4px 1px 4px;
@@ -825,7 +827,10 @@ function updateNotepanel(){
             let thisNote = document.createElement("div")
                 thisNote.id = "notepanelNote" + i
                 thisNote.classList.add("notepanelNote")
-                thisNote.dataset.line = globalNotesData[i].position
+                // thisNote.dataset.line = globalNotesData[i].position
+                thisNote.dataset.line = globalNotesData[i].range.position
+                thisNote.dataset.length = globalNotesData[i].range.length
+                thisNote.dataset.inline = globalNotesData[i].inline
 
                 let thisNoteText = globalNotesData[i].string
                     thisNoteText = thisNoteText.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
@@ -835,7 +840,8 @@ function updateNotepanel(){
                     thisNoteText = thisNoteText.replace(/\_(.*)\_/g, "<u>$1</u>")
 
                 thisNote.innerHTML = 
-                    `<p class="notepanelHeadline">${elementType}</p>${thisNoteText.replace(/(^\[*\?*\!*)|(\])/g, "")}`
+                    // `<p class="notepanelHeadline">${elementType}</p>${thisNoteText.replace(/(^\[*\?*\!*)|(\])/g, "")}`
+                    `<div id="placeholder${i}" class="placeholder">${i}</div><p class="notepanelHeadline">${elementType}</p>${globalNotesData[i].stringForDisplay}`
                     // `<p class="notepanelHeadline">`+ elementType + `</p>`+
                     // globalNotesData[i].string.replace(/(\[|\])/g, "")
 
@@ -859,8 +865,15 @@ function updateNotepanel(){
 
                 if($(`.noteButton[data-color="${colCode}"]`) && !$(`.noteButton[data-color="${colCode}"]`).checked) thisNote.classList.add("displayNone")
 
-            // $id("notepanel").appendChild(thisNote)
             $id("notepanelcontent").appendChild(thisNote)
+
+            let trashDiv = document.createElement("div")
+                trashDiv.id = "trashNote" + i
+                trashDiv.classList.add("trashNote")
+                trashDiv.innerHTML = trashIcon
+                trashDiv.onclick = () => {deleteNote()}
+            $(".placeholder").replaceWith(trashDiv)
+            $$(".placeholder").forEach(placeholder => placeholder.remove())
         }
     }
 

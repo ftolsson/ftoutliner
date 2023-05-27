@@ -1,7 +1,7 @@
 v 1.60 (may xx, 2023)
 =====================
 
-This is essentially just an update to bring FTOutliner up to speed with Beat's new pagination system.
+This is mainly an update to bring FTOutliner up to speed with Beat's new pagination system.
 But WHAT A PAGINATION SYSTEM that is! Thanks to Lauri-Matti for your hard work (and for explaining very patiently how to use it).
 
 This means that page numbers in FTOutliner now matches those in Beat (and the final print) as good as 1:1, in places like
@@ -13,9 +13,11 @@ This means that page numbers in FTOutliner now matches those in Beat (and the fi
 FIXES AND ENHANCMENTSENTSETNS:
 
 * NOTES AND MARKERS both now accepts any color that Beat accepts -- Beat's base palette, plus any HEX number. In addition, FTOutliner can display a note with any HTML color name (such as hotpink or gold), although those will only be shown with the default note color in Beat itself
+* For NOTES IN THE NOTEPANEL, a trashcan button now appears when hovering to allow deleting notes from there too
+* There is also much less risk that deleting a note will delete the note + VAT. Enough is enough.
 
 ONE LITTLE ADDITION: 
-* Added advanced setting to optionally show the length of a section in the section header next to its starting page nuber.
+* Added advanced setting to optionally show the length of a section in the section header next to its starting page nuber. For those who'd want that.
 
 BUG FIXES:
 * Fixed a bug where dragging multiple objects of the same type resulted in a dialog saying you can only drag objects of the same type. Which you were already doing. No more of that nonsense.
