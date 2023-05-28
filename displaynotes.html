@@ -723,7 +723,6 @@ function displayNotes(notesData, markerData, beatData){
         let element = $id(notesData[i].outlineElementNumber) || $(".faux")
         if(!element)return
         
-        let thisNote = notesData[i].string.replace(/(\[\[)/, "").replace(/(\]\]$)/, "")
         let notesDivStart = ""
         let notesDivEnd = ""
         let currentContainer = 'noteContainer' + notesData[i].outlineElementNumber
@@ -797,19 +796,16 @@ function displayNotes(notesData, markerData, beatData){
 
         notesDivEnd += "</div>"
 
+        let thisNote = notesData[i].stringForDisplay
+
             thisNote = thisNote.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
             thisNote = thisNote.replace(/\*\*\*(.*)\*\*\*/g, "<strong><em>$1</em></strong>")
             thisNote = thisNote.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
             thisNote = thisNote.replace(/\*(.*)\*/g, "<em>$1</em>")
             thisNote = thisNote.replace(/\_(.*)\_/g, "<u>$1</u>")
 
-        // $id(currentContainer).innerHTML += notesDivStart + thisNote.replace(/^\?*\!*/g, "") + notesDivEnd
-        $id(currentContainer).innerHTML += notesDivStart + notesData[i].stringForDisplay + notesDivEnd
+        $id(currentContainer).innerHTML += notesDivStart + thisNote + notesDivEnd
         if (notesData[i].color) $("[data-noteNumber = '" + i + "']").style.backgroundColor = notesData[i].color
-        // if (thisNote.startsWith("!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "red"}
-        // if (thisNote.startsWith("!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "magenta"}
-        // if (thisNote.startsWith("!!!")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "#8000FF"}
-        // if (thisNote.startsWith("?")){$("[data-noteNumber = '" + i + "']").style.backgroundColor = "lime"}
 
         mylog("end of Note Loop")
     }

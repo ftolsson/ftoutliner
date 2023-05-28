@@ -831,26 +831,14 @@ function updateNotepanel(){
                 thisNote.dataset.length = globalNotesData[i].range.length
                 thisNote.dataset.inline = globalNotesData[i].inline
 
-                let thisNoteText = globalNotesData[i].string
+                let thisNoteText = globalNotesData[i].stringForDisplay
                     thisNoteText = thisNoteText.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
                     thisNoteText = thisNoteText.replace(/\*\*\*(.*)\*\*\*/g, "<strong><em>$1</em></strong>")
                     thisNoteText = thisNoteText.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
                     thisNoteText = thisNoteText.replace(/\*(.*)\*/g, "<em>$1</em>")
                     thisNoteText = thisNoteText.replace(/\_(.*)\_/g, "<u>$1</u>")
 
-                thisNote.innerHTML = 
-                    // `<p class="notepanelHeadline">${elementType}</p>${thisNoteText.replace(/(^\[*\?*\!*)|(\])/g, "")}`
-                    `<div id="placeholder${i}" class="placeholder">${i}</div><p class="notepanelHeadline">${elementType}</p>${globalNotesData[i].stringForDisplay}`
-                    // `<p class="notepanelHeadline">`+ elementType + `</p>`+
-                    // globalNotesData[i].string.replace(/(\[|\])/g, "")
-
-            // Old color model: 
-            // let colCode = globalNotesData[i].string.replace(/(\[|\])/g, "")
-            // if (/^!{1}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF8888"; thisNote.classList.add("redNote")}//"red"}
-            // if (/^!{2}(?!!)/.test(colCode)){thisNote.style.backgroundColor = "#FF88FF"; thisNote.classList.add("magentaNote")}//"magenta"}
-            // if (/^!{3}/.test(colCode)){thisNote.style.backgroundColor = "#9088FF"; thisNote.classList.add("purpleNote")}//"#8000FF"}
-            // if (colCode.startsWith("?")){thisNote.style.backgroundColor = "#88FF88"; thisNote.classList.add("greenNote")}//"lime"}
-            // if (!colCode.startsWith("?") && !colCode.startsWith("!")) thisNote.classList.add("yellowNote")
+                thisNote.innerHTML = `<div id="placeholder${i}" class="placeholder">${i}</div><p class="notepanelHeadline">${elementType}</p>${thisNoteText}`
 
             let dummydiv = document.createElement("div")
                 dummydiv.style.backgroundColor = globalNotesData[i].color

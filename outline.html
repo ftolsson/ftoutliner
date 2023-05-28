@@ -419,10 +419,10 @@ var cancelNextNormalUpdate = false
 
 function startUpdate(updateObject) {
 
-	console.log("🤬", "normal update")
+	console.log("🤬", "normal update started")
 	if(cancelNextNormalUpdate){
 		cancelNextNormalUpdate = false
-		console.log("😃", "was cancelled")
+		console.log("😃", "but it was cancelled")
 		return
 	}
 
@@ -2139,7 +2139,7 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	if (someoneJustPressed.key == "o") {event.preventDefault(); toggleOneColumnOutline()}
 
 	if (someoneJustPressed.key == "p" && event.ctrlKey && event.altKey) {event.preventDefault(); $id("buttonForAlways").click(); return}
-	if (someoneJustPressed.key == "p" && event.ctrlKey) {event.preventDefault(); $id("buttonForPageDividers").click(); return}
+	if (someoneJustPressed.key == "p" && event.ctrlKey) {event.preventDefault(); $id("buttonForPageDividers").click(); setAllButtons(); return}
 	if (someoneJustPressed.key == "p" && event.shiftKey && event.metaKey) {event.preventDefault(); event.stopPropagation(); newPrintBox(); return}
 	if (someoneJustPressed.key == "p" && event.metaKey) {event.preventDefault(); togglePrintMode(); return}
 	if (someoneJustPressed.key == "p") {event.preventDefault(); toggleShowPageNumbers()}

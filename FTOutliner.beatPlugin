@@ -1025,7 +1025,7 @@ Beat.custom.collectNotes = function() {
 						}
 
 						// if (!line.note && !line.string.includes("[[")) continue
-						if (!line.noteData) continue
+						if (!line.noteData || line.typeAsString() == "Synopse") continue
 
 						//first check: inline notes
 						if(!line.note && line.string.includes("[[")){
@@ -1050,9 +1050,9 @@ Beat.custom.collectNotes = function() {
 											if(res.startsWith("[[!!")) note[entry].color = "magenta"
 											if(res.startsWith("[[!!!")) note[entry].color = "#8000FF"
 											if(res.startsWith("[[?")) note[entry].color = "lime"
-											if(!note[entry].color && (res.match(/(\[\[(\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
+											if(!note[entry].color && (res.match(/(\[\[(#*\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
 										note[entry].type = "note"
-										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
+										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
 
 
 										let notepos = line.range.location + line.string.indexOf(res)
@@ -1071,8 +1071,12 @@ Beat.custom.collectNotes = function() {
 							
 							//third check: full-line but not starting
 							if(!line.string.trim().startsWith("[[")) {
-									try{note[entry-1].string += "<br/>" + line.string}
-									catch {
+
+									try{ note[entry-1].string += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
+										//  note[entry-1].stringForDisplay += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
+										 note[entry-1].stringForDisplay += "<br/>" + line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
+										 note[entry-1].range.length += line.range.length 
+									} catch {
 										continue
 									}
 								continue
@@ -1090,13 +1094,14 @@ Beat.custom.collectNotes = function() {
 								if(line.string.startsWith("[[?")) note[entry].color = "lime"
 								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
 							note[entry].type = "note"
-							note[entry].stringForDisplay = line.string.replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
+							// note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\])?)/, "$4")
+							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|\w+:)?\s*([^\]]*)?(\]*))/, "$4")
 
 							let notepos = line.range.location
 							let notelen = line.range.length
 								note[entry].range = {"position": notepos, "length": notelen}
 							note[entry].inline = "0"
-
+Beat.log("🟩" + note[entry].stringForDisplay)
 							entry ++
 						}
 					}
