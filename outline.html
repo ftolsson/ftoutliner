@@ -371,6 +371,8 @@ function startFullUpdate(delayTime) { //not getting loc and len from outlinechan
 
 function startSmallUpdate(location, length, delayTime, elementType) {
 
+	//alertThis("smallUpdate Called -- it shouldn't be!")
+
 	//it may be that this never ever fires, but hey. 
 	if(fullTypeTimer > 0){
 		mylog("we're already queueing a full one, so trying to abort")
@@ -1001,7 +1003,7 @@ function divMaker(location){
 						// sceneDiv.style.height = temporaryHeight
 					}
 
-					if (currentItem.numberOfPages == 0) sceneDiv.style.outline = "10px solid hotpink"
+					// if (currentItem.numberOfPages == 0) sceneDiv.style.outline = "10px solid hotpink"
 
 					let ii = 1
 					while(outline[num-ii] && outline[num - ii].typeAsString == "Synopse"){ii++}
@@ -1174,9 +1176,6 @@ function divMaker(location){
 		for (i = 0; i < allActs.length - 1; i++){
 				allActs[i].classList.remove("boneyard")
 			}		
-
-	// //save all speechbubbles
-	// currentBubbles = ($$(".displayNumberOf"))
 	
 	//add a temporary copy of notes etc to avoid blinkage bc showing nothing until updating to current truth
 	if(flexiContainer.querySelectorAll(".faux, .section, .scene, .orphanText")?.length == newFlexi.querySelectorAll(".faux, .section, .scene, .orphanText")?.length){
@@ -1189,12 +1188,6 @@ function divMaker(location){
 	
 	//THE BIG ONE: REPLACE OLD OUTLINE WITH THE NEW
 	$id("flexiContainer").innerHTML = newFlexi.innerHTML
-
-	// //insert bubbles 
-	// currentBubbles.forEach(bubble => {
-	// 	console.log(bubble.dataset.parentId)
-	// 	$id(bubble.dataset.parentId)?.appendChild(bubble)
-	// })
 		
 	//re-enabled this because why not?
 	if(indexCardMode || areScenesProportional != 1){

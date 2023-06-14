@@ -986,19 +986,7 @@ Beat.custom.testSendingLineObject = function(){
 
 Beat.custom.collectNotes = function() {
 	Beat.log("collecting notes")
-	// let inTime = new Date()
-	// let allOutlineElements = [...Beat.outline()]
-	// let parser = Beat.currentParser 
-
-	//Experimental alternate way to extract notes
-	//Only: Not getting inline notes anymore...
-		//console.time("filter")
-		//const allTheLines = [...Beat.lines()]
-		//const result = allTheLines.filter(line => line.note);
-		//console.log(result)
-		//console.timeEnd("filter")
-
-	Beat.log("entering dispatch")
+	
 	Beat.dispatch(function(){
 		Beat.log("in dispatch")
 
@@ -1006,12 +994,10 @@ Beat.custom.collectNotes = function() {
 		let marker = []
 		let beats = []
 		let numberOfStorylines = 0
-		let previousStoryLine
 		let actualNote = []
 		let outlineElementNumber = -1
 		let lastElementThatWasScene = -1
 		let entry = 0
-		let markernumber = 0
 
 		let reg = (/\[\[.*?\]\]/g)
 		
@@ -1025,25 +1011,23 @@ Beat.custom.collectNotes = function() {
 						}
 
 						// if (!line.note && !line.string.includes("[[")) continue
-						if (!line.noteData || line.typeAsString() == "Synopse") continue
+						if (!line.noteData().length) continue
 
 						//first check: inline notes
-						if(!line.note && line.string.includes("[[")){
-							if(!["Heading", "Section"].includes(line.typeAsString())){
-								//let result = reg.exec(line.string)
+						if(!line.note){
+							if(!["Heading", "Section", "Synopse"].includes(line.typeAsString())){
+
 								let result = line.string.match(reg)
 
-								// if (!!result){
+								if (!!result){
 									for (res of result){
 
 										note[entry] = {}
 										let inlineNote = res
 										let inlineNoteIndex = res.index || 0
 										
-										//note[entry] = new notesData((line.position + inlineNoteIndex), inlineNote)
 										note[entry].outlineElementNumber = lastElementThatWasScene
 										note[entry].position = (line.position + inlineNoteIndex)
-										// note[entry].string = inlineNote
 										note[entry].string = line.noteData()[result.indexOf(res)].content
 										note[entry].color = line.noteData()[result.indexOf(res)].color
 											if(res.startsWith("[[!")) note[entry].color = "red"
@@ -1062,7 +1046,7 @@ Beat.custom.collectNotes = function() {
 
 										entry ++
 									}
-								// }
+								}
 							}
 						}
 
@@ -1073,7 +1057,6 @@ Beat.custom.collectNotes = function() {
 							if(!line.string.trim().startsWith("[[")) {
 
 									try{ note[entry-1].string += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
-										//  note[entry-1].stringForDisplay += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|\w+:)?\s*(.*)?(\]\]))/, "$4")
 										 note[entry-1].stringForDisplay += "<br/>" + line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
 										 note[entry-1].range.length += line.range.length 
 									} catch {
@@ -1085,7 +1068,6 @@ Beat.custom.collectNotes = function() {
 							note[entry] = {}
 							note[entry].outlineElementNumber = lastElementThatWasScene
 							note[entry].position = line.position
-							// note[entry].string = line.string
 							note[entry].string = line.noteData()[0].content
 							note[entry].color = line.noteData()[0].color
 								if(line.string.startsWith("[[!")) note[entry].color = "red"
@@ -1094,14 +1076,12 @@ Beat.custom.collectNotes = function() {
 								if(line.string.startsWith("[[?")) note[entry].color = "lime"
 								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
 							note[entry].type = "note"
-							// note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)(!*\?*|\w+:)?\s*(.*)?(\]\])?)/, "$4")
-							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|\w+:)?\s*([^\]]*)?(\]*))/, "$4")
+							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
 
 							let notepos = line.range.location
 							let notelen = line.range.length
 								note[entry].range = {"position": notepos, "length": notelen}
 							note[entry].inline = "0"
-Beat.log("🟩" + note[entry].stringForDisplay)
 							entry ++
 						}
 					}
@@ -1140,12 +1120,11 @@ Beat.log("🟩" + note[entry].stringForDisplay)
 						if(!existingStoryline){
 							numberOfStorylines++
 						}
-						previousStoryLine = stringIntoStory //now never used, can be scrapped
 					let stringIntoContent = strippedString.substring(stringIntoStory.length).replace(/^\s*:\s*/, "")
-					entry.storyline = thisStoryline || numberOfStorylines
-					entry.story = stringIntoStory || "UNNAMED BEAT"
-					entry.content = stringIntoContent
-					beats.push(entry)
+						entry.storyline = thisStoryline || numberOfStorylines
+						entry.story = stringIntoStory || "UNNAMED BEAT"
+						entry.content = stringIntoContent
+						beats.push(entry)
 				}else{
 					actualNote.push(entry)
 				}
@@ -1156,8 +1135,9 @@ Beat.log("🟩" + note[entry].stringForDisplay)
 			// Beat.log(JSON.stringify([...beats]))
 
 			Beat.dispatch_sync(function (){
-				let outTime = new Date()
-					htmlWindow.runJS("displayNotes(" + JSON.stringify([...actualNote]) + "," + JSON.stringify([...marker]) + "," + JSON.stringify([...beats]) + ")")
+
+				htmlWindow.runJS("displayNotes(" + JSON.stringify([...actualNote]) + "," + JSON.stringify([...marker]) + "," + JSON.stringify([...beats]) + ")")
+
 			})
 	})
 }

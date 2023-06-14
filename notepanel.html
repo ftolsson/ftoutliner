@@ -694,18 +694,6 @@ function createNotepanel() {
 
     $id("notepanel").classList.add("expanded") //again, will animate if only added here.
 
-    //Old notebuttons model
-        // if(!$(".noteButtons")){
-        //     $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'>
-        //             <input type='checkbox' ${documentSetting.noteButtonGreen ? `checked` : ``} id='noteButtonGreen' class='noteButton'>
-        //             <input type='checkbox' ${documentSetting.noteButtonYellow ? `checked` : ``} id='noteButtonYellow' class='noteButton'>
-        //             <input type='checkbox' ${documentSetting.noteButtonRed ? `checked` : ``} id='noteButtonRed' class='noteButton'>
-        //             <input type='checkbox' ${documentSetting.noteButtonMagenta ? `checked` : ``} id='noteButtonMagenta' class='noteButton'>
-        //             <input type='checkbox' ${documentSetting.noteButtonPurple ? `checked` : ``} id='noteButtonPurple' class='noteButton'>
-        //             <div id="notepanelReviewIcon"><input type='checkbox' ${documentSetting.noteButtonReview ? `checked` : ``} id='noteButtonReview' class='noteButton'></div>
-        //         </div>`
-        // }
-
     if($(".dialogtab.selectedtab")){
         setTimeout(function(){
             initiateCharacterBubbles()
@@ -747,18 +735,6 @@ function notePanelColorButtons(){
     $$(".noteButton").forEach(notebtn => {
         if(!$(`.notepanelNote[data-color="${notebtn.dataset.color}"]`)) notebtn.remove()
         })
-
-    // if(!$(".noteButtons")){
-    //     $id("notepanelbuttons").innerHTML = /*html*/`<div class='noteButtons'>
-    //             <input type='checkbox' ${documentSetting.noteButtonGreen ? `checked` : ``} id='noteButtonGreen' class='noteButton'>
-    //             <input type='checkbox' ${documentSetting.noteButtonYellow ? `checked` : ``} id='noteButtonYellow' class='noteButton'>
-    //             <input type='checkbox' ${documentSetting.noteButtonRed ? `checked` : ``} id='noteButtonRed' class='noteButton'>
-    //             <input type='checkbox' ${documentSetting.noteButtonMagenta ? `checked` : ``} id='noteButtonMagenta' class='noteButton'>
-    //             <input type='checkbox' ${documentSetting.noteButtonPurple ? `checked` : ``} id='noteButtonPurple' class='noteButton'>
-    //             <div id="notepanelReviewIcon"><input type='checkbox' ${documentSetting.noteButtonReview ? `checked` : ``} id='noteButtonReview' class='noteButton'></div>
-    //         </div>`
-    // }
-
 }
 
 function resizeNotepanel(){

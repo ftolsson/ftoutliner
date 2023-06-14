@@ -2445,9 +2445,11 @@ html[data-outdoors='1'] .section > .section-heading:not(.level1 > .section-headi
 	color: black !important;
 	background: white !important;
 	background: transparent !important;
-	border-top: 1px black solid;
-	border-left: 1px black solid;
-	border-right: 1px black solid;
+	/* border-top: 0px black solid;
+	border-left: 0px black solid;
+	border-right: 0px black solid; */
+
+	box-shadow: inset -1.75px 0 0 0.25px yellow;
 
 }
 
@@ -2472,13 +2474,15 @@ html[data-outdoors='1'] .indexcards .section:not(.level1, .special) > .section-h
 	
 }
 
+html[data-outdoors='1'] .scene,
 html[data-outdoors='1'] .isExpanded > .scene{
 
-	border: 1px solid black !important;
+	border: 0.5px solid black !important;
 	background-color: white;
 	box-shadow: none !important; 
 
-	box-shadow: 6px 0 0 0px inset var(--localColor) !important;
+	box-shadow: 6px 0 0 0px inset var(--localColor),
+				0px 0 0 1px inset var(--localColor) !important;
 
 }
 
@@ -2534,7 +2538,7 @@ html[data-outdoors='1'] .showActLength
 
 html[data-outdoors='1'] /* .greyonly */ .scene:not(.special){
 
-	font-weight: 600 !important;
+	/* font-weight: 600 !important; */
 
 }
 
