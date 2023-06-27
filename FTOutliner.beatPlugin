@@ -2207,15 +2207,15 @@ Beat.custom.collectReviews = function(andThenCreateDoc){
 
 Beat.custom.outlineToJSON = function(){
 	let a = Beat.outlineAsJSON()
-	//Beat.newDocument(a)
+	Beat.newDocument(a)
 
 
-	let b = JSON.stringify(Beat.lines())
-	Beat.openConsole()
-Beat.log("...as JSON:")
-	Beat.log(a)
-Beat.log("...via JSON.stringify")
-	Beat.log(b)
+// 	let b = JSON.stringify(Beat.lines())
+// 	Beat.openConsole()
+// Beat.log("...as JSON:")
+// 	Beat.log(a)
+// Beat.log("...via JSON.stringify")
+// 	Beat.log(b)
 
 }
 

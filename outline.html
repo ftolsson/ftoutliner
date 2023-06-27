@@ -3100,7 +3100,7 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 	if (classes.includes("showActLength")){gotoIndex ++}
 	gotoIndex = Math.min(gotoIndex, absoluteTextLength - 1)
 	
-	Beat.call("Beat.scrollTo(" + gotoIndex + ")") 
+	Beat.call("Beat.scrollTo(" + gotoIndex + "); Beat.focusEditor()") 
 		
 		//for debugging purposes: Selects entire scene object if clicking it
 			// if (a.includes("sceneheading") || a.includes("section") || a.includes("thisIsASynopsis")){

@@ -1495,30 +1495,37 @@ function paintRevisions(changedAsJSON, reviewAsJSON){
     .revision{
                 
         border-width: .5px;
-        border-style: solid;
-        border-radius: 2px;
+        border-style: none;
+        border-radius: 0.5px;
 
-        width: calc(100% + 20px);
-        left: -10px;
+        /* width: calc(100% + 20px);
+        left: -10px; */
+        
+        width: calc(6px);
+        right: -9px;
 
-        opacity: 0.5
+        /* opacity: 0.8; */
+
+        /* mix-blend-mode: multiply; */
+
+        --background-opacity: 1
 
     }
     
     .revision.blue{
-        background-color: rgba(51, 129, 239, 0.66);
+        background-color: rgba(51, 129, 239, var(--background-opacity));
         border-color: rgba(51, 129, 239, 1);
     }
     .revision.orange{
-        background-color: rgba(250, 161, 15, 0.66);
+        background-color: rgba(250, 161, 15, var(--background-opacity));
         border-color: rgba(250, 161, 15, 1)
     }
     .revision.purple{
-        background-color: rgba(181, 33, 218, 0.66);
+        background-color: rgba(181, 33, 218, var(--background-opacity));
         border-color: rgba(181, 33, 218, 1)
     }
     .revision.green{
-        background-color: rgba(32, 223, 121,0.66);
+        background-color: rgba(32, 223, 121, var(--background-opacity));
         border-color: rgba(32, 223, 121, 1)
     }
 
