@@ -1045,7 +1045,7 @@ white-space: pre-wrap !important;
 
 function displayEmptyScreenMessage(){
 
-	if (areScenesProportional == 0){toggleProportional()} //or else message is not nicely centered vertically.
+	if (scenesAreProportional == 0){toggleProportional()} //or else message is not nicely centered vertically.
 
 	document.getElementById('outOfSyncDiv').style.display = 'none'
 	document.getElementById('outOfSyncDiv').classList.remove('animate')
@@ -1072,9 +1072,15 @@ function displayEmptyScreenMessage(){
 
 function addTemplate(){
 
+	mylog("adding template")
+	
 	let contentString = /*html*/ `#ACT I\\n\\n##Sequence 1\\n\\nInt. Somewhere -- day\\n\\nInt. Somewhere ELSE -- day\\n\\n##Sequence 2\\n\\nInt. ANOTHER PLACE -- day\\n\\nInt. YET ANOTHER PLACE -- day\\n\\n#ACT II\\n\\n##Sequence 3\\n\\nExt. some other location -- night\\n\\nInt. AND ONE MORE -- NIGHT\\n\\nInt. THEN THIS ONE -- day\\n\\n##Sequence 4\\n\\nInt. AND ALSO THIS -- DAY\\n\\nInt. FOLLOWED BY THIS -- day\\n\\n#ACT III\\n\\n##Sequence 5\\n\\nInt. Then finally the last few scenes -- evening\\n\\n##Sequence 6\\n\\nint. Just one more after this -- night\\n\\nInt. And thats it -- dusk\\n`
-
+	
+	mylog("string is written")
+	
 	Beat.call(`Beat.replaceRange(0, 0, "${contentString}")`)
+	
+	mylog("replace range has run")
 
 	// let hardCodedNumberOfScenes = 12
 

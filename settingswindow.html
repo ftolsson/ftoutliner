@@ -1,0 +1,230 @@
+<!-- <p class="headline">Advanced Settings</p>
+	<hr> -->
+<div id = "main">
+	<ul>
+		<strong>Scene And Sections: (all views)</strong><br/>&nbsp;
+		<li  onclick="toggleThis('showMultipleSceneLines', 'buttonFor-showMultipleSceneLines')">
+			<input id="buttonFor-showMultipleSceneLines" type="checkbox">
+			<label for="buttonFor-showMultipleSceneLines">Show multiple SCENE lines<span class="shortcut" style="float:right">^S</span></label>
+		</li>
+		<li  onclick="toggleThis('showMultipleSectionLines', 'buttonFor-showMultipleSectionLines')">
+			<input id="buttonFor-showMultipleSectionLines" type="checkbox">
+			<label for="buttonFor-showMultipleSectionLines">Show multiple SECTION lines<span class="shortcut" style="float:right">^T</span></label>
+		</li>
+	<!--/ul>
+	<ul>
+		<strong><br/>Section headings:</strong--><br/>
+		<li onclick="toggleThis('allowLowerCaseSections', 'buttonFor-allowLowerCaseSections')">
+			<input id="buttonFor-allowLowerCaseSections" type="checkbox">
+			<label for="buttonFor-allowLowerCaseSections">Show SECTION capitalization as typed rather than uppercase only<span class="shortcut" style="float:right">^U</span></label>
+		</li>
+		<li onclick="toggleThis('showLengthsInSections', 'buttonFor-showLengthsInSections')">
+			<input id="buttonFor-showLengthsInSections" type="checkbox">
+			<label for="buttonFor-showLengthsInSections">Show accumulated length-in-pages for sections<span class="shortcut" style="float:right"></span></label>
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<!--ul>
+	<strong><br/>Pagination</strong><br/>
+	<li  onclick="toggleThis('showPageDividers', 'buttonFor-showPageDividers')">
+		<input id="buttonFor-showPageDividers" type="checkbox">
+		<label for="buttonFor-showPageDividers">Show page dividers (Flexible view only)<span class="shortcut" style="float:right">^P</span></label>
+	</li>
+	<li style="margin-left: 50px; overflow: hidden" class="" onclick="toggleThis('always', 'buttonFor-always')">
+		<input id="buttonFor-always" type="checkbox">
+		<label for="buttonFor-always">All the time (when deselected, paginations appears when a column is hovered)<span class="shortcut" style="padding-right: 110px; float:right">^⌥P</span></label>
+	</li>
+	</ul>
+	<br/>
+	<hr-->
+	<ul>
+		<strong><br/>Index Cards View:</strong><br/>&nbsp;
+		<li  onclick="toggleThis('showVerticals', 'buttonFor-showVerticals')">
+			<input id="buttonFor-showVerticals" type="checkbox">
+			<label for="buttonFor-showVerticals">Show vertical bars for section levels<span class="shortcut" style="float:right">^V</span></label>
+		</li>
+		<li  onclick="toggleThis('autoWiden', 'buttonFor-autoWiden')">
+			<input id="buttonFor-autoWiden" type="checkbox">
+			<label for="buttonFor-autoWiden">Automatically widen index cards when editing<span class="shortcut" style="float:right"></span></label>
+		</li>
+		<li  onclick="toggleThis('widenedColumnsGetAutoHeight', 'buttonFor-widenedColumnsGetAutoHeight')">
+			<input id="buttonFor-widenedColumnsGetAutoHeight" type="checkbox">
+			<label for="buttonFor-widenedColumnsGetAutoHeight">Widened cards also adjust height to fit<span class="shortcut" style="float:right"></span></label>
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<ul>
+	<strong><br/>Advanced Settings</strong><br/>&nbsp;
+	<li  onclick="toggleThis('warningsAreOn', 'buttonFor-warningsAreOn', true)">
+		<input id="buttonFor-warningsAreOn" type="checkbox">
+		<label for="buttonFor-warningsAreOn">Disable Warning Messages<span class="shortcut" style="float:right">^P</span></label>
+	</li>
+	<li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
+		<input id="buttonFor-realTimeIsOn" type="checkbox">
+		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" style="float:right">^P</span></label><br/>
+		<class="explanation">This is generally not recommended</class>
+	</li>
+	</ul>
+
+	<p><br/></p>
+	<div class="dialogBottomButtonRow">
+		<!-- <button class="generalButtonStyle" onclick="for (butn of $$('#advancedSettings input')){if(butn.checked){butn.click()}}">Revert to defaults</button> -->
+		<button class="generalButtonStyle" onclick="Beat.call('Beat.custom.closeSecondWindow()')">Close</button>
+	</div>
+</div>
+
+<script>
+
+	//STARTUP SEQUENCE:
+
+	var userDefault = {}
+	var documentSetting = {}
+    
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject")
+        return(ftoutlinerObject)
+    })
+    .then(
+        response => { userDefault = JSON.parse(response)
+			
+			//Apply the correct checkbox states on open:
+			for ([key, value] of Object.entries(userDefault)){					
+					let button = document.getElementById("buttonFor-" + key)
+						if(button){ 
+							if(value == true) button.setAttribute("checked", true) 
+						}
+				}
+		},
+        error => { console.log("Error retrieving userDefault") }
+    )
+
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getDocumentSetting("ftoutlinerObject")
+        return ftoutlinerObject
+    	})
+		.then(
+			response => { documentSetting = JSON.parse(response)
+		
+				//Apply the correct checkbox states on open:
+					for ([key, value] of Object.entries(documentSetting)){					
+						let button = document.getElementById("buttonFor-" + key)
+							if(button){ 
+								if(value == true) button.setAttribute("checked", true) 
+							}
+					}
+			},
+			error => { console.log("Error retrieving documentSetting") }
+		)
+
+
+	//FUNCTIONS:
+
+	function toggleThis(settingName, settingButton, invertSelection){
+
+		documentSetting[settingName] = document.getElementById("buttonFor-" + settingName).checked
+
+		let valueAsJSON = JSON.stringify(documentSetting[settingName])
+			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "documentSetting") `)
+
+	}
+
+
+</script>
+
+<style>
+
+    :root{
+
+        --menu-background: hsla(25, 64%, 96%, 1.00);/* rgb(240, 240, 240); /*was 232*/
+	    --menu-border-color: #c1c1c1;
+	    --menu-color: rgb(233,233,233);
+	    --menu-hover-color: #027aff;
+
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        :root{
+
+            --menu-background: hsla(25, 10%, 24%, 1.00);
+            --menu-border-color: rgb(81,81,81);
+            --menu-color: rgb(233,233,233);
+
+            --inkOnPaper: 0, 0%, 100%;
+            --paperBehindInk: 0, 0%, 0%;
+
+        }
+    }
+
+    body{
+
+        background-color: var(--menu-background);
+
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-size: 13px;
+        font-weight: normal;
+        line-height: 17px;
+
+    }
+
+    li {
+
+        list-style-type: none;
+        padding-top: 3px;
+		padding-left: 20px;
+    }
+
+	.shortcut {
+
+		display: none;
+
+	}
+
+	label:hover .shortcut {
+
+		display: inline;
+
+	}
+
+	.dialogBottomButtonRow {
+
+		position: absolute;
+		bottom: 20px;
+		right: 20px;
+
+	}
+
+	button{
+
+		font-size: 13px;
+
+	}
+
+	button:hover{
+
+		border: unset;
+		border-radius: inherit;
+		background-color: var(--menu-hover-color);
+		color: white;
+
+	}
+
+	hr {
+
+		opacity: 50%;
+		margin: 0 40px;
+		mix-blend-mode: multiply;
+
+	}
+
+	ul {
+
+		margin-top: 0px;
+		margin-bottom: 0px;
+
+	}
+
+
+</style>

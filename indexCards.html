@@ -34,7 +34,7 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 
 	mylog()
 	if (!theClickedThing)return
-	if (!indexCardMode && areScenesProportional) return
+	if (!indexCardMode && scenesAreProportional) return
 	//mylog("this was clicked: " + theClickedThing.classList )
 
 
@@ -432,7 +432,7 @@ function indexCardEditor(theElement, e){
 		synEditBox.style.color = "black"
 		synEditBox.style.border = attributes.border
 			if(indexCardMode) synEditBox.style.position = "absolute"
-			if(areScenesProportional == 0) synEditBox.style.position = "relative"
+			if(scenesAreProportional == 0) synEditBox.style.position = "relative"
 		synEditBox.style.top = 0 + "px"
 		synEditBox.style.left = 0 + "px"
 			if(indexCardMode 
@@ -736,8 +736,9 @@ function exitFromIndexCardEditor(confirmed){
 		$id("synEditBox").classList.add("wait")
 		let doUpdate = parseIndexCardPostEditing()
 		if(doUpdate){
-			weAreChangingColors = true
-			startSmallUpdate()
+			//the non-delayed update is now handled by the plugin
+			//updateWithoutDelay = true
+			//startSmallUpdate()
 		}
 	}else{
 		$id("synEditBox").remove()
@@ -946,21 +947,25 @@ function setInitialCaretPosition(div, clickPosition) {
 
 function enableUpdating(){
 
-Beat.call(`
-	Beat.onTextChangeDisabled = false
-	Beat.onOutlineChangeDisabled = false
-	Beat.onSelectionChangeDisabled = false
-	`)
+	return
+
+// Beat.call(`
+// 	Beat.onTextChangeDisabled = false
+// 	Beat.onOutlineChangeDisabled = false
+// 	Beat.onSelectionChangeDisabled = false
+// 	`)
 
 }
 
 function disableUpdating(){
 
-Beat.call(`
-Beat.onTextChangeDisabled = true
-Beat.onOutlineChangeDisabled = true
-Beat.onSelectionChangeDisabled = true
-`)
+	return
+
+// Beat.call(`
+// Beat.onTextChangeDisabled = true
+// Beat.onOutlineChangeDisabled = true
+// Beat.onSelectionChangeDisabled = true
+// `)
 
 }
 

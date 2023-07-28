@@ -338,6 +338,9 @@ __________BASIC ELEMENTS{}
 .scene, .orphanText{
 
 	position: relative;
+	container-name: scene;
+	container-type: size;
+	overflow: visible;
 	
 	/* setting margin-top programmatically due to allowing space for orphan material */
 	margin-top: 1px;
@@ -375,6 +378,16 @@ __________BASIC ELEMENTS{}
 
 }
 
+@container scene (max-height: 14px){
+
+	.sceneheading{
+
+		opacity: 0;
+
+	}
+
+}
+
 #flexiContainer.nonProportionalMode .isExpanded > .scene{
 
 	height: calc(var(--fixedHeight) * var(--fontSizeFactor) + 1px) !important;
@@ -402,6 +415,8 @@ __________BASIC ELEMENTS{}
 
 	overflow: hidden;
 	text-overflow: ellipsis;
+
+	transition: opacity 0.2s;
 
 }
 
@@ -1145,7 +1160,7 @@ p >.clear{
 
 	}
 
-.showSectionLength {
+.sectionLengths {
 
 	font-weight: normal;
 
@@ -1158,11 +1173,11 @@ p >.clear{
 
 }
 
-#flexiContainer:not(.dualSectionLines) .showSectionLength br {
+#flexiContainer:not(.dualSectionLines) .sectionLengths br {
 	display: none;
 }
 
-#flexiContainer.showLengthsInSections .showSectionLength{
+#flexiContainer.showLengthsInSections .sectionLengths{
 
 	display: inline;
 

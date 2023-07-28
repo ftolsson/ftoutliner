@@ -361,11 +361,11 @@ function addElement(theClickedThing, whatToAdd){
 
     mylog("done fixing")
 
-    Beat.call(`
-    Beat.onTextChangeDisabled = true
-    Beat.onOutlineChangeDisabled = true
-    Beat.onSelectionChangeDisabled = true`
-    )
+    // Beat.call(`
+    // Beat.onTextChangeDisabled = true
+    // Beat.onOutlineChangeDisabled = true
+    // Beat.onSelectionChangeDisabled = true`
+    // )
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
 
@@ -376,7 +376,7 @@ function addElement(theClickedThing, whatToAdd){
     `
     Beat.call(doThis)
     
-    weAreChangingColors = true //forces update of display even if non-realtime (and with zero delay)
+    updateWithoutDelay = true //forces update of display even if non-realtime (and with zero delay)
     
     toggleWaitState(true)
     startUpdate()
@@ -445,7 +445,7 @@ function demoteSection(section){
     `)
 
     enableUpdating()
-    weAreChangingColors = true
+    updateWithoutDelay = true
     startUpdate()
 
 }
@@ -463,7 +463,7 @@ function promoteSection(section){
     `)
 
     enableUpdating()
-    weAreChangingColors = true
+    updateWithoutDelay = true
     startUpdate()
 
 }

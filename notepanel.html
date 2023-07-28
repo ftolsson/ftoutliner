@@ -446,12 +446,14 @@ body.notepanelIsBeingResized > * {
     box-shadow: 0 0 0 0.5px black;
 }
 
+.notepanelNote.isSelected > .notepanelHeadline,
 .notepanelNote:hover > .notepanelHeadline{
 
     padding-right: calc(3px + 12px * var(--fontSizeFactor)) !important;
 
 }
 
+.notepanelNote.isSelected > .notepanelHeadline,
 .notepanelHeadline.isSelected,
 .notepanelNote:hover > .notepanelHeadline{
     background-color: black;
@@ -681,27 +683,27 @@ function cycleTabs(clickedElement){
 
 }
 
-function createNotepanel() {
+// function createNotepanel() {
 
-    mylog()
-    if($id("notepanel").classList.contains("expanded")) return
+//     mylog()
+//     if($id("notepanel").classList.contains("expanded")) return
 
-    $id("flexiContainer").classList.add("notepanelIsExpanded")
-        let justToProvokeRedraw = $id("flexiContainer").getBoundingClientRect()
-            justToProvokeRedraw = $id("notepanel").getBoundingClientRect()
+//     $id("flexiContainer").classList.add("notepanelIsExpanded")
+//         let justToProvokeRedraw = $id("flexiContainer").getBoundingClientRect()
+//             justToProvokeRedraw = $id("notepanel").getBoundingClientRect()
     
-    updateNotepanel()
+//     //updateNotepanel()
 
-    $id("notepanel").classList.add("expanded") //again, will animate if only added here.
+//     $id("notepanel").classList.add("expanded") //again, will animate if only added here.
 
-    if($(".dialogtab.selectedtab")){
-        setTimeout(function(){
-            initiateCharacterBubbles()
-        }, 300)
-    }
+//     if($(".dialogtab.selectedtab")){
+//         setTimeout(function(){
+//             initiateCharacterBubbles()
+//         }, 300)
+//     }
 
-    setAllButtons()
-}
+//     setAllButtons()
+// }
 
 function notePanelColorButtons(){
 
@@ -775,49 +777,47 @@ function finalizeResizingNotepanel(){
 
 }
 
-function updateNotepanel(){
+function updateNotepanel(allNotes){
 
     mylog("updateNotepanel, which has... " + $id("notepanel").classList || "nothing")
+    console.log(allNotes)
+
+    allNotes = allNotes.flat()
     
     //if(!$id("notepanel").classList.contains("expanded")){mylog("...so aborting"); return}
-    if(!globalNotesData || globalNotesData.length == 0){collectNotes()}
-    if(!globalReviewsData || globalReviewsData.length == 0){collectReviews()}
+    //if(!globalNotesData || globalNotesData.length == 0){collectNotes()}
+    //if(!globalReviewsData || globalReviewsData.length == 0){collectReviews()}
     
-    mylog ("globalNotesData: " + globalNotesData?.length)
-    mylog ("globalReviewsData: " + globalReviewsData?.length)
+    //mylog ("globalNotesData: " + globalNotesData?.length)
+    //mylog ("globalReviewsData: " + globalReviewsData?.length)
 
     $$(".notepanelNote").forEach(note => {note.remove()})
     $$(".notepanelReview").forEach(note => {note.remove()})
 
-    if((!globalNotesData && !globalReviewsData) || (globalNotesData?.length == 0 && globalReviewsData?.length == 0)) return
+    //if((!globalNotesData && !globalReviewsData) || (globalNotesData?.length == 0 && globalReviewsData?.length == 0)) return
     
-    if(globalNotesData?.length > 0){
+    // if(globalNotesData?.length > 0){
         mylog("looping notes in panel")
-        for(let i = 0; i < globalNotesData.length; i++){
+        for(let i = 0; i < allNotes.length; i++){
 
-            let elementType = outline[globalNotesData[i].outlineElementNumber]?.typeAsString
-                if (elementType == "Heading"){elementType = "Note in scene " + outline[globalNotesData[i].outlineElementNumber]?.sceneNumber}
-                if (elementType == "Section"){elementType = `Note in ` + outline[globalNotesData[i].outlineElementNumber]?.stringForDisplay?.toUpperCase() + ``}
+            let elementType = outline[allNotes[i].outlineElementNumber]?.typeAsString
+                if (elementType == "Heading"){elementType = "Note in scene " + outline[allNotes[i].outlineElementNumber]?.sceneNumber}
+                if (elementType == "Section"){elementType = `Note in ` + outline[allNotes[i].outlineElementNumber]?.stringForDisplay?.toUpperCase() + ``}
 
             let thisNote = document.createElement("div")
                 thisNote.id = "notepanelNote" + i
                 thisNote.classList.add("notepanelNote")
-                // thisNote.dataset.line = globalNotesData[i].position
-                thisNote.dataset.line = globalNotesData[i].range.position
-                thisNote.dataset.length = globalNotesData[i].range.length
-                thisNote.dataset.inline = globalNotesData[i].inline
+                thisNote.dataset.line = allNotes[i].range.location
+                thisNote.dataset.length = allNotes[i].range.length
+                thisNote.dataset.inline = allNotes[i].inline
 
-                let thisNoteText = globalNotesData[i].stringForDisplay
-                    thisNoteText = thisNoteText.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
-                    thisNoteText = thisNoteText.replace(/\*\*\*(.*)\*\*\*/g, "<strong><em>$1</em></strong>")
-                    thisNoteText = thisNoteText.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
-                    thisNoteText = thisNoteText.replace(/\*(.*)\*/g, "<em>$1</em>")
-                    thisNoteText = thisNoteText.replace(/\_(.*)\_/g, "<u>$1</u>")
+                let thisNoteText = allNotes[i].formattedContent
 
-                thisNote.innerHTML = `<div id="placeholder${i}" class="placeholder">${i}</div><p class="notepanelHeadline">${elementType}</p>${thisNoteText}`
+                thisNote.innerHTML = `<div id="placeholder${i}" class="placeholder">${i}</div>
+                        <p class="notepanelHeadline">${allNotes[i].headline}</p>${thisNoteText}`
 
             let dummydiv = document.createElement("div")
-                dummydiv.style.backgroundColor = globalNotesData[i].color
+                dummydiv.style.backgroundColor = allNotes[i].color
                 document.body.appendChild(dummydiv)
             let colCode = window.getComputedStyle(dummydiv).backgroundColor || "#FFFF00"
                 if (colCode == "rgba(0, 0, 0, 0)") colCode = "rgb(255,255,0)" //"#FFFF00"
@@ -838,9 +838,15 @@ function updateNotepanel(){
             $(".placeholder").replaceWith(trashDiv)
             $$(".placeholder").forEach(placeholder => placeholder.remove())
         }
-    }
+    // }
 
-    mylog("notesdone")
+    // console.log("hello")
+    // allNotepanelNotes = ($$(".notepanelNote"))
+    // console.log(currentCaretPosition)
+    // console.log(allNotepanelNotes, Array.from(allNotepanelNotes).filter(note => {note.dataset.line < currentCaretPosition && (note.dataset.line + note.dataset.length) > currentCaretPosition}))
+    // let currentNote = Array.from(allNotepanelNotes).filter(note => {note.dataset.line < currentCaretPosition && (note.dataset.line + note.dataset.length) > currentCaretPosition}) || false
+    // console.log ("notepanel: " + currentNote)
+    //     if(currentNote.length > 0 && isThisOffScreen(currentNote[0])) scrollNicelyIntoView(currentNote[0], $id("notePanel"))
 
     if(globalReviewsData?.length > 0){
         mylog("looping reviews in panel")
@@ -880,18 +886,19 @@ function toggleNotepanel() {
 
     mylog("toggleNotepanel")
 
-    if(![...$id("notepanel").classList].includes("expanded")){
-        createNotepanel()
-        return
-    }
+    // if(!$id("notepanel").classList.contains("expanded")){
+    //     createNotepanel()
+    //     return
+    // }
 
-    $id("flexiContainer").classList.remove("notepanelIsExpanded")
-    $id("notepanel").classList.remove("expanded")
-    
+    $id("notepanel").classList.toggle("expanded")
+    $id("flexiContainer").classList.toggle("notepanelIsExpanded", $id("notepanel").classList.contains("expanded"))
+
+    collectNotes()
             
-    $$(".notepanelNote").forEach(note => {note.remove()})
-    $$(".displayNumberOf").forEach(bubble => {bubble.remove()})
-    $$(".connector").forEach(connector => {connector.remove()})
+    // $$(".notepanelNote").forEach(note => {note.remove()})
+    // $$(".displayNumberOf").forEach(bubble => {bubble.remove()})
+    // $$(".connector").forEach(connector => {connector.remove()})
 
     clearSearchBox()
     setAllButtons()

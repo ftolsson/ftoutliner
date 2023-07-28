@@ -11,9 +11,9 @@
 }
 
 .noteContainer {
-    position: relative !important;
+    position: absolute !important;
     float: right !important;
-    height: 1px !important; 
+    /* height: 1px !important;  */
     margin-bottom: -1px !important;
     width: auto !important;
     pointer-events: none;
@@ -24,9 +24,11 @@
 
     /*testing new absolute note container*/
     position: absolute !important;
-    top: 0 !important;
+    /* top: 0 !important; */
     right: 2px !important;
-    height: 100% !important;
+
+    min-height: 15px !important;
+    /* height: 100% !important; */
 
 }
 
@@ -43,26 +45,32 @@
 }
 
 .marker {
-    background: grey;
+    background-color: var(--mycolor);
+    color: white;
+
     position: absolute;
     right: -2px;
-    height: 0px;
+    top: min(var(--percentage), calc(100% - 12px));
+
     height: 12px;
     min-width: 20px;
-    width: auto; /* for purpose of marker name */
+    width: auto; /* to fit marker name */
     max-width: 80%;
 
-    pointer-events: all !important;
+    pointer-events: all;
 
-    padding-right: 4px;
-
+    padding-left: 8px;
+    padding-right: 2px;
+    
     z-index: 998;
-
-    color: white;
+    
     font-weight: bold;
-    font-size: 10px !important;
-    line-height: 15px !important;
+    font-size: 10px;
+    line-height: 10px;
+    
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 
     border: 1px rgba(0,0,0,0.6) solid;
 
@@ -90,29 +98,14 @@
 
 }
 
-.marker .markertext{
+.marker:hover {
 
-    position: relative;
-    display: inline-block;
-
-    top: -2px;
-    left: 10px;
-
-    width: calc(100% - 7px);
-    height: 16px;
-    margin-right: 10px;
-    
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-
-    z-index: 9999;
-
-    pointer-events: none;
-
+    background-image: linear-gradient(rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.6) 100%) !important;
     opacity: 1;
-
+    color: white !important;
 }
+
+#------INDEXCARD STYLES------{}
 
 #flexiContainer.indexcards .marker,
 #flexiContainer.nonProportionalMode .marker {
@@ -164,13 +157,6 @@
 #flexiContainer.indexcards :nth-child(5 of .marker),
 #flexiContainer.nonProportionalMode :nth-child(5 of .marker){
     right: 50px !important;
-}
-
-.marker:hover {
-
-    background-image: linear-gradient(rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.6) 100%);
-    opacity: 1;
-    color: white !important;
 }
 
 #flexiContainer .faux .marker .markertext,
@@ -320,6 +306,12 @@
 
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 4.1px), calc(100% - 4.1px) 100%, 0 100%);
     overflow: hidden;
+
+}
+
+.note {
+
+    top: var(--percentage)
 
 }
 
@@ -551,16 +543,423 @@ var showIcon = `
 let notesDivStart
 let notesDivEnd = "</div>"
 
+function __________NOTES(){}
+
 function collectNotes(wherefrom){
-    mylog(" from " + JSON.stringify(collectNotes.caller.name))
 
+    //TODO: Rename to collectNotesMarkersAndMore
+   
+    mylog(" from " + JSON.stringify(collectNotes.caller.name)) 
+    
     if (!notesAreDisplayed && !markersAreDisplayed && !beatsAreDisplayed && !$("#notepanel.expanded .selectedtab.notetab"))return
+    if(!outline || outline.length < 1) return
 
+        let startTime = Date.now()
+        let allNotesRaw = []
 
-    Beat.call("Beat.custom.collectNotes()")
+            let copyOfLines = JSON.parse(JSON.stringify(lines)) //needed because we're going to modify the lines array
+
+            copyOfLines.forEach(line => {
+
+                if (!["Heading", "Section", "Synopse"].includes(line.typeAsString)){
+                    
+                    line.notes.forEach(note => {
+                        note.range.location += line.range.location
+                        let startRedux = 0
+                            if(note.type == "marker") { startRedux = 7 }
+                            if(note.type == "beat") { startRedux = 5 }
+                            if(note.type == "storyline") { startRedux = 10 }
+
+                        let noteText = note.content
+                            noteText = noteText.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
+                            noteText = noteText.replace(/\*\*\*(.*)\*\*\*/g, "<strong><em>$1</em></strong>")
+                            noteText = noteText.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
+                            noteText = noteText.replace(/\*(.*)\*/g, "<em>$1</em>")
+                            noteText = noteText.replace(/\_(.*)\_/g, "<u>$1</u>")
+                            noteText = noteText.replace(/\~(.*)\~/g, "<strike>$1</strike>")
+                            noteText = noteText.replace(/\n/g, "<br>")
+                            note.formattedContent = note.type == "note" ? noteText : noteText.toUpperCase()
+
+                        //FTOutliner-exclusive color handling: 
+                            if(!note.color && note.content.substr(startRedux).match(/^(#*\w+):*/)){
+                                let colorValue = note.content.substr(startRedux).match(/^(#*\w+):*/)[1].toLowerCase()
+                                if (CSS.supports("color: " + colorValue)) {
+                                    note.color = colorValue
+                                    startRedux += colorValue.length + 1
+                                }
+                            }
+                            //this is notes-only, so absolute values and not additive
+                            if(note.content.startsWith("!")) { note.color = "red"; startRedux = 1}
+                            if(note.content.startsWith("!!")) { note.color = "magenta"; startRedux = 2}
+                            if(note.content.startsWith("!!!")) { note.color = "#8000FF"; startRedux = 3}
+                            if(note.content.startsWith("?")) { note.color = "lime"; startRedux = 1}
+                            
+                            note.formattedContent = note.formattedContent.substr(startRedux)
+
+                        //#region hack
+                        //Beat-specific hacks to fix quirks that may or may not change in the future:
+                            //1. hack to fix notes starting at top of line
+                                // if(note.range.location !== line.range.location){
+                                //     note.range.length ++
+                                // }
+                            //2. hack to make multiline notes work
+                                if(note.content.includes("\n")){
+                                    let numberOfExtraLines = 0
+                                    while (!copyOfLines[copyOfLines.indexOf(line) + numberOfExtraLines].string.includes("\]\]")){
+
+                                        numberOfExtraLines ++
+
+                                        console.log("concatenating multiline notes, line " + (numberOfExtraLines + 1), copyOfLines[copyOfLines.indexOf(line) + numberOfExtraLines].string)
+                                        console.log(copyOfLines[copyOfLines.indexOf(line) + numberOfExtraLines].notes[0].range.length)
+                                    
+                                        note.range.length += copyOfLines[copyOfLines.indexOf(line) + numberOfExtraLines].notes[0].range.length + 1 //+1 for the newline character
+
+                                    }
+                                }
+                        //#endregion
+
+                        if(note.content) allNotesRaw.push(note)
+                    })
+                }
+            })
+            
+            let endTime = Date.now() - startTime
+            console.log(allNotesRaw.length + " notes collected in: " + endTime + "ms")
+
+        let allNotes = []
+        let allMarkers = []
+        let allBeats = []
+
+        for (outlineElementNumber = 0; outlineElementNumber < outline.length; outlineElementNumber ++){
+
+            let allEntriesInScene = []
+                allEntriesInScene = allNotesRaw.filter(note => note.range.location >= outline[outlineElementNumber].sceneStart && note.range.location < (outline[outlineElementNumber + 1]?.sceneStart || outline[outlineElementNumber].sceneEnd))
+            
+            //TODO: Perhaps also add beats and/or storyline data category
+            let notesInScene = []
+                notesInScene =   allEntriesInScene.filter(note => note.type == "note")
+            let markersInScene = []
+                markersInScene = allEntriesInScene.filter(note => note.type == "marker")
+            let beatsInScene = []
+                beatsInScene = allEntriesInScene.filter(note => note.type == "beat")
+
+            allNotes[outlineElementNumber] = notesInScene
+            allMarkers[outlineElementNumber] = markersInScene
+            allBeats[outlineElementNumber] = beatsInScene
+        }
+
+        //Done collecting notes and stuff, now send their respective data to the display function && update the notepanel
+            if(notesAreDisplayed) displayNotes(allNotes, "note")
+            if($id("notepanel")?.classList.contains("expanded")) updateNotepanel(allNotes)
+
+            if(markersAreDisplayed) displayNotes(allMarkers, "marker")
+            if(beatsAreDisplayed) displayNotes(allBeats, "beat")
+
 }
 
+
+function displayNotes(allNotes, typeOfNote){
+
+    mylog()
+
+    if(!outline || !allNotes) return
+
+    let existingNotes = document.querySelectorAll(typeOfNote == "note" ? ".noteContainer" : `.${typeOfNote}`)
+        existingNotes.forEach(note => note.remove())
+
+        console.log("now to display... " + (allNotes.flat().length) + " " + typeOfNote + "s" + " in " + allNotes.length + " scenes")
+
+    allNotes.forEach(sceneWithNotes => {
+
+        if (sceneWithNotes.length){
+
+            let element = $id(`${allNotes.indexOf(sceneWithNotes)}`) || $(".faux")
+            let currentContainer
+
+            if (typeOfNote == "note"){
+
+                currentContainer = document.createElement("div")
+                currentContainer.id = "noteContainer" + allNotes.indexOf(sceneWithNotes)
+                currentContainer.classList = "noteContainer clickThru"
+                currentContainer.style.bottom = "15px" // corresponds to height of a note. TODO: Make this dynamic
+                currentContainer.style.height = "calc(100% - 15px)"
+                if (element.classList.contains("section")) {
+                    currentContainer.style.bottom = ""
+                    currentContainer.style.top = "0px"
+                    currentContainer.style.height = element.querySelector(".section-heading").getBoundingClientRect().height + "px"
+                }
+
+                if (element.classList.contains("section")) element.insertBefore(currentContainer, element.querySelector(".section-heading"))
+                else element?.appendChild(currentContainer)
+            
+            }else{
+
+                currentContainer = element
+
+            }
+
+            sceneWithNotes.forEach(note => {
+
+                let headline = "Note in " + ((outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? "scene " : "section ")
+                    headline += (outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? outline[allNotes.indexOf(sceneWithNotes)].sceneNumber : outline[allNotes.indexOf(sceneWithNotes)].string
+
+                note.headline = headline
+                // note.headline = "length: " + note.range.length
+                
+                let noteElement = document.createElement("div")
+                    noteElement.classList.add(typeOfNote)
+                    noteElement.classList.add("collapsed")
+                    noteElement.dataset.line = note.range.location
+                    noteElement.dataset.length = note.range.length
+                    noteElement.dataset.headline = headline
+
+                    noteElement.dataset.color = note.color || "#FFFF00"
+                    noteElement.style.backgroundColor = note.color || ""
+                    noteElement.style.setProperty("--mycolor", note.color || "red")
+
+                let noteNumber = allNotes.flat().indexOf(note)
+                    noteElement.dataset.noteNumber = noteNumber
+                    noteElement.id = "noteNumber" + noteNumber
+
+                if(typeOfNote == "note"){
+                    if (userDefault.oldNoteBehavior == true){
+                        noteElement.onmouseenter = (event) => {expandNote(false, false, event)}
+                        noteElement.onmouseleave = (event) => {collapseNote()}
+                    } else {
+                        noteElement.onclick = (event) => {expandNote(false, false, event)}
+                        noteElement.onmouseenter = (event) => {noteElement.classList.toggle("selectedNote", true)
+                                                                $id("notepanelNote" + noteNumber)?.classList.toggle("isSelected", true)}
+                        noteElement.onmouseleave = (event) => {noteElement.classList.toggle("selectedNote", false)
+                                                                $id("notepanelNote" + noteNumber)?.classList.toggle("isSelected", false)}
+                    }
+                }
+
+            // if (scenesAreProportional == 1 && !(element.id.includes("outline") && !element.querySelector(".orphanText"))) {
+            //     notesDivStart += "style='top: " + percentageBasedPosition + "px' " 
+            // }
+                let percentage = 100 * ((note.range.location - outline[allNotes.indexOf(sceneWithNotes)].sceneStart) / outline[allNotes.indexOf(sceneWithNotes)].range.length) // + "%" // * (element.getBoundingClientRect().height - (15 * currentZoomLevel) - 0)
+            
+                    noteElement.style.setProperty("--percentage", percentage + "%")
+                    noteElement.dataset.content = note.content
+                    noteElement.dataset.formattedText = note.formattedContent
+                    noteElement.innerHTML = note.formattedContent
+                
+                    currentContainer.appendChild(noteElement)
+
+                    if(typeOfNote == "marker"){
+                        noteElement.style.color = blackOrWhite(window.getComputedStyle(noteElement).backgroundColor)
+                        if (currentContainer.classList.contains("section")) noteElement.style.setProperty("--percentage", "2px")
+                    }
+            })
+        }
+    })
+}
+
+function expandNote(tabWasPressed, shiftWasHeld, event){
+
+    console.log("expandNote()")
+
+    if(!$(".note")) return
+    if($("#editBox")) return
+    exitEdit() //this caused a crash recently, check what this is about 2023-07-19
+
+    let allNoteElements = Array.from($$(".note")) // use for cycling if tab, later
+
+    if(event?.target && !tabWasPressed) {
+        console.log("event.target: " + event.target.id)
+        
+        $$(".note.selectedNote").forEach(note => { note.classList.remove("selectedNote") })
+        event.target.classList.add("selectedNote")
+    }
+    if(tabWasPressed){
+        let noteNumberToExpand = allNoteElements.indexOf($(".selectedNote"))
+        if (noteNumberToExpand == -1) { noteNumberToExpand = (shiftWasHeld ? 0 : allNoteElements.length - 1) }
+            noteNumberToExpand += (shiftWasHeld ? -1 : 1) 
+        if (noteNumberToExpand < 0){ noteNumberToExpand = allNoteElements.length - 1 }
+        if(noteNumberToExpand > allNoteElements.length - 1){ noteNumberToExpand = 0 }
+            
+        noteToExpand = allNoteElements[noteNumberToExpand]
+        
+        $(".selectedNote")?.classList.remove("selectedNote")
+        noteToExpand.classList.add("selectedNote")
+    }
+
+    let theNote = $(".note.selectedNote")
+        if(!theNote) return
+        if(isThisOffScreen(theNote)){
+            scrollNicelyIntoView(theNote) 
+        }
+
+    $id("expandedNote")?.remove()
+
+    let theExpandedNote = document.createElement("div")
+        theExpandedNote.id = "expandedNote"
+        theExpandedNote.classList.add("expandedNote")
+        theExpandedNote.style.backgroundColor = theNote.dataset.color 
+        theExpandedNote.style.backgroundColor = lightenColor(window.getComputedStyle(theNote).backgroundColor, 50)
+
+        theExpandedNote.innerHTML = /*html*/ `<b class='clickThru padRight'>
+                                            <div id='placeholder'></div>
+                                            ${theNote.dataset.headline}</b>
+                                            <text class='clickThru' id='expandedNoteText'>${theNote.dataset.formattedText}</text>`
+        theExpandedNote.dataset.line = theNote.dataset.line
+        theExpandedNote.dataset.position = theNote.dataset.position
+        theExpandedNote.dataset.length = theNote.dataset.length
+        theExpandedNote.dataset.color = theNote.dataset.color
+        theExpandedNote.style.position = "absolute"
+        theExpandedNote.style.top = "50%"
+        theExpandedNote.style.left = "50%"
+        // theExpandedNote.dataset.inline = theNote.dataset.inline //this is currently not used 
+
+        let expandedWidth = Math.min($(".faux, .section, .scene").getBoundingClientRect().width, window.innerWidth/2)
+            theExpandedNote.style.width = expandedWidth + "px"
+
+
+    flexiContainer.appendChild(theExpandedNote)
+    
+    //SET POSITION FOR THE EXPANDED NOTE:
+        let sizeOfFlexi = $id("flexiContainer").getBoundingClientRect()
+        let sizeOfExpandedNote = theExpandedNote.getBoundingClientRect()
+        let position = theNote.getBoundingClientRect()
+
+        if (position.top == 0 && position.left == 0) { //this is a note in an omitted scene
+            position = theNote.closest(".section").getBoundingClientRect()
+            theExpandedNote.classList.add("omittedNote")
+        }
+        let y = parseInt(JSON.stringify(position.top - sizeOfFlexi.top))
+        let x = parseInt(JSON.stringify(position.left - sizeOfFlexi.left))
+        let yOrigo = document.getElementById('flexiContainer').scrollTop
+
+        let xPos = Math.min((x + 7.5 - expandedWidth/2), (sizeOfFlexi.width - expandedWidth - 40))
+        let yPos = yOrigo + y + 25
+            xPos = Math.max(xPos, 20)
+            yPos = Math.max(yPos, 20)
+        if (xPos + sizeOfExpandedNote.width > sizeOfFlexi.width - 40) {xPos = sizeOfFlexi.width - sizeOfExpandedNote.height - 40}
+        if (yPos + sizeOfExpandedNote.height > document.getElementById('flexiContainer').scrollHeight - 40) {yPos = yOrigo + y - 10 - sizeOfExpandedNote.height}
+
+        theExpandedNote.style.top = yPos + "px"
+        theExpandedNote.style.left = xPos + "px"
+
+        if (tabWasPressed){
+            let trashDiv = document.createElement("div")
+                trashDiv.id = "trashNote"
+                trashDiv.classList.add("trashNote")
+                trashDiv.innerHTML = trashIcon
+                trashDiv.onclick = () => {deleteNote()}
+
+                trashDiv.style.outline = "2px solid red"
+
+            $id("placeholder").replaceWith(trashDiv)
+        }
+        $id("placeholder")?.remove()
+
+        theExpandedNote.ondblclick = (event) => {
+            editContent(event)}
+
+    return
+
+    //all below deletable
+
+    if (event && [...event?.target?.classList].includes("note") && ($id('trashNote'))) { //allow hover others when in tab-cycling
+        return
+    }
+
+
+
+        // To prevent blinkage (and remove hover effect from parents when hovering note)
+        let bubbleProhibitor = theNote
+        while (bubbleProhibitor.parentNode && bubbleProhibitor.parentNode.id != "flexiContainer"){
+            bubbleProhibitor = bubbleProhibitor.parentNode
+            bubbleProhibitor.classList.add("noHover")
+            mylog("ADDED noHover to " + bubbleProhibitor.id)
+        }
+
+    mylog("immedeiately after added NoHover...")
+
+    //add .isSelected to notePanel, to show hovered note in panel if open
+    if($("#notepanel")){
+        selectedNote = theNote.getAttribute("data-noteNumber")
+        $id("notepanelNote" + selectedNote)?.classList.add("isSelected")
+        $id("notepanelNote" + selectedNote)?.firstChild.classList.add("isSelected")
+    }
+
+
+    let sceneText = "in scene " + outline[theNote.closest(".scene")?.id]?.sceneNumber
+    if (!theNote.closest(".scene")){
+        let a = theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML
+        sceneText = a? ('in section ' + theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML) : "before first section"
+    }
+        
+
+
+
+
+ 
+
+}
+
+
+function collapseNote(){
+
+mylog(event?.type)
+
+    //remove .isSelected from notePanel, to show hovered note in panel if open
+    if($("#notepanel")){
+        $id("notepanelNote" + selectedNote)?.classList.remove("isSelected")
+        $id("notepanelNote" + selectedNote)?.firstChild.classList.remove("isSelected")
+    }
+
+if (event && event.type == "mouseleave" && (document.getElementById('trashNote'))) { //allow hover others when in tab-cycling
+    return
+}
+
+if (document.getElementById('expandedNote')){
+document.getElementById('expandedNote').remove()
+
+let makeRehoverable = document.querySelectorAll('.noHover')
+for (i = makeRehoverable.length -1; i > -1; i-- ){
+    makeRehoverable[i].classList.remove('noHover')
+}
+
+let noteToUnselect = document.querySelector('.selectedNote')
+if (noteToUnselect) {noteToUnselect.classList.remove('selectedNote')}
+}
+}
+
+function deleteNote(){
+
+theClickedThing = event.target
+console.log(theClickedThing)
+
+let length = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.length) 
+let location = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.line)
+
+alertThis(length)
+
+goto(location, theClickedThing, length, "#bb8888")
+
+// //condition to find out if a note ends on the final index of a line, if so decrease range by one character so as to leave the linebreak.
+//     let replaceString = ""
+//     let currentLine = lines.filter(line => line.range.location <= location + length && line.range.location + line.range.length >= location + length)[0]
+//     if (location > currentLine.range.location && location + length == currentLine.range.location + currentLine.range.length){            
+//         length --
+//     }
+
+setTimeout(() => {
+    
+    Beat.call((location, length, replaceString)=>{
+        Beat.replaceRange(location, length, replaceString)
+    }, location, length, replaceString)
+
+}, 1750)
+
+}
+
+function __________xxx(){}
+
 function collectReviews(){
+
+    if (!reviewsAreDisplayed) return
 
     Beat.call("Beat.custom.collectReviews()")
 }
@@ -683,136 +1082,6 @@ function highlightReviewInPanel(element){
 
 }
 
-function displayNotes(notesData, markerData, beatData){
-    mylog()
-
-    if(!outline){return} //or else error on plugin startup
-
-    if(notesData){globalNotesData = notesData}
-    if(markerData){globalMarkerData = markerData}
-    if(beatData){globalBeatData = beatData}
-
-    notesData = globalNotesData
-    
-    if(markersAreDisplayed){displayMarkers()}
-    if(beatsAreDisplayed){displayBeats()}
-    
-    if($id("notepanel")?.classList.contains("expanded") && notesData.length > 0){updateNotepanel()}
-
-    if(!notesAreDisplayed || !notesData) return //2023.01.25 -- will this help @folkemunne's crash?
-
-    let existingNotes = document.querySelectorAll(".note, .noteContainer")
-    if(existingNotes){
-        for (existingNote of existingNotes){
-            existingNote.remove()
-        }
-    }
-
-    mylog("Now about to enter loop")
-
-    for (i=0; i<notesData.length; i++){
-
-        // alertThis(JSON.stringify(notesData))
-
-        if(!outline[notesData[i].outlineElementNumber]){
-            mylog("i is now " + i + "but number of outline elements is: " + outline.length)
-            //THIS IS A BUGGY SITUATION THAT SHOULD NOT OCCUR, yet does at times.
-        }
-        mylog("Now putting in place note #" + i + "; ")
-
-        let element = $id(notesData[i].outlineElementNumber) || $(".faux")
-        if(!element)return
-        
-        let notesDivStart = ""
-        let notesDivEnd = ""
-        let currentContainer = 'noteContainer' + notesData[i].outlineElementNumber
-        let parentSize = element.getBoundingClientRect()
-        mylog("ok")
-            if (element.classList.contains("section")){
-                parentSize = element.querySelector(".section-heading")?.getBoundingClientRect()
-            }
-            if (element.querySelector(".orphanText")){
-                parentSize = element.querySelector(".orphanText")?.getBoundingClientRect()
-            }
-
-            mylog("ok")
-
-        let howFarBackWasPreviousNonMarker = 1
-        while(i > 0 && notesData[i - howFarBackWasPreviousNonMarker].string?.toLowerCase().startsWith("[[marker")){howFarBackWasPreviousNonMarker ++}
-
-        if (i == 0 || i > 0 && notesData[i - howFarBackWasPreviousNonMarker].outlineElementNumber != notesData[i].outlineElementNumber) {
-
-            element.innerHTML += "<div id='" + currentContainer + "' class='noteContainer clickThru'>" + "</div>"
-
-            $id(currentContainer).style.top = ((-14 * currentZoomLevel) + "px")
-
-            if ([...element.classList].includes("hideSlugIfSmall") && areScenesProportional == 1) {
-                $id(currentContainer).style.top = ((-14 * currentZoomLevel) + "px")
-            }
-            if (areScenesProportional != 1) {
-                $id(currentContainer).style.top = ((-14 * currentZoomLevel) + "px")
-                $id(currentContainer).style.float = "none"
-            }
-            if (element.id.includes("outline") && !element.querySelector(".orphanText")) {
-                $id(currentContainer).style.top = ((-1 * parentSize.height + 1) + "px")
-                $id(currentContainer).style.marginRight = "4px"
-            }
-
-            if (element.id.includes("outline") && element.querySelector(".orphanText")) {
-                parentSize = element.querySelector(".orphanText").getBoundingClientRect()
-                $id(currentContainer).style.top = ((-1 * parentSize.height + 1) + "px")
-                $id(currentContainer).style.maxHeight = (parentSize.height + 14 * currentZoomLevel) + "px"
-            }
-
-        }
-        
-        let percentageBasedPosition = 0
-        if(!element.classList.contains("faux")){
-            percentageBasedPosition = Math.max(((notesData[i].position - outline[notesData[i].outlineElementNumber]?.sceneStart) / outline[notesData[i].outlineElementNumber]?.sceneLength) * (parentSize.height - (15 * currentZoomLevel) - 0),0) // the minus 0 used to be -12, now taking full height into use.
-        }
-
-        if (element.id.includes("outline") && element.querySelector(".orphanText")) {
-            let skip = 1
-            while(outline[notesData[i].outlineElementNumber + skip]?.typeAsString == "Synopse"){
-                skip ++
-            }
-            percentageBasedPosition = (notesData[i].position - outline[notesData[i].outlineElementNumber]?.sceneStart)/(outline[notesData[i].outlineElementNumber + skip]?.sceneStart - outline[notesData[i].outlineElementNumber]?.sceneStart) * (parentSize.height - (15 * currentZoomLevel) - 0)
-        }
-
-        notesDivStart += "<div class='note collapsed' " 
-        // notesDivStart += "data-line='" + notesData[i].position + "' " 
-        notesDivStart += "data-line='" + notesData[i].range.position + "' " 
-        notesDivStart += "data-length='" + notesData[i].range.length + "' " 
-        notesDivStart += "data-color='" + (notesData[i].color || "#FFFF00") + "' " 
-        notesDivStart += "data-inline='" + notesData[i].inline + "' " 
-        notesDivStart += "data-noteNumber='" + i + "' "
-        notesDivStart += "id='noteNumber" + i + "' "
-        notesDivStart += "onmouseenter='expandNote()' " 
-        notesDivStart += "onmouseleave='collapseNote()'"
-        if (areScenesProportional == 1 && !(element.id.includes("outline") && !element.querySelector(".orphanText"))) {
-            notesDivStart += "style='top: " + percentageBasedPosition + "px' " 
-        }
-        notesDivStart += ">"
-
-        notesDivEnd += "</div>"
-
-        let thisNote = notesData[i].stringForDisplay
-
-            thisNote = thisNote.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
-            thisNote = thisNote.replace(/\*\*\*(.*)\*\*\*/g, "<strong><em>$1</em></strong>")
-            thisNote = thisNote.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
-            thisNote = thisNote.replace(/\*(.*)\*/g, "<em>$1</em>")
-            thisNote = thisNote.replace(/\_(.*)\_/g, "<u>$1</u>")
-
-        $id(currentContainer).innerHTML += notesDivStart + thisNote + notesDivEnd
-        if (notesData[i].color) $("[data-noteNumber = '" + i + "']").style.backgroundColor = notesData[i].color
-
-        mylog("end of Note Loop")
-    }
-
-  mylog("end of collect and displayNotes()")
-}
-
 function createDocFromNotes(){
 
     if(!globalNotesData)collectNotes()
@@ -860,57 +1129,6 @@ function createDocFromNotes(){
 
 }
 
-function displayMarkers(){
-
-    // if (globalMarkerData.length < 1){return}
-    if (globalMarkerData.length < 1 && !$(".marker")) return
-
-    mylog()
-
-    let currentMarkers = $$(".marker")
-        for (currentMarker of currentMarkers){currentMarker.remove()}
-
-    for (let im = 0; im < globalMarkerData.length; im++){
-
-        let element = $id(globalMarkerData[im].outlineElementNumber) || $(".faux")
-        if(!element)return
-
-        theMarkerToAddAsCode = "<div id = 'marker" + im + 
-                    "' class = 'marker' data-line = '" + globalMarkerData[im].position + 
-                    "'><div class='markertext'>" + (globalMarkerData[im].story || "") + "</div></div>" 
-        element.innerHTML += theMarkerToAddAsCode
-
-        theMarkerToAdd = $id("marker" +  im)
-
-        if (globalMarkerData[im].color && globalMarkerData[im].color != ""){
-            theMarkerToAdd.style.backgroundColor = globalMarkerData[im].color
-        }
-
-        let markerColor = window.getComputedStyle(theMarkerToAdd).backgroundColor //will be rgb
-            theMarkerToAdd.style.color = blackOrWhite(markerColor) || "red"
-        
-        let markerVerticalPosition = 1 // default position only affects Section, that has no orphan.
-
-        if((outline[globalMarkerData[im].outlineElementNumber]?.typeAsString != "Section"
-            ||
-            outline[globalMarkerData[im].outlineElementNumber]?.numberOfPages > 0)
-             && areScenesProportional == 1){
-            markerVerticalPosition = globalMarkerData[im].position - outline[globalMarkerData[im].outlineElementNumber]?.line.position
-            let percentageIntoScene = markerVerticalPosition / outline[globalMarkerData[im].outlineElementNumber]?.sceneLength
-
-            if(outline[globalMarkerData[im].outlineElementNumber]?.typeAsString == "Section"){
-                element = element.querySelector(".orphanText")
-            }
-
-            markerVerticalPosition = percentageIntoScene * (Number(element.getBoundingClientRect().height) - 12) 
-        }
-        
-        theMarkerToAdd.style.top = markerVerticalPosition + "px"
-    }
-    
-    mylog("done in display marker territory")
-}
-
 function displayBeats(){
    
     // if (globalBeatData.length < 1){return}
@@ -953,7 +1171,7 @@ function displayBeats(){
         if((outline[globalBeatData[im].outlineElementNumber]?.typeAsString != "Section" 
             ||
             outline[globalBeatData[im].outlineElementNumber]?.numberOfPages > 0)
-            && areScenesProportional == 1){
+            && scenesAreProportional == 1){
             beatVerticalPosition = globalBeatData[im].position - outline[globalBeatData[im].outlineElementNumber]?.line.position
             let percentageIntoScene = beatVerticalPosition / outline[globalBeatData[im].outlineElementNumber]?.sceneLength
 
@@ -1074,134 +1292,6 @@ function unhoverAllBeats() {
     }
 }
 
-function expandNote(tabWasPressed){
-
-    if(!globalNotesData || globalNotesData.length == 0){return}
-    if($("#editBox"))return
-    exitEdit()
-    
-    if (selectedNote > -1 && tabWasPressed){ //SELECTED THROUGH TAB
-        theNote = $("[data-noteNumber='" + selectedNote + "']")
-        
-        if(isThisOffScreen(theNote)){
-            scrollNicelyIntoView(theNote) 
-        }
-    }
-
-    if (event && [...event?.target?.classList].includes("note") && ($id('trashNote'))) { //allow hover others when in tab-cycling
-        return
-    }
-
-    if (event && [...event?.target?.classList].includes("note") && (!tabWasPressed)) { //SELECTED BY HOVERING
-        collapseNote()
-        theNote = event.target
-        selectedNote = theNote.getAttribute("data-noteNumber")
-
-        // To prevent blinkage (and remove hover effect from parents when hovering note)
-        let bubbleProhibitor = theNote
-        while (bubbleProhibitor.parentNode && bubbleProhibitor.parentNode.id != "flexiContainer"){
-            bubbleProhibitor = bubbleProhibitor.parentNode
-            bubbleProhibitor.classList.add("noHover")
-            mylog("ADDED noHover to " + bubbleProhibitor.id)
-        }
-    }
-
-    mylog("immedeiately after added NoHover...")
-
-    //add .isSelected to notePanel, to show hovered note in panel if open
-    if($("#notepanel")){
-        selectedNote = theNote.getAttribute("data-noteNumber")
-        $id("notepanelNote" + selectedNote)?.classList.add("isSelected")
-        $id("notepanelNote" + selectedNote)?.firstChild.classList.add("isSelected")
-    }
-
-    mylog("before note to unselect")
-
-
-    let noteToUnselect = $('.selectedNote')
-    if (noteToUnselect) {
-        noteToUnselect.classList.remove('selectedNote')
-    }
-    theNote.classList.add('selectedNote')
-
-    let theNoteString = theNote.innerHTML
-    let expandedClassList = ["expandedNote"] //only to be able to blink in its color
-    let position = theNote.getBoundingClientRect()
-    let sizeOfFlexi = $id("flexiContainer").getBoundingClientRect()
-    
-    if (position.top == 0 && position.left == 0) { 
-        position = theNote.closest(".section").getBoundingClientRect()
-        expandedClassList.push("omittedNote")
-    }
-    let y = parseInt(JSON.stringify(position.top - sizeOfFlexi.top))
-    let x = parseInt(JSON.stringify(position.left - sizeOfFlexi.left))
-    // let y = position.top
-    // let x = position.left
-    let yOrigo = document.getElementById('flexiContainer').scrollTop
-
-    let theFirstOutlineItemWidth = $(".section:not(.faux), .scene")?.getBoundingClientRect()
-
-    let expandedWidth = Math.min(theFirstOutlineItemWidth.width, window.innerWidth/2)
-    
-    let sceneText = "in scene " + outline[theNote.closest(".scene")?.id]?.sceneNumber
-    if (!theNote.closest(".scene")){
-        let a = theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML
-        sceneText = a? ('in section ' + theNote.closest(".section")?.querySelector(".section-heading")?.innerHTML) : "before first section"
-    }
-        
-        // tabWasPressed ? "<div id='trashNote' class='trashNote' onclick='deleteNote()'>" + trashIcon + "</div>" : ""
-
-    let theExpandedNote = document.createElement("div")
-        theExpandedNote.id = "expandedNote"
-        expandedClassList.forEach(cl => {theExpandedNote.classList.add(cl)})
-        theExpandedNote.innerHTML = "<b class='clickThru padRight'>" +
-                "<div id='placeholder'></div>" +
-                "Note " + sceneText + " </b>" +
-                "<text class='clickThru' id='expandedNoteText'>" + theNoteString + "</text>"
-        theExpandedNote.dataset.line = theNote.dataset.line
-        theExpandedNote.dataset.position = theNote.dataset.position
-        theExpandedNote.dataset.length = theNote.dataset.length
-        theExpandedNote.dataset.color = theNote.dataset.color
-        theExpandedNote.dataset.inline = theNote.dataset.inline
-        theExpandedNote.style.width = expandedWidth + "px"
-    flexiContainer.appendChild(theExpandedNote)    
-    
-        if (tabWasPressed){
-            let trashDiv = document.createElement("div")
-                trashDiv.id = "trashNote"
-                trashDiv.classList.add("trashNote")
-                trashDiv.innerHTML = trashIcon
-                trashDiv.onclick = () => {deleteNote()}
-
-            // theExpandedNote.appendChild(trashDiv)
-            $id("placeholder").replaceWith(trashDiv)
-        }
-        $id("placeholder")?.remove()
-
-    let sizeOfExpandedNote = theExpandedNote.getBoundingClientRect()
-
-    let xPos = Math.min((x + 7.5 - expandedWidth/2), (sizeOfFlexi.width - expandedWidth - 40))
-    let yPos = yOrigo + y + 25
-    xPos = Math.max(xPos, 20)
-    yPos = Math.max(yPos, 20)
-    if (xPos + sizeOfExpandedNote.width > sizeOfFlexi.width - 40) {xPos = sizeOfFlexi.width - sizeOfExpandedNote.height - 40}
-    if (yPos + sizeOfExpandedNote.height > document.getElementById('flexiContainer').scrollHeight - 40) {yPos = yOrigo + y - 10 - sizeOfExpandedNote.height}
-
-    theExpandedNote.style.top = yPos + "px"
-    theExpandedNote.style.left = xPos + "px"
-
-    //added to fix color if ! or ? in text:
-    theExpandedNote.style.backgroundColor = lightenColor(window.getComputedStyle(theNote).backgroundColor, 50)
-    // alertThis(lightenColor("#FF55ba", 50), lightenColor("rgb(255,60,30)", 50))
-    
-    //     if (theNote.style.backgroundColor == ("red"))  {theExpandedNote.style.backgroundColor = "#FF8888"}//"red"}
-    //     if (theNote.style.backgroundColor == ("magenta")) {theExpandedNote.style.backgroundColor = "#FF88FF"}//"magenta"}
-    //     if (theNote.style.backgroundColor == ("#8000FF")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
-    //     if (theNote.style.backgroundColor == ("rgb(128, 0, 255)")){theExpandedNote.style.backgroundColor = "#9088FF"}//"#8000FF"}
-    //     if (theNote.style.backgroundColor == ("lime"))  {theExpandedNote.style.backgroundColor = "#88FF88"}//"lime"}
-
-}
-
 function lightenColor(color, percent){
   const validColor = /^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$|^rgb\(\s*(\d{1,3}\s*,\s*){2}\d{1,3}\s*\)$|^rgba\(\s*(\d{1,3}\s*,\s*){3}(\d?\.?\d+)\s*\)$|^hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/;
   
@@ -1257,51 +1347,7 @@ function lightenColor(color, percent){
   }
 };
 
-function collapseNote(){
-
-    mylog(event?.type)
-
-        //remove .isSelected from notePanel, to show hovered note in panel if open
-        if($("#notepanel")){
-            $id("notepanelNote" + selectedNote)?.classList.remove("isSelected")
-            $id("notepanelNote" + selectedNote)?.firstChild.classList.remove("isSelected")
-        }
-
-    if (event && event.type == "mouseleave" && (document.getElementById('trashNote'))) { //allow hover others when in tab-cycling
-        return
-    }
-
-    if (document.getElementById('expandedNote')){
-    document.getElementById('expandedNote').remove()
-
-    let makeRehoverable = document.querySelectorAll('.noHover')
-    for (i = makeRehoverable.length -1; i > -1; i-- ){
-        makeRehoverable[i].classList.remove('noHover')
-    }
-
-    let noteToUnselect = document.querySelector('.selectedNote')
-    if (noteToUnselect) {noteToUnselect.classList.remove('selectedNote')}
-    }
-}
-
-function deleteNote(){
-
-    theClickedThing = event.target
-
-    length = Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.length) + Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.inline)
-	gotoIndex = Number(theClickedThing.closest(".expandedNote, .notepanelNote").dataset.line)
-    
-	goto(gotoIndex, theClickedThing, length, "#bb8888")
-	
-	Beat.call("Beat.custom.deleteNote(" + (parseInt(gotoIndex)) + ", " + (length) + ")")
-
-    setTimeout(() =>{
-        startImmediateUpdate()
-        collectNotes()
-        updateNotepanel()
-    }, 2000) //this is to let it do its blinking, yet not wait for a timed update on previewfinished
-
-}
+function __________REVIEWS(){}
 
 function expandReview(theClickedThing){
 
@@ -1342,6 +1388,10 @@ function cycleNotes(shift){
         toggleDisplayNotes()
         return
     }
+
+    expandNote(true, shift)
+
+    return
 
     let cyclables = []
     if (notesAreDisplayed && globalNotesData) cyclables = cyclables.concat(globalNotesData)
@@ -1433,16 +1483,18 @@ function paintRevisions(changedAsJSON, reviewAsJSON){
     let changedObject = JSON.parse(changedAsJSON)
     let reviewObject = JSON.parse(reviewAsJSON)
 
-    let currentDivs = $$(".revision")
-    if(currentDivs.length > 0){
-        currentDivs.forEach(element => {
-            element.remove()
-        });
-    }
+    // let currentDivs = $$(".revision")
+    // if(currentDivs.length > 0){
+    //     currentDivs.forEach(element => {
+    //         element.remove()
+    //     });
+    // }
+
+    $$(".revision").forEach(element => element.remove())
 
     for (line of reviewObject.Addition){
         
-        mylog(line)
+        // mylog(line)
     
         let changeStart = line[0]
         let changeLength = line[1]

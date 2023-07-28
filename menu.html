@@ -840,8 +840,8 @@ function indexCardMenu(){
 
             <p class="hint">When set to multi, every # starts new column</p>
             <hr>
-            <strong class="${(areScenesProportional == 1 || !$(".scene")) ? `greyedout` : ``}">Expand scenes: </strong><span class="shortcut" style="float:right">E</span><br/>
-            <li class="${(areScenesProportional == 1 || !$(".scene")) ? `greyedout` : ``} centered" onclick="anArrowWasClicked($('.arrowForIndexCards'), true)">
+            <strong class="${(scenesAreProportional == 1 || !$(".scene")) ? `greyedout` : ``}">Expand scenes: </strong><span class="shortcut" style="float:right">E</span><br/>
+            <li class="${(scenesAreProportional == 1 || !$(".scene")) ? `greyedout` : ``} centered" onclick="anArrowWasClicked($('.arrowForIndexCards'), true)">
                 <input id="buttonForExpandedScenes" type="checkbox">
                     <label for="buttonForExpandedScenes" class="labelBefore">None</label>
                         <div class="switch" style="float:none !important; display: inline-block;"></div>
@@ -1301,22 +1301,22 @@ function setAllButtons(){
 
     if($id("buttonForIndexCards")){$id("buttonForIndexCards").checked = indexCardMode}
         Beat.call("Beat.custom.updateViewsMenu('2'," + (indexCardMode) + ")")
-    if($id("buttonForFlexible")){$id("buttonForFlexible").checked = ((areScenesProportional == 1) && !indexCardMode)}
-        Beat.call("Beat.custom.updateViewsMenu('0'," + ((areScenesProportional == 1) && !indexCardMode) + ")")
-    if($id("buttonForFixed")){$id("buttonForFixed").checked = ((areScenesProportional == 0) && !indexCardMode)}
-        Beat.call("Beat.custom.updateViewsMenu('1'," + ((areScenesProportional == 0) && !indexCardMode) + ")")
+    if($id("buttonForFlexible")){$id("buttonForFlexible").checked = ((scenesAreProportional == 1) && !indexCardMode)}
+        Beat.call("Beat.custom.updateViewsMenu('0'," + ((scenesAreProportional == 1) && !indexCardMode) + ")")
+    if($id("buttonForFixed")){$id("buttonForFixed").checked = ((scenesAreProportional == 0) && !indexCardMode)}
+        Beat.call("Beat.custom.updateViewsMenu('1'," + ((scenesAreProportional == 0) && !indexCardMode) + ")")
 
     if($id("buttonForOneColumn")){$id("buttonForOneColumn").checked = !(oneColumnOutline == 1)}
     if($id("buttonForBoneyard")){$id("buttonForBoneyard").checked = !(flexiContainer.classList.contains("boneyardIsClosed"))}
 
-    if($id("buttonForNumbers")){$id("buttonForNumbers").checked = (whatAreSceneNumbers == 'inline')}
-    if($id("buttonForPages")){$id("buttonForPages").checked = (whatArePageNumbers == 'inline')}
-	if($id("buttonForLength")){$id("buttonForLength").checked = (whatAreSceneLengths == 'inline')}
+    if($id("buttonForNumbers")){$id("buttonForNumbers").checked = (showSceneNumbers == 'inline')}
+    if($id("buttonForPages")){$id("buttonForPages").checked = (showPageNumbers == 'inline')}
+	if($id("buttonForLength")){$id("buttonForLength").checked = (showSceneLengths == 'inline')}
 
 	if($id("buttonForWarnings")){$id("buttonForWarnings").checked = (!warningsAreOn)}
     if($id("buttonForColors")){$id("buttonForColors").checked = (colorScheme == "Beat")}
     if($id("buttonForInverted")){$id("buttonForInverted").checked = invertTextOnDark}
-    if($id("buttonForRealTimeUpdates")){$id("buttonForRealTimeUpdates").checked = (isRealTimeOn == 0)}
+    if($id("buttonForRealTimeUpdates")){$id("buttonForRealTimeUpdates").checked = (realTimeIsOn == 0)}
 
     if($id("buttonForNotes")){$id("buttonForNotes").checked = (notesAreDisplayed == true)}
         Beat.call("Beat.custom.updateShowMenu('0'," + (notesAreDisplayed) + ")")
@@ -1334,7 +1334,7 @@ function setAllButtons(){
     if($id("buttonForGreyOnly")){$id("buttonForGreyOnly").checked = ($id("flexiContainer").classList.contains("greyonly"))}
     if($id("buttonForOutdoor")){$id("buttonForOutdoor").checked = (outdoor == 1)}
     
-    mylog("indexcards = " + indexCardMode + " & AreScenesProp = " + areScenesProportional)
+    mylog("indexcards = " + indexCardMode + " & AreScenesProp = " + scenesAreProportional)
 
     if($id("buttonForLogging")){$id("buttonForLogging").checked = loggingIsOn}
 

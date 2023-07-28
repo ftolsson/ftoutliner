@@ -198,13 +198,13 @@ function editContent(ev) {
         //because it still expects synopsis to be outline elements. 
         if((theElement.classList.contains("synopsis") || theElement.classList.contains("synopsiscontainer"))){
 
-            if(!indexCardMode && areScenesProportional != 0){
+            if(!indexCardMode && scenesAreProportional != 0){
 
                 alertThis("Editing synopsis in this view is disabled", "By its nature, Flexible view hides content all the time which makes it unsuitable for inline editing.\n\nOn the other hand, in the FIXED and INDEX CARD views, editing synopsis is easier than ever.\n\nSwitch to one of those views by hitting F or X and edit the card from there.")
                 return
             }
 
-            if(indexCardMode && $("#buttonForAutoWiden:checked") && !theElement.closest(".level1").classList.contains("wider")) {
+            if(indexCardMode && documentSetting.autoWiden && !theElement.closest(".level1").classList.contains("wider")) {
                 makeWider(theElement)
                 editBoxDelay = 250
             }
@@ -237,8 +237,10 @@ function editContent(ev) {
         return
     }
 
+    let allowedClasses = ["section-heading", "sceneheading", "notepanelNote", "expandedNote"]
+    if (!allowedClasses.some(allowedClass => theElement.classList.contains(allowedClass))){ //experimental 2023-01-08
     // if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading") && ![...theElement.classList].includes("notepanelNote")){ //experimental 2023-01-08
-    if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading")){ 
+    // if (![...theElement.classList].includes("section-heading") && ![...theElement.classList].includes("sceneheading")){ 
         return
     }
 
@@ -305,15 +307,20 @@ function editContent(ev) {
             if ([...theElement.parentNode.classList].includes("level1")){
                 kindOf = "inAct"
             }
-            if (theElement./*parentNode.*/classList.contains("notepanelNote")){
+            if (["notepanelNote", "expandedNote"].some(allowedClass => theElement.classList.contains(allowedClass))){
                 kindOf = "inNote"
+                theElement = theElement.querySelector("text")
+                theOldText = theElement.innerText
             }
         
     mylog("the result is" + kindOf)
+    console.log(theElement)
 
     // creating the editbox
     // NEW: after 220704, the rest is in a setTimeOut, and delayed if widen happens
     mylog("about to create the editBox")
+    console.log("about to create the editBox")
+    theElement.style.outline = "2px solid hotpink"
 
     setTimeout(function(){
 
@@ -335,7 +342,7 @@ function editContent(ev) {
                 leftIndent = $id("notepanel").getBoundingClientRect().width
             }
         let scrolledAmount = $id("flexiContainer").scrollTop
-        if(areScenesProportional == 1 && sceneHeight) theElement.closest(".scene").style.minHeight = sceneHeight
+        if(scenesAreProportional == 1 && sceneHeight) theElement.closest(".scene").style.minHeight = sceneHeight
         
         $id("flexiContainer").appendChild(editBox)
 
@@ -465,7 +472,7 @@ function exitEdit(theElement, changesWereConfirmed) {
             mylog("this means changes were confirmed = true")
 
 
-            weAreChangingColors = true //forces update of display even if non-realtime (and with zero delay)
+            updateWithoutDelay = true //forces update of display even if non-realtime (and with zero delay)
             currentOutlineCount = findOutlineCountFor(theElement)
 
             let shownLine
@@ -500,19 +507,19 @@ function exitEdit(theElement, changesWereConfirmed) {
                 resultingLine = "." + resultingLine
             }
 
-            Beat.call(`
-                Beat.onTextChangeDisabled = true
-		        Beat.onOutlineChangeDisabled = true
-		        Beat.onSelectionChangeDisabled = true`
-            )
+            // Beat.call(`
+            //     Beat.onTextChangeDisabled = true
+		    //     Beat.onOutlineChangeDisabled = true
+		    //     Beat.onSelectionChangeDisabled = true`
+            // )
             actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
             Beat.call("Beat.replaceRange(" + startPosition + ", " + (length - 1) + ", `" + resultingLine + "`)")
 
-            Beat.call(`
-                Beat.onTextChangeDisabled = false
-		        Beat.onOutlineChangeDisabled = false
-		        Beat.onSelectionChangeDisabled = false`
-            )
+            // Beat.call(`
+            //     Beat.onTextChangeDisabled = false
+		    //     Beat.onOutlineChangeDisabled = false
+		    //     Beat.onSelectionChangeDisabled = false`
+            // )
 
             //startSmallUpdate(1)
             startImmediateUpdate()

@@ -206,9 +206,9 @@ function onDragStart(e) {
     collapseNote()
     removeAddButton()
 
-    Beat.call("Beat.onTextChangeDisabled = true")
-    Beat.call("Beat.onOutlineChangeDisabled = true")
-	Beat.call("Beat.onSelectionChangeDisabled = true")
+    // Beat.call("Beat.onTextChangeDisabled = true")
+    // Beat.call("Beat.onOutlineChangeDisabled = true")
+	// Beat.call("Beat.onSelectionChangeDisabled = true")
 
     dropTookPlace = false 
     beforeOrAfter = false
@@ -355,7 +355,7 @@ function onDragStart(e) {
 
                     if (outline[i].typeAsString == "Synopse"){mylog("synopsis so continuing"); continue}
 
-                    if (outline[i].omitted == 1 && areScenesProportional == 1){reasonString = "It may look as if they are, but the range you are trying to move contains one or more hidden (omitted) scenes, which were not selected. \\n\\nSwitch to non-flexible mode (shortcut: F) to select the entire range."}
+                    if (outline[i].omitted == 1 && scenesAreProportional == 1){reasonString = "It may look as if they are, but the range you are trying to move contains one or more hidden (omitted) scenes, which were not selected. \\n\\nSwitch to non-flexible mode (shortcut: F) to select the entire range."}
             
                     e.stopPropagation()
                     e.preventDefault()
@@ -437,9 +437,9 @@ function onDragEnd(e, cancelButton){
 
         deselectAllElements()
 
-    Beat.call("Beat.onTextChangeDisabled = false")
-    Beat.call("Beat.onOutlineChangeDisabled = false")
-	Beat.call("Beat.onSelectionChangeDisabled = false")
+    // Beat.call("Beat.onTextChangeDisabled = false")
+    // Beat.call("Beat.onOutlineChangeDisabled = false")
+	// Beat.call("Beat.onSelectionChangeDisabled = false")
 }
 
 function onDragEnter(e) {
@@ -1054,7 +1054,7 @@ function onDrop(e){
     mylog("insert before" + insertBeforeScene)
     
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    weAreChangingColors = true
+    updateWithoutDelay = true
     let synopsisMove = $id("dropDiv").dataset.dropSynopsisHere || null
 
     // alertThis(synopsisMove)

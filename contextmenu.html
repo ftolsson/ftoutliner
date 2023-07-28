@@ -185,14 +185,14 @@ function contextMenu(theRightClickedThing, x, y, rightClick){
 
             for (element of selectedElements) {
 
-                if (areScenesProportional == 1 && [...element.classList].includes("isOmitted")){continue}
+                if (scenesAreProportional == 1 && [...element.classList].includes("isOmitted")){continue}
                 
                 let elementCount = element.id
                 elementCountArray.push(elementCount)
 
             }
         
-        //weAreChangingColors = true
+        //updateWithoutDelay = true
         Beat.call("Beat.custom.changeElementColor(" + JSON.stringify(elementCountArray) + ", '" + item + "')")
         startImmediateUpdate()
         
@@ -369,7 +369,7 @@ function omitScene(){
 
     let elements = $$('.isSelected')
 
-        if(areScenesProportional == 1){
+        if(scenesAreProportional == 1){
             for(element of elements){
                 //element.classList.add("dimmedScene")
                 element.classList.add("shrinkingWhenOmitting")
@@ -394,8 +394,8 @@ function omitScene(){
     }
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    weAreChangingColors = true
-    Beat.call("Beat.custom.omitScene(" + areScenesProportional + ", [" + [...elementsToOmit] + "])")
+    updateWithoutDelay = true
+    Beat.call("Beat.custom.omitScene(" + scenesAreProportional + ", [" + [...elementsToOmit] + "])")
     deselectAllElements()
 }
 
@@ -403,9 +403,9 @@ function unOmitScene(){
 
     mylog()
 
-    Beat.call("Beat.onTextChangeDisabled = true")
-    Beat.call("Beat.onOutlineChangeDisabled = true")
-	Beat.call("Beat.onSelectionChangeDisabled = true")
+    // Beat.call("Beat.onTextChangeDisabled = true")
+    // Beat.call("Beat.onOutlineChangeDisabled = true")
+	// Beat.call("Beat.onSelectionChangeDisabled = true")
 
     elements = $$('.isSelected')
     let elementsToUnOmit = []
@@ -417,7 +417,7 @@ function unOmitScene(){
         }
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    weAreChangingColors = true
+    updateWithoutDelay = true
     Beat.call("Beat.custom.unOmitScene([" + [...elementsToUnOmit] + "])")
     deselectAllElements()
 }
@@ -439,7 +439,7 @@ function deleteScene(){
             elementsToDelete.push(elements[i].id)
         }
         
-    weAreChangingColors = true
+    updateWithoutDelay = true
     if (elements[0].classList.contains("synopsis")){
         for (e of elementsToDelete) {
             elementsToDelete[elementsToDelete.indexOf(e)] = JSON.stringify(e)
