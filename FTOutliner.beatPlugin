@@ -327,34 +327,26 @@ Beat.onEscape(function () {
 
 function __________OUTLINE_UPDATERS(){}
 
-/*
-2023-07-27: Here's how updating works as of today:
+/* === NOTE ON HOW UPDATING WORKS AS OF TODAY, 2023-07-28 ===
 
 1. onTextChange is called. If it determines that pagination is not needed, it adds the old pagination to the new data and sends it.
-1b. if so, it also invalidates the next onPreviewFinished
-2. If not invalidated, onPreviewFinished creates pagination and sends with the data
-
-3. Remains to be added:
-	- make sure onTextChange isn't evaluated if we're already waiting for a previewFinished/pagination
-	- if onTextChange fires, without need for pagination, while we're waiting for a previewFinished/pagination, run the onTextChange function again AFTER the previewFinished/pagination process
-
+2a. If so, it also invalidates the next onPreviewFinished
+2b. If not invalidated, onPreviewFinished creates pagination and sends with the data
+That's basically it. Plus a lot of ifs and buts. But who counts.
 */
 
 var pauseOnePaginationUpdate = false
 var paginationPauseTimer = null
 var onTextChangeTimer = null
 
-var makeOneExtraUpdate = false
-
 Beat.onTextChange(function(location, length) { 
 
+	// This function checks every change for whether it affects layout.
+	// If it does not, we skip pagination which is time consuming. 
+	
 	console.log("onTextChange")
 
-	// The purpose of this function is to check every change for whether it is taking place in a line that affects layout.
-	// If it does not, we skip pagination which is time consuming. NOTE THAT WE STILL NEED TO COLLECT THE FULL LINE OBJECT.
-
-	if(fullUpdateInProgress){
-		makeOneExtraUpdate = true
+	if(fullUpdateInProgress){ //this is now set when deferring to onPreviewFinished, so that a full paginated update can never be missed
 		return
 	}
 	
@@ -363,10 +355,10 @@ Beat.onTextChange(function(location, length) {
         onTextChangeTimer = null
     }
 
+	pauseOnePaginationUpdate = false //used to come after the timer. Putting it here should exclude the possibility that a change that needs pagination is overruled by one that doesn't.
+
 	htmlWindow.runJS(`toggleWaitState(true)`)
     onTextChangeTimer = Beat.timer(0.1, function() {
-
-		pauseOnePaginationUpdate = false
 		
 		//determine which line changed
 			let parser = Beat.currentParser
@@ -375,8 +367,20 @@ Beat.onTextChange(function(location, length) {
 			// First coarse guard clause: this means several lines were changed (e.g. copy/paste) so make full update
 			if((location + length > parser.lineAtPosition(location).range.location + line.range.length)){
 				console.log("Sending to previewFinished b/c multiple lines changed")
+				fullUpdateInProgress = true
 				return 
 			} 
+			console.time("checking for headings")
+			if ((previousLineObject.filter(line => ["Heading", "Section"].includes(line.typeAsString)).map(line => line.typeAsString).join(",") != Beat.outline().map(line => line.typeAsString()).join(","))
+				|| 
+				(previousLineObject.filter(line => line.typeAsString === "Heading").map(line => line.UUID).join(",") !== Beat.outline().filter(line => line.typeAsString() === "Heading").map(line => line.UUID).join(","))
+				){
+				console.log("Sending to previewFinished b/c number/order of outline objects, or some sceneheading UUID, changed")
+				fullUpdateInProgress = true
+				console.timeEnd("checking for headings")
+				return
+			}
+			console.timeEnd("checking for headings")
 
 		//determine the printing part of the line that has changed
 			let nonPrintingRanges = line.ranges.notes//.concat(line.ranges.omitted)
@@ -401,7 +405,9 @@ Beat.onTextChange(function(location, length) {
 				console.log ("determining only pagination-less update needed")
 				pauseOnePaginationUpdate = true
 
-				//NEW FUNCTION SIMILAR TO updateOnlyOneScene, BUT WHICH DOES NOT CALL PAGINATION
+				try{
+
+				//NEW FUNCTION SIMILAR TO previewFinished, BUT WHICH DOES NOT CALL PAGINATION
 					let startTime1 = Date.now()
 					let json = JSON.stringify(outlineWithoutPagination())
 					let endTime1 = Date.now()
@@ -424,16 +430,28 @@ Beat.onTextChange(function(location, length) {
 					console.time("stringifyingLine")
 					previousLineObject = JSON.parse(linesAsJSON)
 					console.timeEnd("stringifyingLine")
+
+				}catch(e){
+
+					pauseOnePaginationUpdate = false
+
+					console.log("error in onTextChange: " + e)
+					console.log("last-minute deferral to onPreviewFinished")
+					fullUpdateInProgress = true
+					return
+
+				}
+
 			}else{
 
 				console.log ("deferring to onPreviewFinished")
+				fullUpdateInProgress = true
 
 				htmlWindow.runJS(`toggleWaitState(true)`)
 
 			}
 	}) //timer end
 })
-	
 
 Beat.onPreviewFinished(function(changedIndices) {
 
@@ -450,7 +468,6 @@ Beat.onPreviewFinished(function(changedIndices) {
 	// NOTE: currently, "updateEntireOutline" is a custom Beat function in order to being callable from the HTML window
 	Beat.custom.updateEntireOutline()
 })
-
 
 Beat.custom.updateEntireOutline = function (location, length) {
 
@@ -498,45 +515,6 @@ Beat.custom.updateEntireOutline = function (location, length) {
 	})
 }
 
-
-Beat.custom.updateOnlyOneScene = function (location, length) {
-
-	//can this be removed?
-
-
-	Beat.alert("custom.updateOnlyOne fired -- how come?")
-	
-	// htmlWindow.runJS("toggleWaitState(true)");
-
-	if(outlineJustFired){
-		//Beat.log("CANCELED UPDATE_ONLY_ONE B/C OutlineJustFired"); 
-		return
-	}
-
-	// if (location < Beat.outline()[0]?.sceneStart){ //look for title page changes only if typing before first outline
-		
-	// 	let a = Beat.currentParser.lineAtPosition(location)
-	// 	if (a.isTitlePage){
-	// 		fetchDocumentTitles(a.string)
-	// 	}
-	// }
-	
-	// Get current scene index
-	let currentScene = Beat.outline().indexOf(Beat.currentScene)
-	
-	// Faux values
-	let pages = "[]"
-	// let pageBreakPosition = "false"
-
-	// Get the whole paginated JSON + frontMatter (what is this?)
-		let paginatedOutline = outlineWithPagination()
-		let json = JSON.stringify(paginatedOutline)
-	// let json = JSON.stringify(Beat.outline)
-	// let frontMatter = getFrontMatter()
-	
-	htmlWindow.runJS("updateOneScene(" + json + "," + currentScene + "," + pages + "," + location + "," + length + "," + Beat.getText().length + "," + "false" /*pageBreakPosition*/ + "," + frontMatter + ")")
-}
-
 Beat.onSelectionChange(function (location, length) {
 
 	htmlWindow.runJS(`currentCaretPosition = ${location}; currentCaretLength = ${length}`);
@@ -557,14 +535,11 @@ Beat.onSelectionChange(function (location, length) {
     })
 })
 
-let sceneData = [] //making this global to be able to re-use it when no new pagination is needed
+let sceneData = [] //This is now global in order to be re-useable when no new pagination is needed
 let pagination
 const paginationManager = Beat.currentPagination()
 
 function outlineWithoutPagination() {
-
-	// need to make check that Beat.outline has same length as sceneData, otherwise we need to fall back to outlineWithPagination
-	// (put this in the onTextChange function)
 
 	let altSceneData = []
 
@@ -640,16 +615,13 @@ function outlineWithPagination() {
 
 	//BUG HUNT PART II: Firing a dialog if there was a zero-height scene
 		if (zeroHeight.length > 0){ 
-			Beat.log("❌❌❌ Zero Height Happened! for " + sceneData.indexOf(data))
+			Beat.log("!!! Zero Height Happened for " + sceneData.indexOf(data))
 		}
 
 	return sceneData
 }
 
-
-function ______________________(){}
 function __________HELPERS_____(){}
-function ______________________(){}
 
 function titleCaseThis(str) {
 	let upper = true;
@@ -1063,164 +1035,6 @@ Beat.custom.testSendingLineObject = function(){
 
 }
 
-Beat.custom.collectNotes = function() {
-	Beat.log("collecting notes")
-	
-	Beat.dispatch(function(){
-		Beat.log("in dispatch")
-
-		let note = []
-		let marker = []
-		let beats = []
-		let numberOfStorylines = 0
-		let actualNote = []
-		let outlineElementNumber = -1
-		let lastElementThatWasScene = -1
-		let entry = 0
-
-		let reg = (/\[\[.*?\]\]/g)
-		
-			let allLines = Beat.lines()
-									
-					for (line of allLines){
-						
-						if (["Heading", "Section"].includes(line.typeAsString())){
-							outlineElementNumber ++
-							lastElementThatWasScene = outlineElementNumber
-						}
-
-						// if (!line.note && !line.string.includes("[[")) continue
-						if (!line.noteData().length) continue
-
-						//first check: inline notes
-						if(!line.note){
-							if(!["Heading", "Section", "Synopse"].includes(line.typeAsString())){
-
-								let result = line.string.match(reg)
-
-								if (!!result){
-									for (res of result){
-
-										note[entry] = {}
-										let inlineNote = res
-										let inlineNoteIndex = res.index || 0
-										
-										note[entry].outlineElementNumber = lastElementThatWasScene
-										note[entry].position = (line.position + inlineNoteIndex)
-										note[entry].string = line.noteData()[result.indexOf(res)].content
-										note[entry].color = line.noteData()[result.indexOf(res)].color
-											if(res.startsWith("[[!")) note[entry].color = "red"
-											if(res.startsWith("[[!!")) note[entry].color = "magenta"
-											if(res.startsWith("[[!!!")) note[entry].color = "#8000FF"
-											if(res.startsWith("[[?")) note[entry].color = "lime"
-											if(!note[entry].color && (res.match(/(\[\[(#*\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
-										note[entry].type = "note"
-										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
-
-
-										let notepos = line.range.location + line.string.indexOf(res)
-										let notelen = res.length
-											note[entry].range = {"position": notepos, "length": notelen}
-										note[entry].inline = "1"
-
-										entry ++
-									}
-								}
-							}
-						}
-
-						//second check: full-line notes
-						if(line.note) {
-							
-							//third check: full-line but not starting
-							if(!line.string.trim().startsWith("[[")) {
-
-									try{ note[entry-1].string += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
-										 note[entry-1].stringForDisplay += "<br/>" + line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
-										 note[entry-1].range.length += line.range.length 
-									} catch {
-										continue
-									}
-								continue
-							}
-							
-							note[entry] = {}
-							note[entry].outlineElementNumber = lastElementThatWasScene
-							note[entry].position = line.position
-							note[entry].string = line.noteData()[0].content
-							note[entry].color = line.noteData()[0].color
-								if(line.string.startsWith("[[!")) note[entry].color = "red"
-								if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
-								if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
-								if(line.string.startsWith("[[?")) note[entry].color = "lime"
-								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
-							note[entry].type = "note"
-							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
-
-							let notepos = line.range.location
-							let notelen = line.range.length
-								note[entry].range = {"position": notepos, "length": notelen}
-							note[entry].inline = "0"
-							entry ++
-						}
-					}
-				outlineElementNumber ++ //this is redundant, no?
-
-
-			// Cycle all notes and put them in different arrays depending on type.
-			// (This opens for creating new subsets of notes depending on starting term.)
-			for (entry of note){
-				if (entry.string.trim().startsWith("marker")){
-					let stringIntoColor = entry.string.trim().toLowerCase().replace(/marker:*\s*/, "")
-					stringIntoColor = stringIntoColor.match(/^#+[0-9]+|[a-z]*/)
-					entry.color = entry.color || stringIntoColor
-					if(entry.string.includes(":")){
-						stringIntoStory = entry.string?.replace(/^(.*?):/,"")?.replace(/\]\]/, "")?.toUpperCase()
-						entry.story = stringIntoStory
-						entry.type = "marker"
-					}
-					marker.push(entry)
-				}else if(entry.string.trim().startsWith("beat")){
-					let strippedString = entry.string.replace(/\[\[beat\s*/i, "").replace(/\]\]/,"")
-					let stringIntoStory = strippedString?.toUpperCase()
-					if(strippedString.includes(":")){
-						stringIntoStory = strippedString?.match(/^.*:/)[0]?.replace(/:/,"")?.toUpperCase()
-					}
-						//check if this is an existing storyline
-						let thisStoryline = false
-						let existingStoryline = false
-						for(let prev=0; prev<beats.length; prev++){
-							if (stringIntoStory == beats[prev].story){
-								thisStoryline = beats[prev].storyline
-								existingStoryline = true
-								break //breaks out of prev-loop
-							}
-						}
-						if(!existingStoryline){
-							numberOfStorylines++
-						}
-					let stringIntoContent = strippedString.substring(stringIntoStory.length).replace(/^\s*:\s*/, "")
-						entry.storyline = thisStoryline || numberOfStorylines
-						entry.story = stringIntoStory || "UNNAMED BEAT"
-						entry.content = stringIntoContent
-						beats.push(entry)
-				}else{
-					actualNote.push(entry)
-				}
-			}
-
-			// Beat.log(JSON.stringify([...actualNote]))
-			// Beat.log(JSON.stringify([...marker]))
-			// Beat.log(JSON.stringify([...beats]))
-
-			Beat.dispatch_sync(function (){
-
-				htmlWindow.runJS("displayNotes(" + JSON.stringify([...actualNote]) + "," + JSON.stringify([...marker]) + "," + JSON.stringify([...beats]) + ")")
-
-			})
-	})
-}
-
 function ____________________OMITTING_AND_DELETING__________(){}
 
 Beat.custom.omitScene = function(scenesAreProportional, scenesToOmit, updatesDisabled) { 
@@ -1336,7 +1150,7 @@ Beat.custom.omitScene = function(scenesAreProportional, scenesToOmit, updatesDis
 		let jsToRun = "document.getElementById('outOfSyncDiv').classList.add('animate'); " +
 			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
 			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			"startSmallUpdate(001)"
+			//"startSmallUpdate(001)"
 		htmlWindow.runJS(jsToRun) //note: used to be startFullUpdate
 	}
 }
@@ -2266,37 +2080,12 @@ Beat.custom.collectReviews = function(andThenCreateDoc){
 }
 
 Beat.custom.outlineToJSON = function(){
+	
 	let a = Beat.outlineAsJSON()
 	Beat.newDocument(a)
 
 	let b = Beat.linesAsJSON()
 	Beat.newDocument(b)
-
-
-// 	let b = JSON.stringify(Beat.lines())
-// 	Beat.openConsole()
-// Beat.log("...as JSON:")
-// 	Beat.log(a)
-// Beat.log("...via JSON.stringify")
-// 	Beat.log(b)
-
-}
-
-function ftoLinesAsJSON(){
-
-	let lines = Beat.lines()
-	let linesAsJSON = []
-
-	for (line of lines){
-		linesAsJSON.push({...line.forSerialization()})
-	}
-
-	// linesAsJSON = JSON.stringify(linesAsJSON)
-	// Beat.openConsole()
-	// Beat.log(linesAsJSON)
-	// // Beat.newDocument(linesAsJSON)
-
-	return linesAsJSON
 
 }
 
@@ -2408,22 +2197,200 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 
 }
 
-Beat.custom.test = function(){
+function __________REMOVE_EVERYTING_BELOW_THIS_LINE(){}
 
-	lines = Beat.lines()
-	arr = []
-	for (line of lines) arr.push(line.string)
-	return arr
+Beat.custom.updateOnlyOneScene = function (location, length) {
 
-}
+	//can this be removed?
 
-Beat.custom.newDocWithPages = function(){
 
+	Beat.alert("custom.updateOnlyOne fired -- how come?")
 	
+	// htmlWindow.runJS("toggleWaitState(true)");
 
+	if(outlineJustFired){
+		//Beat.log("CANCELED UPDATE_ONLY_ONE B/C OutlineJustFired"); 
+		return
+	}
 
+	// if (location < Beat.outline()[0]?.sceneStart){ //look for title page changes only if typing before first outline
+		
+	// 	let a = Beat.currentParser.lineAtPosition(location)
+	// 	if (a.isTitlePage){
+	// 		fetchDocumentTitles(a.string)
+	// 	}
+	// }
+	
+	// Get current scene index
+	let currentScene = Beat.outline().indexOf(Beat.currentScene)
+	
+	// Faux values
+	let pages = "[]"
+	// let pageBreakPosition = "false"
 
+	// Get the whole paginated JSON + frontMatter (what is this?)
+		let paginatedOutline = outlineWithPagination()
+		let json = JSON.stringify(paginatedOutline)
+	// let json = JSON.stringify(Beat.outline)
+	// let frontMatter = getFrontMatter()
+	
+	htmlWindow.runJS("updateOneScene(" + json + "," + currentScene + "," + pages + "," + location + "," + length + "," + Beat.getText().length + "," + "false" /*pageBreakPosition*/ + "," + frontMatter + ")")
 }
 
+Beat.custom.collectNotes = function() {
+	Beat.log("collecting notes")
+	
+	Beat.dispatch(function(){
+		Beat.log("in dispatch")
+
+		let note = []
+		let marker = []
+		let beats = []
+		let numberOfStorylines = 0
+		let actualNote = []
+		let outlineElementNumber = -1
+		let lastElementThatWasScene = -1
+		let entry = 0
+
+		let reg = (/\[\[.*?\]\]/g)
+		
+			let allLines = Beat.lines()
+									
+					for (line of allLines){
+						
+						if (["Heading", "Section"].includes(line.typeAsString())){
+							outlineElementNumber ++
+							lastElementThatWasScene = outlineElementNumber
+						}
+
+						// if (!line.note && !line.string.includes("[[")) continue
+						if (!line.noteData().length) continue
+
+						//first check: inline notes
+						if(!line.note){
+							if(!["Heading", "Section", "Synopse"].includes(line.typeAsString())){
+
+								let result = line.string.match(reg)
+
+								if (!!result){
+									for (res of result){
+
+										note[entry] = {}
+										let inlineNote = res
+										let inlineNoteIndex = res.index || 0
+										
+										note[entry].outlineElementNumber = lastElementThatWasScene
+										note[entry].position = (line.position + inlineNoteIndex)
+										note[entry].string = line.noteData()[result.indexOf(res)].content
+										note[entry].color = line.noteData()[result.indexOf(res)].color
+											if(res.startsWith("[[!")) note[entry].color = "red"
+											if(res.startsWith("[[!!")) note[entry].color = "magenta"
+											if(res.startsWith("[[!!!")) note[entry].color = "#8000FF"
+											if(res.startsWith("[[?")) note[entry].color = "lime"
+											if(!note[entry].color && (res.match(/(\[\[(#*\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
+										note[entry].type = "note"
+										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
 
 
+										let notepos = line.range.location + line.string.indexOf(res)
+										let notelen = res.length
+											note[entry].range = {"position": notepos, "length": notelen}
+										note[entry].inline = "1"
+
+										entry ++
+									}
+								}
+							}
+						}
+
+						//second check: full-line notes
+						if(line.note) {
+							
+							//third check: full-line but not starting
+							if(!line.string.trim().startsWith("[[")) {
+
+									try{ note[entry-1].string += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
+										 note[entry-1].stringForDisplay += "<br/>" + line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
+										 note[entry-1].range.length += line.range.length 
+									} catch {
+										continue
+									}
+								continue
+							}
+							
+							note[entry] = {}
+							note[entry].outlineElementNumber = lastElementThatWasScene
+							note[entry].position = line.position
+							note[entry].string = line.noteData()[0].content
+							note[entry].color = line.noteData()[0].color
+								if(line.string.startsWith("[[!")) note[entry].color = "red"
+								if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
+								if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
+								if(line.string.startsWith("[[?")) note[entry].color = "lime"
+								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
+							note[entry].type = "note"
+							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
+
+							let notepos = line.range.location
+							let notelen = line.range.length
+								note[entry].range = {"position": notepos, "length": notelen}
+							note[entry].inline = "0"
+							entry ++
+						}
+					}
+				outlineElementNumber ++ //this is redundant, no?
+
+
+			// Cycle all notes and put them in different arrays depending on type.
+			// (This opens for creating new subsets of notes depending on starting term.)
+			for (entry of note){
+				if (entry.string.trim().startsWith("marker")){
+					let stringIntoColor = entry.string.trim().toLowerCase().replace(/marker:*\s*/, "")
+					stringIntoColor = stringIntoColor.match(/^#+[0-9]+|[a-z]*/)
+					entry.color = entry.color || stringIntoColor
+					if(entry.string.includes(":")){
+						stringIntoStory = entry.string?.replace(/^(.*?):/,"")?.replace(/\]\]/, "")?.toUpperCase()
+						entry.story = stringIntoStory
+						entry.type = "marker"
+					}
+					marker.push(entry)
+				}else if(entry.string.trim().startsWith("beat")){
+					let strippedString = entry.string.replace(/\[\[beat\s*/i, "").replace(/\]\]/,"")
+					let stringIntoStory = strippedString?.toUpperCase()
+					if(strippedString.includes(":")){
+						stringIntoStory = strippedString?.match(/^.*:/)[0]?.replace(/:/,"")?.toUpperCase()
+					}
+						//check if this is an existing storyline
+						let thisStoryline = false
+						let existingStoryline = false
+						for(let prev=0; prev<beats.length; prev++){
+							if (stringIntoStory == beats[prev].story){
+								thisStoryline = beats[prev].storyline
+								existingStoryline = true
+								break //breaks out of prev-loop
+							}
+						}
+						if(!existingStoryline){
+							numberOfStorylines++
+						}
+					let stringIntoContent = strippedString.substring(stringIntoStory.length).replace(/^\s*:\s*/, "")
+						entry.storyline = thisStoryline || numberOfStorylines
+						entry.story = stringIntoStory || "UNNAMED BEAT"
+						entry.content = stringIntoContent
+						beats.push(entry)
+				}else{
+					actualNote.push(entry)
+				}
+			}
+
+			// Beat.log(JSON.stringify([...actualNote]))
+			// Beat.log(JSON.stringify([...marker]))
+			// Beat.log(JSON.stringify([...beats]))
+
+			Beat.dispatch_sync(function (){
+
+				htmlWindow.runJS("displayNotes(" + JSON.stringify([...actualNote]) + "," + JSON.stringify([...marker]) + "," + JSON.stringify([...beats]) + ")")
+
+			})
+	})
+}	

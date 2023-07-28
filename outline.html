@@ -384,6 +384,8 @@ function startFullUpdate(delayTime) { //not getting loc and len from outlinechan
 
 function startSmallUpdate(location, length, delayTime, elementType) {
 
+	return
+
 	//alertThis("smallUpdate Called -- it shouldn't be!")
 
 	//it may be that this never ever fires, but hey. 
@@ -433,6 +435,8 @@ var typeTimer
 var cancelNextNormalUpdate = false
 
 function startUpdate(updateObject) {
+
+	return
 
 	console.log("🤬", "normal update started")
 	if(cancelNextNormalUpdate){
@@ -675,7 +679,7 @@ function updateHeights(json){
 			
 			if(!element){ //this happens if there is length for an orphan that doesn't exist and we need to create it
 			alertThis("yup")
-				startUpdate
+				//startUpdate
 				return
 			}
 
