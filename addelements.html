@@ -329,59 +329,75 @@ function removeAddButton(){
 
 }
 
-function addElement(theClickedThing, whatToAdd){
+function addElement(theClickedThing, whatToAdd, beforeInsteadOfAfter){
+
+    if(["addScene", "addSection"].includes(theClickedThing.id)){
+        alertThis("Sorry, you tried to add a scene using the old method. Please add scenes from the context menu instead.")
+    }
 
     mylog("add: " + whatToAdd + "to: " + theClickedThing.classList)
 
-    let addString
-    let outlineElementNumber
-    let position
-        
-    if(!whatToAdd){
-        mylog("Got no whatToAdd. But theClickedThing.id == " + theClickedThing.id)
-        
-        outlineElementNumber = Number(theClickedThing.parentNode.getAttribute("data-element-count"))
-        position = outline[outlineElementNumber].sceneEnd
-        Beat.call(`Beat.scrollTo(${position}), Beat.custom.blinkTheLine(${position})`)
-        
-        let numberOfHashtags = outline[outlineElementNumber].line.string.match(/^(#*)/)        
-            addString = (theClickedThing.id == "addScene") ? "\\n.NEW SCENE\\n" : `${"#".repeat(Math.max(numberOfHashtags[0].length, 2 ))}NEW SECTION`
-
-        if(outline[outlineElementNumber].typeAsString == "Section"){
-            
-            position = outline[outlineElementNumber + 1]?.sceneStart || outline[outlineElementNumber].sceneEnd // + 1
-                //the OR case should only happen if last element in doc, so removing the +1 from above and the -1 from below
-            
-                //Hack to avoid adressing index outside of screenplay length:
-                //if(outlineElementNumber = outline.length)position -= 1
-                
-            if(!position){mylog(`ERROR: sending ${position} as position again`); throwError()}
+    let sceneLine = outline[theClickedThing.closest(".scene, .section").getAttribute("data-my-id")]
+    let locationAfter = sceneLine.sceneEnd + 1
+        if(sceneLine.typeAsString == "Section"){
+                    locationAfter = sceneLine.line.range.location + sceneLine.line.range.length // to put it after section header, not entire section
+                }
+        if(beforeInsteadOfAfter){
+            locationAfter = sceneLine.line.range.location
         }
+
+    switch (whatToAdd) {
+        case "scene":
+        
+            addString = "\\n.NEW SCENE\\n"
+
+            break;
+
+        case "section":
+                
+            let numberOfHashtags = outline[theClickedThing.closest(".section").dataset.myId].line.string.match(/^(#*)/)        
+                addString = `${"#".repeat(numberOfHashtags[0].length)}NEW SECTION\\n`
+    
+            break;
+    
+        default:
+
+            console.log("ERROR: addElement got no whatToAdd")
+            return
+            break;
     }
 
-    mylog("done fixing")
+    console.log(sceneLine, addString)
+        
+        // //Beat.call(`Beat.scrollTo(${locationAfter}), Beat.custom.blinkTheLine(${locationAfter})`)
+        
+        // let numberOfHashtags = outline[outlineElementNumber].line.string.match(/^(#*)/)        
+        //     addString = (theClickedThing.id == "addScene") ? "\\n.NEW SCENE\\n" : `${"#".repeat(Math.max(numberOfHashtags[0].length, 2 ))}NEW SECTION`
 
-    // Beat.call(`
-    // Beat.onTextChangeDisabled = true
-    // Beat.onOutlineChangeDisabled = true
-    // Beat.onSelectionChangeDisabled = true`
-    // )
+        // if(outline[outlineElementNumber].typeAsString == "Section"){
+            
+        //     position = outline[outlineElementNumber + 1]?.sceneStart || outline[outlineElementNumber].sceneEnd // + 1
+        //         //the OR case should only happen if last element in doc, so removing the +1 from above and the -1 from below
+            
+        //         //Hack to avoid adressing index outside of screenplay length:
+        //         //if(outlineElementNumber = outline.length)position -= 1
+                
+        //     if(!position){mylog(`ERROR: sending ${position} as position again`); throwError()}
+        // }
+    
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-
-    mylog(position)
+    
     let doThis =`
-        Beat.addString("\\n${addString}\\n", ${position})
-        Beat.custom.checkBlankLines(${position + 3})
+        Beat.addString("\\n${addString}\\n", ${locationAfter})
+        Beat.custom.checkBlankLines(${locationAfter + 3})
+        Beat.scrollTo(${locationAfter})
+        Beat.custom.blinkTheLine(${locationAfter})
     `
     Beat.call(doThis)
     
-    updateWithoutDelay = true //forces update of display even if non-realtime (and with zero delay)
-    
-    toggleWaitState(true)
-    //startUpdate()
 
-    removeAddButton()
+    // removeAddButton()
 }
 
 function addPromoteButtons(element){

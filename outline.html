@@ -2,7 +2,7 @@
 <!--      THIS IS ALL THE HARD-CODED HTML WE GET:       -->
 <!-- ================================================== -->
 
-<div id="flexiContainer" class=""></div> 
+<div id="flexiContainer" class="flexiContainer"></div> 
 <div id="cover" class="blurWindow" style="display: none" onclick="closeNewMenu(); toggleTrackingContainer(true); storeAndClosePrintbox(false)"></div>
 
 <div id="buttonRow">
@@ -61,6 +61,13 @@ document.addEventListener("dblclick", function(event){
 	event.stopPropagation()
 	mylog(event)			
 	editContent(event)
+})
+
+$id("flexiContainer").addEventListener("contextmenu", function(event){
+	event.preventDefault()
+	event.stopPropagation()
+	mylog(event)			
+	displayContextMenu(event)
 })
 
 $id("flexiContainer").ondragstart = function(event){onDragStart(event)}
@@ -171,7 +178,7 @@ var someoneResizedTheWindow = debounce(function() {
 
 window.addEventListener('load', function () {
 	setAllEventlisteners()
-	completeRun()
+	firstRun()
 	mylog("now to get defaults")
 	getDefaults() 
 	applySettings2023()
@@ -191,7 +198,7 @@ function setAllEventlisteners(){
 	window.addEventListener("focus", function () {	
 			if(realTimeIsOn == 1) return
 			document.getElementById('outOfSyncDiv').style.display = "none";
-			completeRun()//should provide loc and len here!	
+			firstRun()//should provide loc and len here!	
 		});
 	window.addEventListener("blur", function () {
 			deselectAllElements()
@@ -265,15 +272,12 @@ function hover() {
 	currentlyHoveredElement = element // keeps it in mind for ALT-pressing
 	mylog("sending to addbutton...")
 
-		// if (altIsBeingPressed){
-			
+	//the following code is now commented out, adding elements are done via contextmenu instead
+		// try{
+		// 	insertAddButton(element)
+		// }catch(err){
+		// 	mylog("CAUGHT an ERROR trying to ADD or PROMOTE BUTTON" + err.name + err.message)
 		// }
-
-		try{
-			insertAddButton(element)
-		}catch(err){
-			mylog("CAUGHT an ERROR trying to ADD or PROMOTE BUTTON" + err.name + err.message)
-		}
 	
 }
 
@@ -337,366 +341,63 @@ function unhover(){
 // MARK: - ========== UPDATING THE TIMELINE ==========
 
 function __________TIMELINE (){}
-		
-function startFullUpdate(delayTime) { //not getting loc and len from outlinechange anyway so removed now!
-	
-	actualChangesToScriptInProgress = false //this is for the errorhandler to know what was happening
-
-	//document.getElementById('outOfSyncDiv').classList.add('animate');
-	$id('outOfSyncDiv').style.display = 'block'
-	flexiContainer.classList.add("wait")
-	
-	if (realTimeIsOn == 0 && updateWithoutDelay == false){
-		document.getElementById('outOfSyncMessage').innerHTML = "Outline out of sync. Click anywhere to refresh.";
-		document.getElementById("outOfSyncDiv").style.animation = "none";
-		//document.getElementById("outOfSyncDiv").style.display = "block";
-
-		if(document.getElementById("youAreHere")){document.getElementById("youAreHere").remove()}
-
-		return
-	}
-
-		document.getElementById('outOfSyncMessage').innerHTML = "";
-		
-		clearTimeout(fullTypeTimer)
-		fullTypeTimer = false
-
-		let timeToWait = updateWithoutDelay ? 0 : 1000
-		let callback = function(){
-			rememberCardState()
-			Beat.call("Beat.custom.updateEntireOutline(false, false," + (outline.length||'false') + ")")	
-			
-		}
-		fullTypeTimer = setTimeout(
-			callback, delayTime || timeToWait // 1000 
-			)
-			
-	// 	document.getElementById('outOfSyncMessage').innerHTML = "Outline out of sync. Click anywhere to refresh.";
-	// 	document.getElementById("outOfSyncDiv").style.animation = "none";
-	// 	document.getElementById("outOfSyncDiv").style.display = "block";
-
-	// 	if(document.getElementById("youAreHere")){document.getElementById("youAreHere").remove()}
-}
-
-// function updateCaller(){
-// 	Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + "," + (outline.length||'false') + ")")	
-// }
-
-function startSmallUpdate(location, length, delayTime, elementType) {
-
-	return
-
-	//alertThis("smallUpdate Called -- it shouldn't be!")
-
-	//it may be that this never ever fires, but hey. 
-	if(fullTypeTimer > 0){
-		mylog("we're already queueing a full one, so trying to abort")
-		return
-	}
-
-	if(elementType && elementType != "Heading"){
-		mylog(" ")
-		mylog("BUT! Now sending SMALL ==> FULL because seems like we're writing in orphan text")
-		mylog(" ")
-
-		startFullUpdate()
-		return
-	}
-		
-	if(outline.length < 1){
-		displayEmptyScreenMessage()
-		return}
-
-	if (realTimeIsOn == 1 || updateWithoutDelay == true){	
-
-		clearTimeout(smallTypeTimer);
-
-		let timeToWait = updateWithoutDelay ? 0 : 1000
-
-		let callback = function(){
-				rememberCardState()
-				Beat.call("Beat.custom.updateOnlyOneScene(" + location + "," + length + ")")
-				}
-		smallTypeTimer = setTimeout(
-			callback, delayTime || timeToWait
-			); 		
-		}
-	else
-		{
-		document.getElementById('outOfSyncMessage').innerHTML = "Outline out of sync. Click anywhere to refresh.";
-		document.getElementById("outOfSyncDiv").style.animation = "none";
-		document.getElementById("outOfSyncDiv").style.display = "block";
-
-		if(document.getElementById("youAreHere")){document.getElementById("youAreHere").remove()}
-		}
-}
 
 var typeTimer
-var cancelNextNormalUpdate = false
 
-function startUpdate(updateObject) {
-
-	return
-
-	console.log("🤬", "normal update started")
-	if(cancelNextNormalUpdate){
-		cancelNextNormalUpdate = false
-		console.log("😃", "but it was cancelled")
-		return
-	}
-
-	let location    = updateObject?.location
-	let length      = updateObject?.length
-	let delayTime   = updateObject?.delayTime
-	let elementType = updateObject?.elementType
-
-	let small = false
-	if (location) small = true
-
-	if(small && elementType && elementType != "Heading"){
-		
-		//Now sending SMALL ==> FULL because seems like we're writing in orphan text")
-
-		small = false
-	}
+function firstRun(location, length){ 
 	
-if(outline.length < 1){
-	displayEmptyScreenMessage()
-	return}
-
-	//------temporarily not caring about non-realtimers!
-
-	clearTimeout(typeTimer);
-
-	//let timeToWait = updateWithoutDelay ? 0 : 500
-
-
-
-	let callback
-	if (small) {callback = function(){
-			rememberCardState()
-			Beat.call("Beat.custom.updateOnlyOneScene(" + location + "," + length + ")")
-			}
-		}else{
-			callback = function(){
-			rememberCardState()
-			Beat.call("Beat.custom.updateEntireOutline(false, false," + (outline.length||'false') + ")")	
-			
-		}
-
-		}
-	typeTimer = setTimeout(
-		callback, delayTime || 0 // timeToWait
-		); 		
-}
-
-// function startUpdate2023(updateObject){
-
-// 	let location	= updateObject?.location || false
-// 	let length		= updateObject?.length || false
-// 	let delayTime	= updateObject?.delayTime || false
-// 	let elementType = updateObject?.elementType || false
-// }
-
-function completeRun(location, length){ //Called AT STARTUP and (when non-realtime) AT FOCUS
+	//Called AT STARTUP (and, if non-realtime, WHEN FOCUSED
 	mylog()
-	
+
 	weAreCurrentlyEditingText = false
-	updateWithoutDelay = true //testing if this speeds up first draw!
-
 	Beat.call("Beat.custom.updateEntireOutline(" + location + "," + length + ")")
-}
-
-function startImmediateUpdate(){
-
-	return
-
-	cancelNextNormalUpdate = true
-
-	console.log("😀", "immediateUpdate")
-
-	let temporaryOutline 
-		Beat.callback(() => { return Beat.outlineAsJSON() }, 
-		(result) => { 
-
-			temporaryOutline = JSON.parse(result)
-			frozenOutline = JSON.parse(JSON.stringify(outline))
-		
-			//this updates the outline WITHOUT new pagination, just reusing the previous one -- 2023-05-16
-
-			// if (temporaryOutline.length != outline.length) {
-			// 	completeRun()
-			// 	return
-			// }
-
-			for(i = 0; i < temporaryOutline.length; i ++){
-
-				console.log (temporaryOutline[i].line.string, frozenOutline[i].numberOfPages)
-
-				temporaryOutline[i].numberOfPages = frozenOutline[i].numberOfPages
-				temporaryOutline[i].startsOnPage = frozenOutline[i].startsOnPage
-				temporaryOutline[i].positionOnPage = frozenOutline[i].positionOnPage
-				temporaryOutline[i].breakLines = frozenOutline[i].breakLines
-				temporaryOutline[i].sceneEnd = frozenOutline[i].sceneEnd
-
-			}
-
-			// addSceneEnds()
-			outline = temporaryOutline
-			// findPageDividers()
-			recalculateHeights()
-			divMaker(location)
-
-			toggleWaitState(false)
-
-	}) //end of callback!
 
 }
 
-function updateEntireOutline(json, location, length, /*pagesAsString, */absoluteLength, /*pageBreakPositions, /*frontmatter,*/ linesAsJson) {
+function updateEntireOutline(json, location, length, absoluteLength, linesAsJson) {
+
+	mylog()
+	$$(".contextMenu").forEach(menu => menu.remove())
 	
 	// making data global:
 		outline = json 
 		lines = linesAsJson
 		absoluteTextLength = absoluteLength
-		// entireScreenplay = fullText 
 	
 	if(outline.length < 1){displayEmptyScreenMessage(); return}
 	
-	addSceneEnds()
-	findPageDividers()
-	divMaker(location) //check if sent parameters are indeed necessary
+	//Pre-building the outline
+		addSceneEnds()
+		findPageDividers()
+
+	//Building the outline!
+		divMaker(location) 
+		//NOTE: check if sent parameters are indeed necessary
 	
 	if (characterMenuList.selectedIndex != -1){
-
 		updateFilter("") //this call is unnecessary for functionality, but works to eliminate blinkage.
 		for (i=0; i<outline.length; i++) { //loop in "everything", single line in other
 			Beat.call("Beat.custom.reevaluateCharactersForScene(" + i + "," + (i == outline.length-1) + ")") //will send false except last time
 		}
 	}
-		
-	collectNotes("updateEntireOutline")
-	// collectNotes2023()
-	collectReviews()
-	collectRevisionIndices()
-	updateDialogPanel()
-	updateScenePanel()
 
-	toggleWaitState(false)
+	//Post-building the outline: Add data etc	
+		collectNotes("updateEntireOutline")
+		collectReviews()
+		collectRevisionIndices()
+		updateDialogPanel()
+		updateScenePanel()
 
-	// //the following clears the UPDATE animation (should only be visible on slower machines)
-	// document.getElementById('outOfSyncDiv').style.display = 'none'
-	// document.getElementById('outOfSyncDiv').classList.remove('animate')
-	// document.getElementById('flexiContainer').classList.remove("wait")
-
-	// recalculateHeights("from updateEntireOutline") // but this is also called from YouAreHere so why twice?
-												// now put back to see if it removes blinkage
+		toggleWaitState(false)
 												
-	recallCardState() //this is now put back, let's see if it improves anything
-	youAreHere(location, length) 
+		recallCardState() //this is now put back, let's see if it improves anything
+		youAreHere(location, length) 
 
-	if(weAreCurrentlyEditingText){ //} = false // this is if update takes place when live editing outline text
-		exitEdit()
-	}
-	updateWithoutDelay = false
-
-	mylog("End of updateEntireOutline process, now returning to Idle")
-}
-
-function updateOneScene(json, scene, pagesForChangedScene, location, length, absoluteLength, pageBreakForChangedScene, frontmatter){
-	mylog()
-
-	outline = json
-	absoluteTextLength = absoluteLength //making it global...
-	frontMatter = frontmatter
-	addSceneEnds()
-	
-	pages[scene] = pagesForChangedScene // Note: scene here now means outline item
-	// pageBreaks[scene] = pageBreakForChangedScene
-	
-	if(outline.length < 1){displayEmptyScreenMessage(); return}
-	
-	findPageDividers()
-	divMaker(location, false)
-	mylog("back after divmaker (single)")
-		
-	if (characterMenuList.selectedIndex != -1){
-	
-		updateFilter() //again: unnecessary for functionality, but just to eliminate blinkage.	
-		Beat.call("Beat.custom.reevaluateCharactersForScene(" + scene + "," + "true" + ")")
-	}
-
-	collectNotes("updateOneScene") 
-	if (reviewsAreDisplayed){collectReviews()}
-	collectRevisionIndices()
-	updateDialogPanel()
-	updateScenePanel()
-
-	//the following clears the UPDATE animation (should only be visible on slower machines)
-	document.getElementById('outOfSyncDiv').style.display = 'none'
-	document.getElementById('outOfSyncDiv').classList.remove('animate')
-	document.getElementById('flexiContainer').classList.remove("wait")
-
-	fullTypeTimer = false //only in small update?
-
-	//recalculateHeights("from updateOneSceen")  // but this is ALSO called from youAreHere!
-	
-	mylog("before recall in Small -- " + cardStateForScenes)
-	recallCardState() //this was the enabled one
-	youAreHere(location, length) 
-	
-	if(weAreCurrentlyEditingText){ //} = false // this is if update takes place when live editing outline text
-		exitEdit()
-	}
-
-	updateWithoutDelay = false
-    // Beat.call(`
-	// 	Beat.onTextChangeDisabled = false
-	// 	Beat.onOutlineChangeDisabled = false
-	// 	Beat.onSelectionChangeDisabled = false
-	// `)
-		
-	//NOTE: here ends the chain of functions based on needSmallUpdate, now returning home
-	mylog("end of chain (one scene)")
-}
-
-function updateHeights(json){
-
-	outline = json
-
-	let start = 0
-	let end = outline.length
-
-	for (num = start; num < end; num ++) {
-
-		if(outline[num].numberOfPages > 0){
-
-			if (outline[num].typeAsString == "Heading"){
-				 element = $id(num)
-			}else{
-				element = $id("orphanInside" + num)
-			}
-			
-			if(!element){ //this happens if there is length for an orphan that doesn't exist and we need to create it
-			alertThis("yup")
-				//startUpdate
-				return
-			}
-
-			if(parseFloat(element?.style.height.substr(5)).toString() != outline[num]?.numberOfPages.toString()) element.style.outline = "6px solid red"
-
-			element.style.height = `calc(${outline[num].numberOfPages}px * var(--heightFactor))`
-			element.dataset.lengthOfScene = outline[num].numberOfPages
-			element.querySelector(".sceneheading") && (element.querySelector(".sceneheading").innerHTML += (outline[num].numberOfPages + ", " +  parseFloat(element?.style.height.substr(5))))
-			if(element.querySelector(".showSceneLength")) element.querySelector(".showSceneLength").innerHTML = numberIntoEights(outline[num].numberOfPages)
-
+		if(weAreCurrentlyEditingText){ // this is if update takes place when live editing outline text -- can this happen??
+			exitEdit()
 		}
 
-	}
-
-	// findPageDividers()
-	recalculateHeights()
-
+	mylog("End of creating outline, now returning to idle")
 }
 
 function addSceneEnds(){
@@ -711,7 +412,7 @@ function addSceneEnds(){
 		return level 
 	}
 
-	//Insert SceneEnd value, which ends not at next arbitrary outline element, but one which is the same or higher! 2022-01-11
+	//Insert SceneEnd value, which ends not at next arbitrary outline element, but one which is the same or higher! 
 	for (let i = 0; i < outline.length; i++){
 
 		let nextSameLevelObject = i + 1
@@ -721,7 +422,6 @@ function addSceneEnds(){
 				(hierarchy({...outline[nextSameLevelObject]}) > hierarchy({...outline[i]})
 				||
 				outline[nextSameLevelObject].omitted)){
-			//if(!outline[nextSameLevelObject + 1]){break}
 			nextSameLevelObject++
 		}
 		
@@ -801,10 +501,10 @@ function divMaker(location){
 				if(currentItem.sectionDepth == 1){
 					actLengths[currentAct] = currentItem.startsOnPage
 
-						let checkback = 1 // check for preceding line break, looking past hidden scenes
-						while(outline[num - checkback] && outline[num - checkback].omitted){
-							checkback ++
-						}
+						// let checkback = 1 // check for preceding line break, looking past hidden scenes
+						// while(outline[num - checkback] && outline[num - checkback].omitted){
+						// 	checkback ++
+						// }
 
 					actIndex[currentAct] = currentItem.sceneStart
 					currentAct ++
@@ -892,7 +592,8 @@ function divMaker(location){
 					pagenumberDiv.appendChild(sectionLengthDiv)
 					}
 
-					if(loggingIsOn && currentItem.sectionDepth > 1){sectionheaderDiv.innerHTML += "#" + outline.indexOf(currentItem)}
+					// if(loggingIsOn && currentItem.sectionDepth > 1){sectionheaderDiv.innerHTML += "#" + outline.indexOf(currentItem)}
+					if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.sceneStart + " -- "}
 					sectionheaderDiv.innerHTML += currentItem.stringForDisplay.replace(/^#+/, "").replace(/</g, "&lt;")
 					if(currentItem.sectionDepth == 1)sectionheaderDiv.innerHTML += `<span class='widerButton'>${pinIcon}</span><span class='widerButtonOn'>${pinPushedIcon}</span>`
 
@@ -915,10 +616,6 @@ function divMaker(location){
 							orphanDiv.dataset.myId = "orphanInside" + num
 							orphanDiv.dataset.line = (currentItem.sceneStart)
 							orphanDiv.dataset.lengthOfScene = currentItem.numberOfPages	
-
-						//FINALLY, this *SHOULD* remove size-related blinkage?
-						// let temporaryHeight = flexiContainer?.querySelector(`#${orphanDiv.dataset.myId}`)?.style.height || `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
-						// 	orphanDiv.style.height = temporaryHeight
 						
 						if(pageDividers[num]) insertDividersIn(orphanDiv)
 						
@@ -988,11 +685,6 @@ function divMaker(location){
 							sceneDiv.style.setProperty("--localColor", `hsl(var(--${color.toLowerCase()}))`)
 						}
 					}
-					// //FINALLY, this *SHOULD* remove size-related blinkage?
-					// if (scenesAreProportional == 1){
-					// 	let temporaryHeight = flexiContainer?.querySelector(`#\\${num.toString()}`)?.style.height || `calc(${currentItem.numberOfPages}px * var(--heightFactor))`
-					// 	// sceneDiv.style.height = temporaryHeight
-					// }
 
 					let ii = 1
 					while(outline[num-ii] && outline[num - ii].typeAsString == "Synopse"){ii++}
@@ -1056,7 +748,7 @@ function divMaker(location){
 
 					let nextActualScene = 1
 						while(outline[num + nextActualScene] && outline[num + nextActualScene].typeAsString == "Synopse"){nextActualScene ++}
-					blankDiv.dataset.line = breakLine.pageBreakIndex //outline[num + nextActualScene]?.sceneStart - 4
+					blankDiv.dataset.line = breakLine.pageBreakIndex 
 					blankDiv.dataset.length = outline[num + nextActualScene]?.sceneStart - 1
 
 					whereToAdd.appendChild(blankDiv)
@@ -1098,7 +790,9 @@ function divMaker(location){
 
 			case "Synopse":
 
-				synopsisMaker(currentItem) //this will put synopsis into place for versions pre 1.977. For later versions, synopsisMaker will be called from inside scene and section makers
+				synopsisMaker(currentItem) 
+				// This switch will put synopsis in place for Beat versions pre 1.977, which may or may not be too old to run FTOutliner anyway. 
+				// For later versions, the following synopsisMaker function will be called from inside scene and section makers
 
 				function synopsisMaker(currentItem){
 
@@ -1150,22 +844,22 @@ function divMaker(location){
 				allActs[i].classList.remove("boneyard")
 			}		
 	
-	//add a temporary copy of notes etc to avoid blinkage bc showing nothing until updating to current truth
-	if(flexiContainer.querySelectorAll(".faux, .section, .scene, .orphanText")?.length == newFlexi.querySelectorAll(".faux, .section, .scene, .orphanText")?.length){
-		$$(".noteContainer, .marker, .review, .beat, .displayNumberOf").forEach(thingToPutBack => {
-				let parentId = thingToPutBack.parentNode.dataset.myId || thingToPutBack.parentNode.id
-				let placeToPut = newFlexi.querySelector(`[data-my-id = "${parentId}"]`) || newFlexi
-					placeToPut.appendChild(thingToPutBack)
-		})
-	}
+	//add a temporary copy of notes etc to avoid blinkage
+		if(flexiContainer.querySelectorAll(".faux, .section, .scene, .orphanText")?.length == newFlexi.querySelectorAll(".faux, .section, .scene, .orphanText")?.length){
+			$$(".noteContainer, .marker, .review, .beat, .displayNumberOf").forEach(thingToPutBack => {
+					let parentId = thingToPutBack.parentNode.dataset.myId || thingToPutBack.parentNode.id
+					let placeToPut = newFlexi.querySelector(`[data-my-id = "${parentId}"]`) || newFlexi
+						placeToPut.appendChild(thingToPutBack)
+			})
+		}
 	
 	//THE BIG ONE: REPLACE OLD OUTLINE WITH THE NEW
-	$id("flexiContainer").innerHTML = newFlexi.innerHTML
+		$id("flexiContainer").innerHTML = newFlexi.innerHTML
 		
 	//re-enabled this because why not?
-	if(indexCardMode || scenesAreProportional != 1){
-		recallCardState()
-	}
+		if(indexCardMode || scenesAreProportional != 1){
+			recallCardState()
+		}
 
 	actLengths.push(Array.from($$(".pageDivider")).at(-1)?.innerText) // takes the number from the last visible divider and adds to actLengths
 	actIndex.push(currentItem.sceneEnd)  // index for last page number
@@ -1183,10 +877,7 @@ function divMaker(location){
 
 	recalculateHeights()
 	reevaluateColorContrast()
-
-	console.time("pageCountsForSections")
 	updateAllSectionPageCounts()
-	console.timeEnd("pageCountsForSections")
 
 }
 
@@ -1200,9 +891,7 @@ function updateAllSectionPageCounts(){
 		accumulatedPages = 0
 
 		section.querySelectorAll(".scene, .orphanText").forEach(element => {
-
 			accumulatedPages += Number(element.dataset.lengthOfScene) || 0
-
 		})
 
 		if(section.querySelector(".sectionLengths")) section.querySelector(".sectionLengths").innerHTML = `<br/> (${numberIntoEights(accumulatedPages)})`
@@ -1481,6 +1170,8 @@ function recalculateHeights(wherefrom){
 	let heightFactor =  Math.min(scenesHaveMoreSpace, sectionsHaveMoreSpace)
 		paperHeightFactor = 72 * (29.7 / 2.54) * heightFactor / (windowHeight - 200) //was-160, and before that -120 
 		theRoot.style.setProperty('--heightFactor', heightFactor);
+		theRoot.style.setProperty('--paperHeightFactor', paperHeightFactor);
+	
 		mylog("HeightFactor, NEW VALUE: " + heightFactor + "")
 		
 		setTimeout(hideSlugFor, 150)
@@ -1507,7 +1198,7 @@ function positionTheIndicator(){
 		theIndicatorPercentage = Number(theIndicator.getAttribute('data-percentageIntoScene'));
 
 			// let theIndicatorParentHeight = Number(parseInt(window.getComputedStyle(theIndicator.parentNode).getPropertyValue("height")));
-			let theIndicatorParentHeight = parseInt(theIndicator.parentNode.getBoundingClientRect().height);
+			let theIndicatorParentHeight = parseInt(theIndicator.parentNode.getBoundingClientRect().height) - 2.5;
 			let theIndicatorPosition = theIndicatorParentHeight * theIndicatorPercentage
 			if (theIndicatorPercentage == -1) {theIndicatorPosition = 11 * currentZoomLevel}
 			theIndicator.style.top = theIndicatorPosition + "px"
@@ -2078,6 +1769,7 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 
 	//DEVELOPMENT SHORTCUTS: 
 		// if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); console.log(0.0)}
+		if (someoneJustPressed.key == "p" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); event.stopPropagation(); Beat.call(() => {Beat.resetPreview()}); return}
 		if (someoneJustPressed.key == "ä" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
 		if (someoneJustPressed.key == "ö" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); forceRestart()}
 		// if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
@@ -2095,19 +1787,22 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 		return
 	}
 
-	if (errorHasFired && someoneJustPressed.key == "Enter") {
-		event.preventDefault()
-		document.getElementById("errorClickButton").click()
-    }else if (someoneJustPressed.key == "Enter") {
+	if (someoneJustPressed.key == "Enter") {
 
-		if($(".modal")){event.preventDefault(); $(".modal").close(); return}
-		
 		event.preventDefault()
-		let elements = $$(".section-heading.isSelected, .scene.isSelected, .synopsis.isSelected")
+
+		if(errorHasFired) {
+			document.getElementById("errorClickButton").click()
+			return
+		}
+
+		//if($(".modal")){event.preventDefault(); $(".modal").close(); return}
+		
+		let elements = $$(".section.isSelected, .section-heading.isSelected, .scene.isSelected, .synopsis.isSelected")
 		let element = elements[elements.length - 1]
 		if (element){
 			let rect = element.getBoundingClientRect()
-			contextMenu(element, (rect.x + rect.width/2), rect.y, true)
+			displayContextMenu(event, element)
 		}
 	}
 	
@@ -2230,20 +1925,20 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	if (someoneJustPressed.key == "Alt") {
 		mylog("inside ALT")
 		altIsBeingPressed = true
-		$("#flexiContainer").classList.add("showAddButton")
+		// $("#flexiContainer").classList.add("showAddButton")
 
-		if(currentlyHoveredElement){
-			insertAddButton(currentlyHoveredElement)
-			addPromoteButtons(currentlyHoveredElement)
-		}
-		mylog("currently hovering: " + currentlyHoveredElement)		
+		// if(currentlyHoveredElement){
+		// 	insertAddButton(currentlyHoveredElement)
+		// 	addPromoteButtons(currentlyHoveredElement)
+		// }
+		// mylog("currently hovering: " + currentlyHoveredElement)		
 		
 	} 
 }
 
 function escapeWasPressed(){
 
-	console.log("secape")
+	console.log("escape")
 
 		if ($id("advancedSettings".open)) {$id("advancedSettings").close(); return}
 		if ($id("menu")){closeNewMenu(); return false}
@@ -2253,7 +1948,7 @@ function escapeWasPressed(){
 		if (trackingContainerVisibility == 1) {toggleTrackingContainer(); return false}
 		if ($id('aboutBox')){toggleTrackingContainer(true); return false}
 		if ($id('textContainer')){toggleTrackingContainer(true); return false}
-		if (contextMenuIsOpen) {closeContextMenu(); return false}
+		if ($(".contextMenu")) { $$(".contextMenu").forEach(menu => menu.remove()) ; return false }
 		if ($(".wider")) {$(".wider").classList.remove("wider"); return false}
 		if ($('.expandedReview')) {collapseReviews(); return false}
 		if ($id('expandedNote')) {collapseNote(); return false}
@@ -2285,6 +1980,13 @@ function releaseALT(){
 function somethingWasClicked() {
 	mylog()
 
+	let theButton = event.button
+	let rightClick = event.ctrlKey || theButton == 2
+		if(rightClick || event.target.closest(".contextMenu")){
+			console.log("exiting somethingWasClicked. Selected items are now: ", $$(".isSelected"))
+			return
+		}
+
 	console.log("somethingWasClicked: " + event.target.classList + event.target.id + event.target)
 	mylog("flexiContainer now has...:" + $id("flexiContainer").classList)
 
@@ -2295,8 +1997,6 @@ function somethingWasClicked() {
 	if($id("synEditBox")) return
 
 	let theClickedThing = event.target
-	let theButton = event.button
-	let rightClick = event.ctrlKey || theButton == 2
 	let length
 
 	// console.log(theClickedThing)
@@ -2347,7 +2047,7 @@ function somethingWasClicked() {
 		}
 	}
 
-	let gotoIndex = Math.max(parseInt(theClickedThing.getAttribute("data-line")), 1)
+	let gotoIndex = Math.max(parseInt(theClickedThing.getAttribute("data-line")), 0.1) //why?
 
 	//All note-clicking scenarios
 		if (["expandedNote", "notepanelNote", "note"].some(className => theClickedThing.classList.contains(className))) {
@@ -2649,13 +2349,25 @@ function walkTheOutline(e){
 
 }
 
+let waitStateCounter = 0
+
 function toggleWaitState(trueOrFalse){
 
 	mylog("toggleWaitState: " + trueOrFalse)
 
+	if (trueOrFalse) {
+		waitStateCounter++
+		console.log("waitStateCounter: " + waitStateCounter)
+	}else{
+		waitStateCounter = 0
+		console.log("waitStateCounter was RESET.")
+	}
+
 	document.getElementById('outOfSyncDiv').style.display = trueOrFalse ? 'block' : "none"
 	document.getElementById('outOfSyncDiv').classList.toggle('animate', trueOrFalse)
 	document.getElementById('flexiContainer').classList.toggle('wait', trueOrFalse)
+
+
 
 }
 
@@ -3131,7 +2843,7 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 		Beat.call("Beat.scrollToScene(Beat.currentParser.sceneAtIndex(" + gotoIndex + "))")
 	}
 		
-	if (classes.includes("showActLength")){gotoIndex ++}
+	//if (classes.includes("showActLength")){gotoIndex ++}
 	gotoIndex = Math.min(gotoIndex, absoluteTextLength - 1)
 	
 	// Beat.call("Beat.scrollTo(" + gotoIndex + "); Beat.focusEditor()") 

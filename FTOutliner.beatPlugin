@@ -370,17 +370,22 @@ Beat.onTextChange(function(location, length) {
 				fullUpdateInProgress = true
 				return 
 			} 
-			console.time("checking for headings")
+			console.time("checking for headings and hidden lines")
+			console.time("time to compare hiddenlines")
+			console.log(previousLineObject.filter(line => line.omitted).length , Beat.lines().filter(line => line.omitted).length)
+			console.timeEnd("time to compare hiddenlines")
 			if ((previousLineObject.filter(line => ["Heading", "Section"].includes(line.typeAsString)).map(line => line.typeAsString).join(",") != Beat.outline().map(line => line.typeAsString()).join(","))
+				||
+				(previousLineObject.filter(line => line.omitted).length != Beat.lines().filter(line => line.omitted).length)
 				|| 
 				(previousLineObject.filter(line => line.typeAsString === "Heading").map(line => line.UUID).join(",") !== Beat.outline().filter(line => line.typeAsString() === "Heading").map(line => line.UUID).join(","))
 				){
-				console.log("Sending to previewFinished b/c number/order of outline objects, or some sceneheading UUID, changed")
+				console.log("Deferring to previewFinished b/c number/order of outline objects, or some sceneheading UUID, changed")
 				fullUpdateInProgress = true
-				console.timeEnd("checking for headings")
+				console.timeEnd("checking for headings and hidden lines")
 				return
 			}
-			console.timeEnd("checking for headings")
+			console.timeEnd("checking for headings and hidden lines")
 
 		//determine the printing part of the line that has changed
 			let nonPrintingRanges = line.ranges.notes//.concat(line.ranges.omitted)
@@ -389,7 +394,7 @@ Beat.onTextChange(function(location, length) {
 
 		//determine the printing part of the previous, same line
 			let linePreviously = previousLineObject[Beat.lines().indexOf(line)] || false
-			let previousNonPrintingRanges = linePreviously?.ranges.notes//.concat(linePreviously.ranges.omitted)
+			let previousNonPrintingRanges = linePreviously?.ranges?.notes//.concat(linePreviously.ranges.omitted)
 			let previousNonPrintingRangesRev = previousNonPrintingRanges?.sort((a, b) => b[0] - a[0]);
 			let previousPrintingLine = previousNonPrintingRangesRev?.reduce((acc, [location, length]) => acc.slice(0, location) + acc.slice(location + length), linePreviously.string);
 
@@ -399,7 +404,7 @@ Beat.onTextChange(function(location, length) {
 			||
 			line.omitted
 			||
-			printingLine.trimEnd() == previousPrintingLine.trimEnd()
+			printingLine.trimEnd() == previousPrintingLine?.trimEnd()
 			){
 
 				console.log ("determining only pagination-less update needed")
@@ -436,7 +441,7 @@ Beat.onTextChange(function(location, length) {
 					pauseOnePaginationUpdate = false
 
 					console.log("error in onTextChange: " + e)
-					console.log("last-minute deferral to onPreviewFinished")
+					console.log("Therefore a last-minute deferral to onPreviewFinished")
 					fullUpdateInProgress = true
 					return
 
@@ -500,6 +505,12 @@ Beat.custom.updateEntireOutline = function (location, length) {
 
 			Beat.sync(function () {
 				htmlWindow.runJS(`updateEntireOutline(${json}, ${location}, ${length}, ${fullScreenplay.length}, ${linesAsJSON})`)
+
+				//BUG HUNT PART III: Firing a dialog if there was a zero-height scene
+				if (json.endsWith(`"alert"]`)) {
+					Beat.alert("Zero Height Scene(s) Detected", "FTOutliner has detected one or more scenes with zero height. This is a bug in Beat's pagination process, please report to the developers what you were doing when this happened.\n\nIn the meantime, FTOutliner will try to fix it for you. Please wait one second after hitting OK.")
+					Beat.timer(0.5, function(){Beat.resetPreview()})
+				}
 			})
 			
 			fullUpdateInProgress = false
@@ -611,11 +622,21 @@ function outlineWithPagination() {
 		
 		data.breakLines = breakLines
 		sceneData.push(data)
-	}
 
+	}
+	
 	//BUG HUNT PART II: Firing a dialog if there was a zero-height scene
-		if (zeroHeight.length > 0){ 
-			Beat.log("!!! Zero Height Happened for " + sceneData.indexOf(data))
+		if (zeroHeight.length){ 
+			Beat.log("!!! Zero Height Happened for " + zeroHeight.length + "scenes")
+			console.log("!!! Zero Height Happened for " + zeroHeight.length + "scenes:", zeroHeight)
+			sceneData.push("alert") 
+			console.log(sceneData.at(-1))
+			//This is now removed, after the bug was fixed in Beat. But I'm keeping it here for a while, just in case.
+			//Also, if re-introduced, it must not fire here but after leaving async -- firing it here may cause double entries in the outline.
+			Beat.sync(function () {
+					// 	Beat.resetPreview()
+					//Beat.alert("Zero Height Scene(s) Detected", "FTOutliner has detected one or more scenes with zero height. This is a bug in Beat, and you should report it to the developer. In the meantime, FTOutliner will try to fix it for you. Please wait a few seconds.")
+				})
 		}
 
 	return sceneData
@@ -1141,27 +1162,11 @@ Beat.custom.omitScene = function(scenesAreProportional, scenesToOmit, updatesDis
 		}
 		checkForDoubleBlankLines(startCheck)
 	}
-
-	if(!updatesDisabled){
-		// Beat.onTextChangeDisabled = false
-		// Beat.onOutlineChangeDisabled = false
-		// Beat.onSelectionChangeDisabled = false
-
-		let jsToRun = "document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			//"startSmallUpdate(001)"
-		htmlWindow.runJS(jsToRun) //note: used to be startFullUpdate
-	}
 }
 
 Beat.custom.unOmitScene = function(scenesToUnOmit, updatesDisabled) {
 
 	const outline = [...Beat.outline()]
-
-	// Beat.onTextChangeDisabled = true
-	// Beat.onOutlineChangeDisabled = true
-	// Beat.onSelectionChangeDisabled = true
 
 	for (let i = 0; i < scenesToUnOmit.length; i++){
 
@@ -1274,18 +1279,6 @@ Beat.custom.unOmitScene = function(scenesToUnOmit, updatesDisabled) {
 		}
 		
 	} // ENDING THE LOOP
-
-	if(!updatesDisabled){
-		// Beat.onTextChangeDisabled = false
-		// Beat.onOutlineChangeDisabled = false
-		// Beat.onSelectionChangeDisabled = false
-
-		let jsToRun = "document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			"startFullUpdate()"
-		htmlWindow.runJS(jsToRun)
-	}
 }
 
 Beat.custom.deleteSynopsis = function(elementsToDelete, warningsAreOn) {
@@ -1314,10 +1307,6 @@ Beat.custom.deleteSynopsis = function(elementsToDelete, warningsAreOn) {
 		}
 	}
 
-	// Beat.onTextChangeDisabled = true
-	// Beat.onOutlineChangeDisabled = true
-	// Beat.onSelectionChangeDisabled = true
-
 	for (element of elementsToDelete){
 		if (element.includes("_")){
 			let parentNumber = Number(element.toString().replace(/^s/, "").replace(/_.*$/, ""))
@@ -1339,16 +1328,6 @@ Beat.custom.deleteSynopsis = function(elementsToDelete, warningsAreOn) {
 			checkForDoubleBlankLines(where + 1)
 		}
 	}
-	
-		// Beat.onTextChangeDisabled = false
-		// Beat.onOutlineChangeDisabled = false
-		// Beat.onSelectionChangeDisabled = false
-
-		let jsToRun = "document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			"startFullUpdate()"
-		htmlWindow.runJS(jsToRun)
 }
 
 Beat.custom.deleteScene = function(elementsToDelete, warningsAreOn) {
@@ -1414,18 +1393,14 @@ Beat.custom.deleteScene = function(elementsToDelete, warningsAreOn) {
 			}
 		}
 
-		let jsToRun = "ifYesToDelete();" +
-			"document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			"startFullUpdate(500)"
-		htmlWindow.runJS(jsToRun)
+		htmlWindow.runJS("ifYesToDelete()")
 
-		// Beat.timer(500, function(){
-		// 	Beat.onTextChangeDisabled = false
-		// 	Beat.onOutlineChangeDisabled = false
-		// 	Beat.onSelectionChangeDisabled = false
-		// })
+}
+
+Beat.custom.resetPreview = function(){
+
+	Beat.resetPreview()
+
 }
 
 Beat.custom.deleteSection = function(elementsToDelete, warningsAreOn) {
@@ -1496,16 +1471,6 @@ Beat.custom.deleteSection = function(elementsToDelete, warningsAreOn) {
 			// 	nextSceneIsOmitted = false
 			// }
 		}
-	
-		// Beat.onTextChangeDisabled = false
-		// Beat.onOutlineChangeDisabled = false
-		// Beat.onSelectionChangeDisabled = false
-
-		let jsToRun = "document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-			"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-			"document.getElementById('flexiContainer').classList.add('wait'); " +
-			"startFullUpdate()"
-		htmlWindow.runJS(jsToRun)
 }
 
 Beat.custom.checkBlankLines = function(position){
@@ -1693,16 +1658,16 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		}
 	}
 
-    //finally provoke a full update!
+    // //finally provoke a full update!
 
-	let jsToRun = "setTimeout(function(){" +
-		"document.getElementById('outOfSyncDiv').classList.add('animate'); " +
-		"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
-		"document.getElementById('flexiContainer').classList.add('wait'); " +
-		((synopsisMove ||makeCopy) ? "startSmallUpdate(false,false,0)},1)" : "startFullUpdate()},999)") 
-		//the 999 delay here is to allow animation to finish
+	// let jsToRun = "setTimeout(function(){" +
+	// 	"document.getElementById('outOfSyncDiv').classList.add('animate'); " +
+	// 	"document.getElementById('outOfSyncDiv').style.display = 'block'; " + 
+	// 	"document.getElementById('flexiContainer').classList.add('wait'); " +
+	// 	((synopsisMove ||makeCopy) ? "startSmallUpdate(false,false,0)},1)" : "startFullUpdate()},999)") 
+	// 	//the 999 delay here is to allow animation to finish
 
-	htmlWindow.runJS(jsToRun)
+	// htmlWindow.runJS(jsToRun)
 	
 	// Beat.timer(1, function() {	//and this delay has the same purpose
 	// 	Beat.onTextChangeDisabled = false
@@ -2198,44 +2163,6 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 }
 
 function __________REMOVE_EVERYTING_BELOW_THIS_LINE(){}
-
-Beat.custom.updateOnlyOneScene = function (location, length) {
-
-	//can this be removed?
-
-
-	Beat.alert("custom.updateOnlyOne fired -- how come?")
-	
-	// htmlWindow.runJS("toggleWaitState(true)");
-
-	if(outlineJustFired){
-		//Beat.log("CANCELED UPDATE_ONLY_ONE B/C OutlineJustFired"); 
-		return
-	}
-
-	// if (location < Beat.outline()[0]?.sceneStart){ //look for title page changes only if typing before first outline
-		
-	// 	let a = Beat.currentParser.lineAtPosition(location)
-	// 	if (a.isTitlePage){
-	// 		fetchDocumentTitles(a.string)
-	// 	}
-	// }
-	
-	// Get current scene index
-	let currentScene = Beat.outline().indexOf(Beat.currentScene)
-	
-	// Faux values
-	let pages = "[]"
-	// let pageBreakPosition = "false"
-
-	// Get the whole paginated JSON + frontMatter (what is this?)
-		let paginatedOutline = outlineWithPagination()
-		let json = JSON.stringify(paginatedOutline)
-	// let json = JSON.stringify(Beat.outline)
-	// let frontMatter = getFrontMatter()
-	
-	htmlWindow.runJS("updateOneScene(" + json + "," + currentScene + "," + pages + "," + location + "," + length + "," + Beat.getText().length + "," + "false" /*pageBreakPosition*/ + "," + frontMatter + ")")
-}
 
 Beat.custom.collectNotes = function() {
 	Beat.log("collecting notes")

@@ -66,7 +66,7 @@
     
     font-weight: bold;
     font-size: 10px;
-    line-height: 10px;
+    line-height: 11px;
     
     overflow: hidden;
     white-space: nowrap;
@@ -123,6 +123,8 @@
     transform: rotate(-90deg);
 
     pointer-events: all !important;
+
+    color: rgba(0,0,0,0) !important;
 }
 
 #flexiContainer.indexcards .marker::after,
@@ -453,7 +455,7 @@
 .trashbutton{
     fill:  rgba(0,0,0,0.75);
     pointer-events: none;
-    opacity: 0.6 !important;
+    /* opacity: 0.6 !important; */
 
 }
 #trashNote:hover > .trashbutton,
@@ -482,8 +484,9 @@
 }
 
 .notpanelNote .trashNote > svg,
-.notpanelNote svg,
-svg.trashbutton{
+.notpanelNote svg
+/*, svg.trashbutton */
+{
     visibility: hidden;
     transition: all 0s !important;
     transition-delay: all 0s !important;
@@ -643,6 +646,11 @@ function collectNotes(wherefrom){
             let beatsInScene = []
                 beatsInScene = allEntriesInScene.filter(note => note.type == "beat")
 
+            let headline = "Note in " + ((outline[outlineElementNumber].typeAsString == "Heading") ? "scene " : "section ")
+                headline += (outline[outlineElementNumber].typeAsString == "Heading") ? outline[outlineElementNumber].sceneNumber : outline[outlineElementNumber].stringForDisplay
+
+                notesInScene.forEach(note => note.headline = headline)
+
             allNotes[outlineElementNumber] = notesInScene
             allMarkers[outlineElementNumber] = markersInScene
             allBeats[outlineElementNumber] = beatsInScene
@@ -700,18 +708,18 @@ function displayNotes(allNotes, typeOfNote){
 
             sceneWithNotes.forEach(note => {
 
-                let headline = "Note in " + ((outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? "scene " : "section ")
-                    headline += (outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? outline[allNotes.indexOf(sceneWithNotes)].sceneNumber : outline[allNotes.indexOf(sceneWithNotes)].string
+                // let headline = "Note in " + ((outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? "scene " : "section ")
+                //     headline += (outline[allNotes.indexOf(sceneWithNotes)].typeAsString == "Heading") ? outline[allNotes.indexOf(sceneWithNotes)].sceneNumber : outline[allNotes.indexOf(sceneWithNotes)].string
 
-                note.headline = headline
-                // note.headline = "length: " + note.range.length
+                // note.headline = headline
+                // // note.headline = "length: " + note.range.length
                 
                 let noteElement = document.createElement("div")
                     noteElement.classList.add(typeOfNote)
                     noteElement.classList.add("collapsed")
                     noteElement.dataset.line = note.range.location
                     noteElement.dataset.length = note.range.length
-                    noteElement.dataset.headline = headline
+                    noteElement.dataset.headline = note.headline
 
                     noteElement.dataset.color = note.color || "#FFFF00"
                     noteElement.style.backgroundColor = note.color || ""
@@ -847,8 +855,6 @@ function expandNote(tabWasPressed, shiftWasHeld, event){
                 trashDiv.innerHTML = trashIcon
                 trashDiv.onclick = () => {deleteNote()}
 
-                trashDiv.style.outline = "2px solid red"
-
             $id("placeholder").replaceWith(trashDiv)
         }
         $id("placeholder")?.remove()
@@ -934,12 +940,10 @@ console.log(theClickedThing)
 let length = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.length) 
 let location = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.line)
 
-alertThis(length)
-
 goto(location, theClickedThing, length, "#bb8888")
 
+let replaceString = ""
 // //condition to find out if a note ends on the final index of a line, if so decrease range by one character so as to leave the linebreak.
-//     let replaceString = ""
 //     let currentLine = lines.filter(line => line.range.location <= location + length && line.range.location + line.range.length >= location + length)[0]
 //     if (location > currentLine.range.location && location + length == currentLine.range.location + currentLine.range.length){            
 //         length --

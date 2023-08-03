@@ -33,10 +33,12 @@ function togglePrintMode(exportInstead){
 	}
 
 	//create a print box 
-		
 
+	$$(".scene, .orphan").forEach(element => {element.style.setProperty('--paperHeightFactor', paperHeightFactor)})
+	//hack to get paperheight over to printout
+		
 	let content = document.getElementById("flexiContainer").innerHTML
-	if (!exportInstead){content = content.replace(/px\s\*\svar\(--heightFactor\)/g, "px * " + paperHeightFactor + "")}
+	// if (!exportInstead){content = content.replace(/px\s\*\svar\(--heightFactor\)/g, "px * " + paperHeightFactor + "")}
 	if (exportInstead){content = content.replace(/px\s\*\svar\(--heightFactor\)/g, " * (var(--heightFactor) / 60) * (80vh - " + (unDistributableHeight + 60) + "px)")}
 
 	let classListOfFlexiContainer = [...document.getElementById("flexiContainer").classList].join(" ")

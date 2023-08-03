@@ -1,4 +1,22 @@
-v 1.60 (may xx, 2023)
+v 1.61 BETA
+===========
+
+This marks the first official test version of FTOutliner ever, on its trip towards
+
+It includes the changes of the never-released v 1.60 (changelog below) but most of all, this is the beginning of a journey towards rewriting most if not all of the code, trying to make it 
+MOST OF ALL, this makes FTOutliner much more compatible with Beat's updated API, not least noticeable in that page numbers match perfectly between the outline and the actual document.
+
+Under-the-hood changes in this build (none of which will be immediately visible to the user):
+* Completely re-vamped system for updating FTOutliner's timeline. More reliable, less chance of mismatch between document and outline.
+* Re-vamped context menu system. Looking almost exactly the same, but much more maintainable and expandable. 
+* New system for collecting and displaying notes and markers. Again, looking exactly the same, but much faster and more reliable.
+
+Stuff that is somewhat visible:
+* To add new scenes or sections from directly within the outline,   
+
+
+
+v 1.60 (never released)
 =====================
 
 This is mainly an update to bring FTOutliner up to speed with Beat's new pagination system.

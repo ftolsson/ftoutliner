@@ -93,6 +93,10 @@ body {
     display: inline !important;
 }
 
+.sectionLengths, .level1 > .section-heading > .showSectionPageNumber {
+    display: none !important;
+}
+
 .showActLength {
 	color: #555;
 	opacity: 0.8 !important;
@@ -120,6 +124,9 @@ body {
 	margin-top: -1px !important;
 
     overflow: hidden; 
+
+    height: calc(var(--flexibleHeight) * var(--paperHeightFactor)) !important;
+
 }
 
 .uncolorAllScenesBut .scene,
