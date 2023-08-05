@@ -450,37 +450,31 @@ function removePromoteButtons(){
 
 function demoteSection(section){
 
+    if(!section) section = Array.from($$(".section.isSelected"))?.at(-1)
+    if(!section || section.classList.contains("level1")) return
+
     startIndex = section.dataset.line
     if(!startIndex)return
 
-    disableUpdating()
-
-    removePromoteButtons()
+    // removePromoteButtons()
     Beat.call(`
         Beat.replaceRange(${startIndex}, 1, "")
     `)
-
-    enableUpdating()
-    //updateWithoutDelay = true
-    //startUpdate()
 
 }
 
 function promoteSection(section){
 
+    if(!section) section = Array.from($$(".section.isSelected"))?.at(-1)
+    if(!section || ["level6", "level7", "level8", "level9"].some(level => section.classList.contains(level))) return
+
     startIndex = section.dataset.line
     if(!startIndex)return
 
-    disableUpdating()
-
-    removePromoteButtons()
+    // removePromoteButtons()
     Beat.call(`
         Beat.addString("#", ${startIndex})
     `)
-
-    enableUpdating()
-    //updateWithoutDelay = true
-    //startUpdate()
 
 }
 

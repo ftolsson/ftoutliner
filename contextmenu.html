@@ -270,7 +270,7 @@
             iconColor: "",
             hoverColor: "#880000",
             showFor: ["synopsis", "scene", "section"],
-            command: (item) => { deleteScene(item) },
+            command: (item) => { deleteScene() }, //send no element, finds selected element in function instead
         },
         {
             menuItem: "divider",
@@ -341,94 +341,6 @@
             command: (item) => { addElement(item, "scene") },
         },
     ])
-
-    let shortcutKeys = [
-        // {
-        //     key: ["ArrowLeft"],
-        //     command: (event) => {
-        //         initializeMove(event, document.querySelector(".selected"), "left")
-        //         move(event, document.querySelector(".selected"), "left")}
-        // },
-        // {
-        //     key: ["ArrowRight"],
-        //     command: (event) => {
-        //         initializeMove(event, document.querySelector(".selected"), "right")
-        //         move(event, document.querySelector(".selected"), "right")},
-        // },
-        // {
-        //     key: ["ArrowUp"],
-        //     command: (event) => {
-        //         initializeMove(event, document.querySelector(".selected"), "up")
-        //         move(event, document.querySelector(".selected"), "up")}
-        // },
-        // {
-        //     key: ["ArrowDown"],
-        //     command: (event) => {
-        //         initializeMove(event, document.querySelector(".selected"), "down")
-        //         move(event, document.querySelector(".selected"), "down")},
-        // },
-        // {
-        //     key: ["Tab"],
-        //     command: (event) => {
-        //         cycleEvents(event.shiftKey)},
-        // },
-        // {
-        //     key: ["Meta", "1"],
-        //     command: (event) => {
-        //         zoomCalendar(1)},
-        // },
-        // {
-        //     key: ["Meta", "2"],
-        //     command: (event) => {
-        //         zoomCalendar(2)},
-        // },
-        // {
-        //     key: ["Meta", "3"],
-        //     command: (event) => {
-        //         zoomCalendar(3)},
-        // },
-        // {
-        //     key: ["Meta", "4"],
-        //     command: (event) => {
-        //         zoomCalendar(4)},
-        // },
-        // {
-        //     key: ["Meta", "6"],
-        //     command: (event) => {
-        //         zoomCalendar(6)},
-        // },
-        {
-            key: ["Meta", ","],
-            command: (event) => {
-                document.querySelector("#controlpanel").classList.toggle("closed")},
-        },
-        {
-            key: ["Meta", "l"],
-            command: (event) => {
-                document.getElementById("labelframevisibility").click()},
-        },
-        {
-            key: ["Meta", "a"],
-            command: (event) => {
-                selectAll()},
-        },
-    ]
-
-    //also add all shortcuts of contextmenu to global shortcutKeys variable
-    for (entry of contextMenuContents){
-
-        if( !entry.shortcut ) continue
-        shortcutKeys.push({
-            key: entry.shortcut,
-            command: //entry.command
-                (function(command) {
-                    return function(event) {
-                        command();
-                    }
-                })(entry.command)
-        })
-
-    }
 
 function displayContextMenu(event, element){
 

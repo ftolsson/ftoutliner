@@ -214,11 +214,13 @@ function setAllEventlisteners(){
 function toggleCaptureKeypresses(on){
 
 	if(on){
-		document.addEventListener("keydown", checkWhatKeyGotPressed);
-		document.addEventListener("keyup", checkWhatKeyWasReleased);
+		// document.addEventListener("keydown", checkWhatKeyGotPressed)
+		document.addEventListener("keydown", keypress)
+		document.addEventListener("keyup", checkWhatKeyWasReleased)
 	}else{
-		document.removeEventListener("keydown", checkWhatKeyGotPressed);
-		document.removeEventListener("keyup", checkWhatKeyWasReleased);
+		// document.removeEventListener("keydown", checkWhatKeyGotPressed)
+		document.removeEventListener("keydown", keypress)
+		document.removeEventListener("keyup", checkWhatKeyWasReleased)
 	}
 }
 
@@ -389,8 +391,9 @@ function updateEntireOutline(json, location, length, absoluteLength, linesAsJson
 		updateScenePanel()
 
 		toggleWaitState(false)
-												
-		recallCardState() //this is now put back, let's see if it improves anything
+		
+		//trying only to recall cardstates while building outline, not after
+		//recallCardState() //this is now put back, let's see if it improves anything
 		youAreHere(location, length) 
 
 		if(weAreCurrentlyEditingText){ // this is if update takes place when live editing outline text -- can this happen??
@@ -540,6 +543,7 @@ function divMaker(location){
 					sectionDiv.dataset.lineEnd = currentItem.sceneStart + currentItem.line.range.length
 					sectionDiv.dataset.lengthOfScene = currentItem.numberOfPages
 					sectionDiv.dataset.inAct = currentAct
+					sectionDiv.dataset.uuid = currentItem.uuid
 					sectionDiv.draggable = true
 
 					color = currentItem.color
@@ -593,7 +597,8 @@ function divMaker(location){
 					}
 
 					// if(loggingIsOn && currentItem.sectionDepth > 1){sectionheaderDiv.innerHTML += "#" + outline.indexOf(currentItem)}
-					if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.sceneStart + " -- "}
+					// if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.sceneStart + " -- "}
+					if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.uuid + " -- "}
 					sectionheaderDiv.innerHTML += currentItem.stringForDisplay.replace(/^#+/, "").replace(/</g, "&lt;")
 					if(currentItem.sectionDepth == 1)sectionheaderDiv.innerHTML += `<span class='widerButton'>${pinIcon}</span><span class='widerButtonOn'>${pinPushedIcon}</span>`
 
@@ -813,6 +818,20 @@ function divMaker(location){
 					synopsisDiv.dataset.line = (synopsisNumber !== false) ? outline[num].synopsis[synopsisNumber].position : currentItem.sceneStart
 					synopsisDiv.dataset.lineEnd = (synopsisNumber !== false) ? outline[num].synopsis[synopsisNumber].position + outline[num].synopsis[synopsisNumber].range.length : currentItem.sceneEnd
 					synopsisDiv.draggable = true
+
+					//Trying to catch Beat bug with left-over synopsis:
+						//thisLine = lines.filter(line => line.uuid == currentItem.uuid)[0]
+						// if (!thisLine || thisLine.typeAsString != "Synopse") return 
+							//next two lines are for bug tracking purposes, if the previous line is turned off:
+								// if (!thisLine) synopsisDiv.style.outline = "2px solid hotpink"
+								// if (thisLine && thisLine.typeAsString != "Synopse") synopsisDiv.style.outline = "2px solid cyan"
+
+						console.log(currentItem, thisLine)
+						thisLineObj = (lines.filter(line => line.uuid == currentItem.uuid)[0])
+						console.log(Array.from(lines).indexOf(thisLineObj))
+						nextLineNum = Array.from(lines).indexOf(thisLineObj) + 1
+						nextLineObj = lines[nextLineNum]
+						console.log(nextLineObj)
 					
 					color = currentItem.color
 						if (color?.includes("]") || color?.includes('[') || color?.split(" ").length > 1){
@@ -852,14 +871,36 @@ function divMaker(location){
 						placeToPut.appendChild(thingToPutBack)
 			})
 		}
+
+	//transfer any selections made in the outgoing outline to the new
+		let selections = $$(".isSelected")
+		for (let selection of selections){
+			let uuid = selection.dataset.uuid
+			let newSelection = newFlexi.querySelector(`[data-uuid = "${uuid}"]`)
+			if(newSelection){
+				newSelection.classList.add("isSelected")
+			}
+		}
+
+	//recalling cardstates by UUID instead of old function:
+	let sections = $$(".section")
+		for (let section of sections){
+			let uuid = section.dataset.uuid
+			let newSection = newFlexi.querySelector(`[data-uuid = "${uuid}"]`)
+			if(newSection){
+				["isExpanded", "collapsedSection", "wider"].forEach(className => {
+					newSection.classList.toggle(className, section.classList.contains(className))
+				})
+			}
+		}
 	
 	//THE BIG ONE: REPLACE OLD OUTLINE WITH THE NEW
 		$id("flexiContainer").innerHTML = newFlexi.innerHTML
 		
-	//re-enabled this because why not?
-		if(indexCardMode || scenesAreProportional != 1){
-			recallCardState()
-		}
+	// //re-enabled this because why not?
+	// 	if(indexCardMode || scenesAreProportional != 1){
+	// 		recallCardState()
+	// 	}
 
 	actLengths.push(Array.from($$(".pageDivider")).at(-1)?.innerText) // takes the number from the last visible divider and adds to actLengths
 	actIndex.push(currentItem.sceneEnd)  // index for last page number
@@ -1763,19 +1804,11 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 	mylog("checkWhatKeyGotPressed(" + someoneJustPressed.key + ")")
 
 	//if (event.ctrlKey && event.altKey) return //because all ctrl + alt shortcuts will go through Beat instead
-	
-	//if (someoneJustPressed.key == " " && event.ctrlKey && event.altKey && event.metaKey) {event.preventDefault(); setSharedScreen()}
-	//if (someoneJustPressed.key == "j") {event.preventDefault(); toggleFullScreen()}
 
 	//DEVELOPMENT SHORTCUTS: 
-		// if (someoneJustPressed.key == "å" && !someoneJustPressed.altKey) {event.preventDefault(); console.log(0.0)}
 		if (someoneJustPressed.key == "p" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); event.stopPropagation(); Beat.call(() => {Beat.resetPreview()}); return}
-		if (someoneJustPressed.key == "ä" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
-		if (someoneJustPressed.key == "ö" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); forceRestart()}
-		// if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); throwError()}
-		// if (someoneJustPressed.key == "!" && !someoneJustPressed.altKey) {event.preventDefault(); openSettingsWindow()}
-	
-
+		//if (someoneJustPressed.key == "ä" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); Beat.call(`Beat.custom.reloadHTML()`)}
+		//if (someoneJustPressed.key == "ö" && event.metaKey && event.altKey && event.ctrlKey) {event.preventDefault(); forceRestart()}	
 
 	if (someoneJustPressed.key == "Escape") {
 		
@@ -1937,6 +1970,8 @@ function checkWhatKeyGotPressed(someoneJustPressed) {
 }
 
 function escapeWasPressed(){
+
+	if(errorHasFired){return}
 
 	console.log("escape")
 
@@ -2305,6 +2340,7 @@ function makeWider(theClickedThing, cycledWithKey, shift){
 
 function walkTheOutline(e){
 
+	console.log("walkTheOutline")
 	mylog()
 	closeContextMenu()
 

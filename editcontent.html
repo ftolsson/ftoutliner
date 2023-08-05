@@ -262,7 +262,8 @@ function editContent(ev, elementToEdit) {
 
     weAreCurrentlyEditingText = true
 
-    document.removeEventListener("keydown", checkWhatKeyGotPressed)
+    // document.removeEventListener("keydown", checkWhatKeyGotPressed)
+    toggleCaptureKeypresses(false)
     document.addEventListener('keydown', editBoxListen)
     theElement.ondblclick=""
     theElement.classList.add("isBeingEdited")
@@ -509,7 +510,8 @@ function exitEdit(theElement, changesWereConfirmed) {
             document.getElementById("editBox").remove()
         }
 
-        document.addEventListener('keydown', checkWhatKeyGotPressed)
+        // document.addEventListener('keydown', checkWhatKeyGotPressed)
+        toggleCaptureKeypresses(true)
 
     }
     //recalculateHeights()
@@ -520,6 +522,7 @@ function exitEdit(theElement, changesWereConfirmed) {
 function editBoxListen(someoneJustPressed){
 
     mylog()
+    console.log("editBoxListen", someoneJustPressed)
     
     if (someoneJustPressed.key == "Enter" && (event.shiftKey || event.altKey)){
         if ([...theElement.classList].includes("synopsis")){

@@ -56,6 +56,7 @@ var dialogs = Beat.assetAsString("dialogs.html")
 var charactertracking = Beat.assetAsString("charactertracking.html")
 var displaynotes = Beat.assetAsString("displaynotes.html")
 var contextmenu = Beat.assetAsString("contextmenu.html")
+var keyboard = Beat.assetAsString("keyboard.html")
 var editcontent = Beat.assetAsString("editcontent.html")
 var addelements = Beat.assetAsString("addelements.html")
 var printCSS = Beat.assetAsString("printOutlineCSS.css")
@@ -83,6 +84,7 @@ var	html = //storingDefaultsHTML +
 	charactertracking +
 	displaynotes +
 	contextmenu + 
+	keyboard +
 	indexcards +
 	indexcards_css +
 	notepanel +
@@ -280,6 +282,7 @@ Beat.custom.reloadHTML = function(){
 	charactertracking = Beat.assetAsString("charactertracking.html")
 	displaynotes = Beat.assetAsString("displaynotes.html")
 	contextmenu = Beat.assetAsString("contextmenu.html")
+	keyboard = Beat.assetAsString("keyboard.html")
 	editcontent = Beat.assetAsString("editcontent.html")
 	addelements = Beat.assetAsString("addelements.html")
 	printCSS = Beat.assetAsString("printOutlineCSS.css")
@@ -303,6 +306,7 @@ Beat.custom.reloadHTML = function(){
 	charactertracking +
 	displaynotes +
 	contextmenu + 
+	keyboard +
 	indexcards +
 	indexcards_css +
 	notepanel +

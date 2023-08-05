@@ -1,0 +1,188 @@
+<script>
+
+//This file contains the keyboard shortcuts for the app
+//Shortcuts are defined below the keypress function
+// BUT NOTE that any shortcut inside a menu will be added to the shortcut array too
+
+function keypress(event){
+
+    if(event.altKey) altIsBeingPressed = true
+
+    // console.log(event.key, String.fromCharCode(event.keyCode))
+    
+    const shortcut = shortcutKeys.find((shortcut) => {
+
+        // Check if all the modifier keys are pressed
+        const modifiersMatch =
+            (!shortcut.key.includes("Meta") || event.metaKey) &&
+            (!shortcut.key.includes("Control") || event.ctrlKey) &&
+            (!shortcut.key.includes("Alt") || event.altKey) &&
+            (!shortcut.key.includes("Shift") || event.shiftKey);
+
+        // Check if the main key matches
+        const keyMatch = shortcut.key.at(-1) == event.key;
+
+        // Return true if both the modifier keys and main key match
+        return modifiersMatch && keyMatch;
+    })
+
+    if (shortcut) {
+        event.preventDefault()
+        event.stopPropagation()
+        shortcut.command(event);
+    }
+
+}
+
+// Runtime code below:  
+
+let shortcutKeys = [
+    {
+        key: ["Escape"],
+        command: (event) => {escapeWasPressed(event)}
+    },
+    {
+        key: ["Enter"],
+        command: (event) => {
+            let elements = Array.from($$(".section.isSelected, .section-heading.isSelected, .scene.isSelected, .synopsis.isSelected"))
+		    let element = elements.at(-1)
+		        if (element){
+			        displayContextMenu(event, element)
+		        }
+        }
+    },
+    {
+        key: ["Control", "Alt", "Meta","ä"],
+        command: (event) => {Beat.call(`Beat.custom.reloadHTML()`)}
+    },
+    {
+        key: ["Control", "Alt", "Meta","ö"],
+        command: (event) => {forceRestart()}
+    },
+    
+    // 1. LETTERS
+    
+    {
+        key: ["Control", "a"],
+        command: (event) => {selectAllElements(true)}
+    },
+    {
+        key: ["Meta", "a"],
+        command: (event) => {selectAllElements(false)}
+    },
+    {
+        key: ["n"],
+        command: (event) => {toggleDisplayNotes()}
+    },
+    
+    // 2. NON-LETTERS
+    
+    {
+        key: ["Meta", ","],
+        command: (event) => {openSettingsWindow()}
+    },
+    {
+        key: ["F1"],
+        command: (event) => {cycleMenus()}
+    },
+    {
+        key: ["Shift", "F1"],
+        command: (event) => {cycleMenus(true)}
+    },
+    {
+        key: ["Control", "Alt", "§"],
+        command: (event) => {toggleNotepanel()}
+    },
+    {
+        key: ["ArrowUp"],
+        command: (event) => {walkTheOutline(event)}
+    },
+    {
+        key: ["ArrowDown"],
+        command: (event) => {walkTheOutline(event)}
+    },
+    
+
+
+    // {
+    //     key: ["ArrowRight"],
+    //     command: (event) => {
+    //         initializeMove(event, document.querySelector(".selected"), "right")
+    //         move(event, document.querySelector(".selected"), "right")},
+    // },
+    // {
+    //     key: ["ArrowUp"],
+    //     command: (event) => {
+    //         initializeMove(event, document.querySelector(".selected"), "up")
+    //         move(event, document.querySelector(".selected"), "up")}
+    // },
+    // {
+    //     key: ["ArrowDown"],
+    //     command: (event) => {
+    //         initializeMove(event, document.querySelector(".selected"), "down")
+    //         move(event, document.querySelector(".selected"), "down")},
+    // },
+    // {
+    //     key: ["Tab"],
+    //     command: (event) => {
+    //         cycleEvents(event.shiftKey)},
+    // },
+    // {
+    //     key: ["Meta", "1"],
+    //     command: (event) => {
+    //         zoomCalendar(1)},
+    // },
+    // {
+    //     key: ["Meta", "2"],
+    //     command: (event) => {
+    //         zoomCalendar(2)},
+    // },
+    // {
+    //     key: ["Meta", "3"],
+    //     command: (event) => {
+    //         zoomCalendar(3)},
+    // },
+    // {
+    //     key: ["Meta", "4"],
+    //     command: (event) => {
+    //         zoomCalendar(4)},
+    // },
+    // {
+    //     key: ["Meta", "6"],
+    //     command: (event) => {
+    //         zoomCalendar(6)},
+    // },
+    {
+        key: ["Meta", ","],
+        command: (event) => {
+            document.querySelector("#controlpanel").classList.toggle("closed")},
+    },
+    {
+        key: ["Meta", "l"],
+        command: (event) => {
+            document.getElementById("labelframevisibility").click()},
+    },
+    {
+        key: ["Meta", "a"],
+        command: (event) => {
+            selectAll()},
+    },
+]
+
+//also add all shortcuts of contextmenu to global shortcutKeys variable
+for (entry of contextMenuContents){
+
+    if( !entry.shortcut ) continue
+    shortcutKeys.push({
+        key: entry.shortcut,
+        command: //entry.command
+            (function(command) {
+                return function(event) {
+                    command();
+                }
+            })(entry.command)
+    })
+
+}
+
+</script>

@@ -849,7 +849,7 @@ function indexCardMenu(){
             </li>
             <hr>
             <strong class="${(!indexCardMode) ? `greyedout` : ``}">Expand sections: </strong><span class="shortcut" style="float:right">D</span><br/>
-            <li class="${(!indexCardMode) ? `greyedout` : ``} centered" onclick="anArrowWasClicked($('.sectionArrow'), true)">
+            <li class="${(!indexCardMode) ? `greyedout` : ``} centered" onclick="expandOrCollapseSections()">
                 <input id="buttonForExpandedSections" type="checkbox">
                     <label for="buttonForExpandedSections" class="labelBefore">None</label>
                         <div class="switch"></div>

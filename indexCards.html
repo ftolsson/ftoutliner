@@ -3,24 +3,13 @@
 function expandOrCollapseSections(){
 
 	mylog()
+	console.log("expandOrCollapseSections")
 
-	let allSections = $$(".section")
-
-	mylog("surely we can do that even if no present?")
-	mylog(allSections.length)
-
-	let removeIt = false
-	if ($(".level2")?.classList.contains("collapsedSection")){removeIt = true}
-
-	for (let section of allSections){
-		if (section.classList.contains("level1")){continue}
-
-		if (removeIt){
-			section.classList.remove("collapsedSection")
-		}else{
-			section.classList.add("collapsedSection")
-		}
-	}
+	let trueOrFalse = !$(".section:not(.level1)")?.classList.contains("collapsedSection")
+	
+	$$(".section").forEach(section => {
+		section.classList.toggle("collapsedSection", trueOrFalse)
+	})
 
 	$id("flexiContainer").scrollTo(0, 0)
 	setButtonForExpandedSections()
@@ -36,6 +25,8 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 	if (!theClickedThing)return
 	if (!indexCardMode && scenesAreProportional) return
 	//mylog("this was clicked: " + theClickedThing.classList )
+
+	console.log("anArrowWasClicked", theClickedThing, triggeredWithKey)
 
 
 	let closestSectionAbove = theClickedThing.closest(".section")
@@ -69,27 +60,17 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 		}
 	}else{
 
-		let doCollapse = [...closestSectionAbove.classList].includes("isExpanded")
-			// alertThis(closestSectionAbove.classList, doCollapse)
-			
-		let sections = $$(".section")
-		for(section of sections){
-			//if ([...section.classList].includes("level1")){continue}
-			if(doCollapse){
-				section.classList.remove("isExpanded")
-			}else{
-				section.classList.add("isExpanded")
-			}
-		}
+		console.log("invert all isExpanded")
 
-		let arrows = $$(".arrowForIndexCards")
-		for(arrow of arrows){
-			if(doCollapse){
-				arrow.classList.remove("expanded")
-			}else{
-				arrow.classList.add("expanded")
-			}
-		}
+		let doCollapse = closestSectionAbove.classList.contains("isExpanded")
+			
+		$$(".section").forEach(section => {
+			section.classList.toggle("isExpanded", !doCollapse)
+		})
+
+		$$(".arrowForIndexCards").forEach(arrow => {
+			arrow.classList.toggle("expanded", !doCollapse)
+		})
 
 		mylog("going to recalc now")
 		$id("flexiContainer").scrollTo(0, 0)
@@ -541,8 +522,9 @@ function indexCardEditor(theElement, e){
 		draggable.classList.add("usedToBeDraggable")
 	}
 	
-    document.removeEventListener("keydown", checkWhatKeyGotPressed)
-    document.addEventListener('keydown', synEditBoxListen)
+    // document.removeEventListener("keydown", checkWhatKeyGotPressed)
+	toggleCaptureKeypresses(false)
+    document.addEventListener('keydown', function(event){synEditBoxListen(event)})
     document.addEventListener('selectionchange', fixContentEditableWeirdness)
 
 	synEditBox.scrollTop = scrollPosition
@@ -691,8 +673,9 @@ function fixContentEditableWeirdness(){
 	}
 }
 
-function synEditBoxListen(){
+function synEditBoxListen(event){
 
+	console.log("synEditBoxListen")
 	mylog()
 
 	//NOTE: must catch ENTER, and add own new div -- or else .id will be repeated. Stupid contenteditable!
@@ -718,9 +701,10 @@ function exitFromIndexCardEditor(confirmed){
 
 
 	$id("synEditBox").removeEventListener("blur", function(){exitFromIndexCardEditor(true)})
-	document.removeEventListener('keydown', synEditBoxListen)
+	document.removeEventListener('keydown', function(event){synEditBoxListen(event)})
 	document.removeEventListener('selectionchange', fixContentEditableWeirdness)
-	document.addEventListener('keydown', checkWhatKeyGotPressed)
+	// document.addEventListener('keydown', checkWhatKeyGotPressed)
+	toggleCaptureKeypresses(true)
 	removeConfirmButtons()
 
 	let allDraggables = $$(".usedToBeDraggable")

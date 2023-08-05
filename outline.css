@@ -946,7 +946,7 @@ __________COLLAPSED IN FIXED VIEW{}
 .nonProportionalMode:not(.indexcards) .section:not(.isExpanded) > .scene{
 
 	height: 0px !important;
-	margin: 0 !important;
+	margin: 1px !important;
 	/* margin-top: 1px !important; *//*REMMED OUT 2023-08*/
 	min-height: 0px !important;
 	border: none !important;
@@ -1883,13 +1883,16 @@ nope.loggingIsOn .indicator p { /*for debugging purposes only*/
 	background-color: rgba(40,40,40,1) !important;
 }
 
-.section:not(.level1).isSelected {
+.section/*:not(.level1)*/.isSelected {
 	color: white !important;
 	border-color: rgba(0,0,0,0.9) !important;
 }
-.section:not(.level1).isSelected > .section-heading {
+.section/*:not(.level1)*/.isSelected > .section-heading {
 	color: white !important;
 	background-color: rgba(0,0,0,0.9) !important;	
+}
+.section.level1.isSelected > .section-heading {
+	border-radius: 3px
 }
 #flexiContainer:not(.indexcards) .section:not(.level1).isSelected > .synopsiscontainer {
 	color: white !important;

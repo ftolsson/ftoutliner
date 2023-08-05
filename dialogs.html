@@ -1105,7 +1105,6 @@ function addTemplate(){
 
 function displayErrorMessage(information){
 
-	//document.removeEventListener("keydown", checkWhatKeyGotPressed);
 	errorHasFired = true
 
 	let moveMessage = /*html*/`
@@ -1321,7 +1320,8 @@ function newPrintBox(){
 		printbox.innerHTML = contents
 
 		if($id("menu"))$id("menu").remove()
-		document.removeEventListener("keydown", checkWhatKeyGotPressed)
+		// document.removeEventListener("keydown", checkWhatKeyGotPressed)
+		toggleCaptureKeypresses(false)
 		document.addEventListener("keydown", textFieldListener)
 
 		coverContainer.style.display = "block"
@@ -1343,7 +1343,8 @@ if(yesToStore){
 }
 
 document.removeEventListener("keydown", textFieldListener)
-document.addEventListener("keydown", checkWhatKeyGotPressed)
+// document.addEventListener("keydown", checkWhatKeyGotPressed)
+toggleCaptureKeypresses(true)
 $id("printbox")?.remove()
 
 }
