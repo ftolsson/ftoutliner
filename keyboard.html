@@ -7,6 +7,7 @@
 function keypress(event){
 
     if(event.altKey) altIsBeingPressed = true
+    console.log(event.key, String.fromCharCode(event.keyCode))
 
     // console.log(event.key, String.fromCharCode(event.keyCode))
     
@@ -40,6 +41,10 @@ let shortcutKeys = [
     {
         key: ["Escape"],
         command: (event) => {escapeWasPressed(event)}
+    },
+    {
+        key: [" "],
+        command: (event) => {Beat.call("Beat.focusEditor()")}
     },
     {
         key: ["Enter"],

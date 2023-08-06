@@ -64,6 +64,7 @@ document.addEventListener("dblclick", function(event){
 })
 
 $id("flexiContainer").addEventListener("contextmenu", function(event){
+	if(event.metaKey && event.altKey) return // so as not to get contextmenu when ctrl+alt+cmd is pressed
 	event.preventDefault()
 	event.stopPropagation()
 	mylog(event)			
@@ -825,13 +826,6 @@ function divMaker(location){
 							//next two lines are for bug tracking purposes, if the previous line is turned off:
 								// if (!thisLine) synopsisDiv.style.outline = "2px solid hotpink"
 								// if (thisLine && thisLine.typeAsString != "Synopse") synopsisDiv.style.outline = "2px solid cyan"
-
-						console.log(currentItem, thisLine)
-						thisLineObj = (lines.filter(line => line.uuid == currentItem.uuid)[0])
-						console.log(Array.from(lines).indexOf(thisLineObj))
-						nextLineNum = Array.from(lines).indexOf(thisLineObj) + 1
-						nextLineObj = lines[nextLineNum]
-						console.log(nextLineObj)
 					
 					color = currentItem.color
 						if (color?.includes("]") || color?.includes('[') || color?.split(" ").length > 1){
@@ -2016,7 +2010,7 @@ function somethingWasClicked() {
 	mylog()
 
 	let theButton = event.button
-	let rightClick = event.ctrlKey || theButton == 2
+	let rightClick = (event.ctrlKey && !event.metaKey && !event.altKey) || theButton == 2
 		if(rightClick || event.target.closest(".contextMenu")){
 			console.log("exiting somethingWasClicked. Selected items are now: ", $$(".isSelected"))
 			return
@@ -2065,16 +2059,17 @@ function somethingWasClicked() {
 
 	mylog("before if(event.altKey)")
 
-	if(event.altKey){
+	if(event.altKey && !event.metaKey){
+		//can soon be rewritten without the switch as soon as I commit to not using buttons for adding scenes
 		switch(theClickedThing.id){
-			case "addScene":
-				mylog("case: addScene")
-				addElement(theClickedThing)
-				return
-			case "addSection":
-				mylog("case: addSection")
-				addElement(theClickedThing)
-				return
+			// case "addScene":
+			// 	mylog("case: addScene")
+			// 	addElement(theClickedThing)
+			// 	return
+			// case "addSection":
+			// 	mylog("case: addSection")
+			// 	addElement(theClickedThing)
+			// 	return
 			default:
 				muteColors(theClickedThing, event.shiftKey) 
 				//NOTE: sending literal clicked thing here, so can be either scene or sceneheading!
@@ -2155,14 +2150,16 @@ function somethingWasClicked() {
 	if (a.includes("section-heading")) {theClickedThing = theClickedThing.parentNode; a = [...theClickedThing.classList]}
 	if (a.includes("sceneheading")) {theClickedThing = theClickedThing.parentNode; a = [...theClickedThing.classList]}
 
-	if (event.metaKey){
+	if (event.metaKey && !event.altKey){
 		if (a.includes("isSelected")) {
 			theClickedThing.classList.remove('isSelected')
 			return
 		}
 
-		if (a.includes("scene") || a.includes("section") || a.includes("synopsis")) {theClickedThing.classList.add('isSelected')}
-		return
+		if (a.includes("scene") || a.includes("section") || a.includes("synopsis")) {
+			theClickedThing.classList.add('isSelected')
+		}
+		if(!documentSetting.clickingFocusesEditor) return
 	}
 
 	if (event.shiftKey){
@@ -2245,7 +2242,11 @@ function somethingWasClicked() {
 		return
 	}
 
-	deselectAllElements()
+	if(documentSetting.clickingFocusesEditor){
+		if(!theClickedThing.closest(".scene, .section, .synopsis")) deselectAllElements()
+	}else{
+		deselectAllElements()
+	}
 
 	//Finally: if the clicked thing was an outline element, let's go there!
 
@@ -2276,6 +2277,15 @@ function somethingWasClicked() {
 	// setTimeout(makeWider(theClickedThing),210)
 
 	mylog("end of sthWasClicked -- " + theClickedThing.classList)
+
+		//Behavior depending on settings:
+
+		//Clicking a scene immediately focuses Editor
+		if(documentSetting.clickingFocusesEditor && !event.metaKey){
+			if (theClickedThing.closest(".scene, .section, .synopsis")){
+				Beat.call("Beat.focusEditor()") 
+			}
+		}
 
 	if (gotoIndex) {goto(gotoIndex, theClickedThing, length)}
 	mylog("now returning")
@@ -2385,6 +2395,12 @@ function walkTheOutline(e){
 
 }
 
+function walkTheOutlineSideWays(e){
+
+	
+
+}
+
 let waitStateCounter = 0
 
 function toggleWaitState(trueOrFalse){
@@ -2435,6 +2451,12 @@ function toggleFullScreen(){
 
 	Beat.call(`Beat.custom.toggleFull()`)
 	// Beat.call(`Beat.htmlWindow.toggleFullScreen()`)
+
+}
+
+function switchFocus(){
+
+	Beat.call(() => Beat.focusEditor())
 
 }
 
@@ -2882,13 +2904,7 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 	//if (classes.includes("showActLength")){gotoIndex ++}
 	gotoIndex = Math.min(gotoIndex, absoluteTextLength - 1)
 	
-	// Beat.call("Beat.scrollTo(" + gotoIndex + "); Beat.focusEditor()") 
 	Beat.call("Beat.scrollTo(" + gotoIndex + ")") 
-		
-		//for debugging purposes: Selects entire scene object if clicking it
-			// if (a.includes("sceneheading") || a.includes("section") || a.includes("thisIsASynopsis")){
-			// Beat.call("Beat.setSelectedRange(" + gotoIndex + "," + outline[theClickedThing.getAttribute("data-elementCount")].sceneLength + ")")
-			// }
 
 	if (classes.includes("pageDivider")) return
 
@@ -2915,18 +2931,19 @@ function goto(gotoIndex, theClickedThing, length, blinkColor){
 
 	blinkColor = blinkColor || "#888888"
 	textColor = textColor || false
-	//Beat.call("Beat.alert('" + length + "','" + theClickedThing.classList + "')")
 
 	let blinkLength = length || "Beat.currentParser.lineAtIndex(" + gotoIndex + ")?.string?.length + 1"
 		Beat.call("Beat.custom.blinkTheLine(" + gotoIndex + "," + blinkLength + ", '" + blinkColor + "' , '" + textColor + "');")
-		
-		// //This previouse selected a clicked note -- temporarily disabled because blinking is enough?
-			// if ([...theClickedThing.classList].includes("note") || theClickedThing.id == "expandedNote"){
-			// 	if (theClickedThing.id != "expandedNote"){
-			// 		length = theClickedThing.innerHTML.replace(/\<br\>/g, "\n").length
-			// 	}
-			// 	Beat.call("Beat.setSelectedRange(" + (parseInt(gotoIndex) + 2) + ", " + length + ")")
-			// }
+
+	//Select the clicked thing in the editor
+		if(documentSetting.clickingSelectsInEditor || (event.metaKey && event.ctrlKey && event.altKey)){		
+			if (theClickedThing.closest(".scene, .section")){
+				console.log(event)
+				let lineOfScene = outline[theClickedThing.closest(".scene, .section, .synopsis").dataset.myId]
+				Beat.call("Beat.setSelectedRange(" + lineOfScene.sceneStart + "," + (lineOfScene.sceneEnd - lineOfScene.sceneStart) + ")")
+			}
+		}
+
 }
 
 function rgbToHex(rgbString){

@@ -4,7 +4,7 @@ Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2022
 Version: 1.60
-Compatibility: 1.995.1
+Compatibility: 1.996.0
 Type: Tool
 Image: screenshot.jpg
 
@@ -37,15 +37,12 @@ function __________VARIABLES(){}
 
 Beat.setUserDefault("ftoutlinerVersion", "1.60") //also change in description above!
 
-	// if (!Beat.compatibleWith(1.9951)){
+	if (!Beat.compatibleWith(1.996)){
 
-	// 	Beat.alert("You need to update Beat to run FTOutliner",
-	// 		"This version of FTOutliner uses new features introduced in Beat 1.995 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
-	// 	return
-	// }
-
-//var backgroundAlreadyRunning = false
-//var queueOneMoreFullUpdate = false
+		Beat.alert("You need to update Beat to run FTOutliner",
+			"This version of FTOutliner uses new features introduced in Beat 1.996 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
+		return
+	}
 
 var reset = Beat.assetAsString("reset.css")
 var css = Beat.assetAsString("outline.css")
@@ -163,8 +160,10 @@ function createMenu(htmlWindow){
 	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Backward", ["ctrl", "alt", ","], function () { htmlWindow.runJS("cycleBubbles('-1')") }))
 	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Forward", ["ctrl", "alt", "."], function () { htmlWindow.runJS("cycleBubbles('1')") }))
 
-	let aboutMenuItem = Beat.menuItem("About FTOutliner", [], function () { htmlWindow.runJS("displayAboutBox()") })
+	let settingsMenuItem = Beat.menuItem("FTOutliner settings", ["alt", "ctrl", ","], function () { htmlWindow.runJS("openSettingsWindow()") })
+	//let aboutMenuItem = Beat.menuItem("About FTOutliner", [], function () { htmlWindow.runJS("displayAboutBox()") })
 	let splitScreenMenuItem = Beat.menuItem("Arrange side-by-side with Beat", ["alt", "ctrl", "\ "], function () { htmlWindow.runJS("setSharedScreen()") })
+	//let switchFocusMenuItem = Beat.menuItem("Switch focus Beat <-> FTOutliner", ["alt", "ctrl", "cmd", "\ "], function () { htmlWindow.runJS("switchFocus()") })
 	let zoomInMenuItem = Beat.menuItem("Increase Font Size", ["alt", "ctrl", "+"], function () { htmlWindow.runJS("zoomSizes('+')") })
 	let zoomOutMenuItem = Beat.menuItem("Decrease Font Size", ["alt", "ctrl", "-"], function () { htmlWindow.runJS("zoomSizes('-')") })
 	let resetZoomMenuItem = Beat.menuItem("Reset Font Size", ["alt", "ctrl", "0"], function () { htmlWindow.runJS("zoomSizes('0')") })
@@ -179,7 +178,7 @@ function createMenu(htmlWindow){
 	let menuDivider4 = Beat.separatorMenuItem()
 	let appMenu = Beat.menu("FTOutliner", [
 		// aboutMenuItem,
-		splitScreenMenuItem, 
+		settingsMenuItem,
 		menuDivider1,
 		zoomInMenuItem, 
 		zoomOutMenuItem,
@@ -187,12 +186,14 @@ function createMenu(htmlWindow){
 		menuDivider2,
 		viewSubMenu, 
 		showSubMenu, 
-		menuDivider3,
 		sidePanelMenuItem,
 		notesSubMenu, 
 		dialogSubMenu,
-		menuDivider4,
+		menuDivider3,
 		highlightCharacterMenuItem,
+		menuDivider4,
+		splitScreenMenuItem, 
+		// switchFocusMenuItem,
 	])
 
 }

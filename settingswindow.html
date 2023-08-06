@@ -56,16 +56,27 @@
 	<br/>
 	<hr>
 	<ul>
-	<strong><br/>Advanced Settings</strong><br/>&nbsp;
+	<strong><br/>Behavior Settings</strong><br/>&nbsp;
+	<li onclick="toggleThis('clickingFocusesEditor', 'buttonFor-clickingFocusesEditor')">
+		<input id="buttonFor-clickingFocusesEditor" type="checkbox">
+		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" style="float:right"></span></label>
+		<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
+	</li>
+	<li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
+		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
+		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" style="float:right"></span></label>
+		<span class="explanation">When OFF, the same can be temporarily achieved with ctrl+alt+cmd+click.</span>
+	</li>
+	<br/>
 	<li  onclick="toggleThis('warningsAreOn', 'buttonFor-warningsAreOn', true)">
 		<input id="buttonFor-warningsAreOn" type="checkbox">
 		<label for="buttonFor-warningsAreOn">Disable Warning Messages<span class="shortcut" style="float:right">^P</span></label>
 	</li>
-	<li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
+	<!--li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
 		<input id="buttonFor-realTimeIsOn" type="checkbox">
 		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" style="float:right">^P</span></label><br/>
 		<class="explanation">This is generally not recommended</class>
-	</li>
+	</li-->
 	</ul>
 
 	<p><br/></p>
@@ -179,6 +190,19 @@
 	.shortcut {
 
 		display: none;
+
+	}
+
+	.explanation {
+
+		font-size: 11px;
+		line-height: 14px;
+		margin-left: 40px;
+		margin-top: -2px;
+		display: block;
+
+		font-style: italic;
+		opacity: 60%;
 
 	}
 
