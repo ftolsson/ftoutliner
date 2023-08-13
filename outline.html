@@ -127,9 +127,7 @@ if(!document.createElement('dialog').showModal){
 // GLOBAL DEFAULT VARIABLES
 
 	var scenesAreProportional, showSceneLengths, showSceneNumbers, showPageNumbers, realTimeIsOn
-	var warningsAreOn
-	var theDocumentsWidth, theDocumentsHeight, theWindowsPositionX, theWindowsPositionY
-		
+	var warningsAreOn		
 
 // GLOBAL DOCUMENT-RELATED VARIABLES
 
@@ -180,8 +178,8 @@ function setAllEventlisteners(){
 
 	toggleCaptureKeypresses(true)
 
-	document.addEventListener("mouseup", function(){somethingWasClicked()});
-	window.onresize = someoneResizedTheWindow()
+	document.addEventListener("mouseup", somethingWasClicked)
+	window.addEventListener("resize", someoneResizedTheWindow)
 	window.addEventListener("focus", function () {
 			flexiContainer.classList.add("focused")	
 			if(userDefault.realTimeIsOn == 1) return
@@ -1501,6 +1499,14 @@ function applySettings(){
 		boneyardIsClosed: true, 
 		notepanel: false, 
 		notepanelWidth: false,
+
+		windowSize: {	
+			x: 0, 
+			y: 0, 
+			width: 0, 
+			height: 0
+		},
+
 	}
 
 	let knownUserDefaults = {
@@ -1576,9 +1582,6 @@ function applySettings(){
 		if(indexCardMode == "false" || indexCardMode == 0 || indexCardMode == "0"){indexCardMode = false}
 		if(indexCardMode != false){indexCardMode = true} 
 		
-		theDocumentsWidth = documentSetting.theDocumentsWidth
-		theDocumentsHeight = documentSetting.theDocumentsHeight
-		
 		if (documentSetting.notepanel){toggleNotepanel()}
 		if (documentSetting.notepanelWidth) theRoot.style.setProperty('--note-panel-width', documentSetting.notepanelWidth + "px") 
 		
@@ -1591,9 +1594,6 @@ function applySettings(){
 		$id("flexiContainer").classList.toggle("showSynopsisInScenes", documentSetting.showSynopsisInScenes || false)
 		$id("flexiContainer").classList.toggle("boneyardIsClosed", documentSetting.boneyardIsClosed || true)
 		
-		theWindowsPositionX = documentSetting.theWindowsPositionX
-		theWindowsPositionY = documentSetting.theWindowsPositionY
-
 		cardState = documentSetting.cardState || []
 
 		documentName = documentSetting.documentName
@@ -1641,6 +1641,10 @@ function applySettings(){
 		theRoot.style.setProperty('--showPageNum', showPageNumbers);
 		theRoot.style.setProperty('--fontSizeFactor', currentZoomLevel)
 
+		// Beat.call(
+		// 	`Beat.custom.setWindowSize(${documentSetting.windowSize.x}, ${documentSetting.windowSize.y}, ${documentSetting.windowSize.width}, ${documentSetting.windowSize.height})`
+		// )
+
 		setAllButtons()
 		recalculateHeights("from applySettings")
 		mylog("DONE getting defaults")
@@ -1648,14 +1652,9 @@ function applySettings(){
 
 function saveCurrentState() {
 	mylog()
+	console.log("Saving current state...")
 
-	// mylog("scenes: " + cardStateForScenes)
-	// mylog("sections: " + cardStateForSections)
-	// console.log(saveCurrentState.caller.name)
-	console.log("now in saving")
 	rememberCardState()
-	// mylog("scenes: " + cardStateForScenes)
-	// mylog("sections: " + cardStateForSections)
 
 	Object.assign(documentSetting, {
 		
@@ -1699,7 +1698,7 @@ function saveCurrentState() {
 
 		boneyardIsClosed: ($id("flexiContainer").classList.contains("boneyardIsClosed")),
 
-		// Values below this point are self-referencing and thus not needed to be saved
+		// Values below this point are self-referencing and thus not needed to be explicitly included
 		// ideally, we should move other values down to this category, by referencing the documentSetting object in the code instead of the variables themselves
 		// such as from above: scenesAreProportinal, showSceneNumbers etc etc.
 			//trackingIncludesSynopsis: documentSetting.trackingIncludesSynopsis,

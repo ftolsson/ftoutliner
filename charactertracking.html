@@ -777,13 +777,8 @@ function initiateCharacterBubbles(name){
     console.time("bubbles")
 
     if($id("characterMenuList").options.length == 0){
+        
         collectCharacters()
-        //Note to self:
-        //THE BELOW IS EITHER NOT ENTIRELY TRUE OR NOT AT ALL, bc now doing this with outline inside html instead of plugin (aug 2023)
-        //  this sends us to collectCharacters(), which immediately send us to
-        //  Beat.custom.addCharacterClasses()
-        //  which collects all characters and sends us back to makeCharacterMenu()
-        //  inside which we now populate the DialogPanel menu as well.
 
     }else{
 

@@ -125,13 +125,14 @@ var showSubMenuItems = []
 var notesSubMenuItems = []
 var dialogSubMenuItems = []
 
-var thePanelX = Beat.getDocumentSetting("xposition") || 0
-var thePanelY = Beat.getDocumentSetting("yposition") || 0
-var thePanelWidth = Beat.getDocumentSetting("thePanelWidth") || 800
-var thePanelHeight = Beat.getDocumentSetting("thePanelHeight") || 800
+let windowSizes = Beat.getDocumentSetting('windowSize')
+var thePanelX = windowSizes?.x || 0
+var thePanelY = windowSizes?.y || 0
+var thePanelWidth = windowSizes?.width || 800
+var thePanelHeight = windowSizes?.height || 800
 
 var htmlWindow = Beat.htmlWindow(html, thePanelWidth, thePanelHeight, function(){Beat.end()});
-	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), thePanelHeight) 
+	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), Math.max(thePanelHeight, 380)) 
 
 Beat.custom = {}
 
@@ -284,15 +285,21 @@ Beat.custom.sendToMain = function(key, value, nameOfVariable){
 
 function __________RELOADERS(){}
 
-Beat.custom.reloadCode = function(){
+Beat.custom.reloadCode = function(){ //hard restart the plugin, i.e. the entire code
 
 	Beat.restart()
 
 }
 
-Beat.custom.reloadHTML = function(){
+Beat.custom.reloadHTML = function(){ //soft restart the plugin, i.e. only the HTML window
 
 	html = buildHTML()
+	
+	let windowSizes = Beat.getDocumentSetting('windowSize')
+		thePanelX = windowSizes?.x || 0
+		thePanelY = windowSizes?.y || 0
+		thePanelWidth = windowSizes?.width || 800
+		thePanelHeight = windowSizes?.height || 800
 
 	htmlWindow.setHTML(html)
 	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), thePanelHeight) 
@@ -691,388 +698,19 @@ function titleCaseThis(str) {
 
 
 function ____________________STORING_STUFF___________________(){}
-//#region 
 
-function makeStoringDefaultsDiv(){
-
-	let userDefault = {}
-	let documentSetting = {}
-
-	userDefault.ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion")
-
-	userDefault.realTimeIsOn = Beat.getUserDefault("realTimeUpdates") || 1
-		if(userDefault.realTimeIsOn != 0){userDefault.realTimeIsOn = 1}
-	userDefault.warningsAreOn = Beat.getUserDefault("warningsAreOn") || true
-		if(userDefault.warningsAreOn != "false"){userDefault.warningsAreOn = true}
-	userDefault.colorScheme = `"${Beat.getUserDefault("colorScheme")}"` || `"FTOutliner"`
-		if(userDefault.colorScheme != `"Beat"`){userDefault.colorScheme = `"FTOutliner"`}
-	userDefault.loggingIsOn = Beat.getUserDefault("loggingIsOn") || false
-		if(userDefault.loggingIsOn != "true"){userDefault.loggingIsOn = false}
-
-	userDefault.invertTextOnDark = Beat.getUserDefault("invertTextOnDark")
-		if(userDefault.invertTextOnDark != "false"){userDefault.invertTextOnDark = true}
-
-	userDefault.excludeVoiceOvers = Beat.getUserDefault("excludeVoiceOvers") || false
-	 	if(userDefault.excludeVoiceOvers != "true"){userDefault.excludeVoiceOvers = false}
-
-	documentSetting.scenesAreProportional = Beat.getDocumentSetting("showProportional") || 1
-		if(documentSetting.scenesAreProportional != "0"){documentSetting.scenesAreProportional = "1"}
-	documentSetting.showSceneNumbers = `"${Beat.getDocumentSetting("showNumbers")}"` || "none"
-		if(documentSetting.showSceneNumbers !== `"none"` && documentSetting.showSceneNumbers !== `"inline"`){documentSetting.showSceneNumbers = `"none"`}
-	documentSetting.showSceneLengths = `"${Beat.getDocumentSetting("showLengths")}"` || "none"
-		if(documentSetting.showSceneLengths != `"none"` && documentSetting.showSceneLengths != `"inline"`){documentSetting.showSceneLengths = `"none"`}
-	documentSetting.showPageNumbers = `"${Beat.getDocumentSetting("showPages")}"` || "none"
-		if(documentSetting.showPageNumbers != `"none"` && documentSetting.showPageNumbers != `"inline"`){documentSetting.showPageNumbers = `"none"`}
-	documentSetting.oneColumnOutline = Beat.getDocumentSetting("oneColumnOutline") || "0"
-		if(documentSetting.oneColumnOutline != "1" && documentSetting.oneColumnOutline != "0"){documentSetting.oneColumnOutline = "0"}
-	documentSetting.currentZoomLevel = Number(Beat.getDocumentSetting("currentZoomLevel")) || 1
-		if(documentSetting.currentZoomLevel < 0 || documentSetting.currentZoomLevel > 2){documentSetting.currentZoomLevel = 1}
-	documentSetting.notepanelWidth = parseInt(Beat.getDocumentSetting("notepanelWidth")) || false
-
-	documentSetting.noteButtonGreen = Beat.getDocumentSetting("noteButtonGreen") || true
-	documentSetting.noteButtonYellow = Beat.getDocumentSetting("noteButtonYellow") || true
-	documentSetting.noteButtonRed = Beat.getDocumentSetting("noteButtonRed") || true
-	documentSetting.noteButtonMagenta = Beat.getDocumentSetting("noteButtonMagenta") || true
-	documentSetting.noteButtonPurple = Beat.getDocumentSetting("noteButtonPurple") || true
-	documentSetting.noteButtonReview = Beat.getDocumentSetting("noteButtonReview") || false
-
-	documentSetting.indexCardMode = Beat.getDocumentSetting("indexCardMode") || false
-	documentSetting.indexCardHeight = Number(Beat.getDocumentSetting("indexCardHeight")) || 3
-	 	if(documentSetting.indexCardHeight < 0 || documentSetting.indexCardHeight > 20){documentSetting.indexCardHeight = 3}
-
-	documentSetting.cardStateForScenes = "[" + Beat.getDocumentSetting("cardStateForScenes") + "]"|| "[]"
-	documentSetting.cardStateForSections = "[" + Beat.getDocumentSetting("cardStateForSections") + "]" || "[]"
-
-	documentSetting.notesAreDisplayed = Beat.getDocumentSetting("notesAreDisplayed") || false
-		//if(documentSetting.notesAreDisplayed != true){documentSetting.notesAreDisplayed = false}
-	documentSetting.markersAreDisplayed = Beat.getDocumentSetting("markersAreDisplayed") || false
-		//if(documentSetting.markersAreDisplayed != true){documentSetting.markersAreDisplayed = false}
-	documentSetting.beatsAreDisplayed = Beat.getDocumentSetting("beatsAreDisplayed") || false
-	//if(documentSetting.BeatsAreDisplayed != true){documentSetting.BeatsAreDisplayed = false}
-	documentSetting.reviewsAreDisplayed = Beat.getDocumentSetting("reviewsAreDisplayed") || false
-	documentSetting.greyonly = Beat.getDocumentSetting("greyonly") || false
-	documentSetting.notepanel = Beat.getDocumentSetting("notepanel") || false
-	documentSetting.showSynopsisInScenes = Beat.getDocumentSetting("showSynopsisInScenes") || false
-	documentSetting.showMultipleSceneLines = Beat.getDocumentSetting("showMultipleSceneLines") || false
-	documentSetting.showMultipleSectionLines = Beat.getDocumentSetting("showMultipleSectionLines") || false
-	documentSetting.allowLowerCaseSections = Beat.getDocumentSetting("allowLowerCaseSections") || false
-	documentSetting.showVerticals = Beat.getDocumentSetting("showVerticals") || false
-	documentSetting.showPageDividers = Beat.getDocumentSetting("showPageDividers") || false
-	documentSetting.showPageDividersAlways = Beat.getDocumentSetting("showPageDividersAlways") || false
-
-	documentSetting.documentName = Beat.getDocumentSetting("documentName") || false
-	if(documentSetting.documentName) documentSetting.documentName = JSON.stringify(documentSetting.documentName)
-	documentSetting.documentSubName = Beat.getDocumentSetting("documentSubName") || false
-	if(documentSetting.documentSubName) documentSetting.documentSubName = JSON.stringify(documentSetting.documentSubName)
-	documentSetting.documentAuthor = Beat.getDocumentSetting("documentAuthor") || false
-	if(documentSetting.documentAuthor) documentSetting.documentAuthor = JSON.stringify(documentSetting.documentAuthor)
-	
-	documentSetting.boneyardIsClosed = Beat.getDocumentSetting("boneyardIsClosed") || false
-
-	documentSetting.trackingIncludesSynopsis = Beat.getDocumentSetting("trackingIncludesSynopsis") || true
-	documentSetting.showRevisions = Beat.getDocumentSetting("showRevisions") || false
-
-	thePanelWidth = Beat.getDocumentSetting("thePanelWidth");
-		if(!thePanelWidth){thePanelWidth = 800}
-	thePanelHeight = Beat.getDocumentSetting("thePanelHeight");
-		if(!thePanelHeight){thePanelHeight = 800}
-	thePanelX = Beat.getDocumentSetting("xposition");
-		if(!thePanelX){thePanelX = 0}
-	thePanelY = Beat.getDocumentSetting("yposition");
-		if(!thePanelY){thePanelY = 0}
-
-	documentSetting.theDocumentsWidth = thePanelWidth
-	documentSetting.theDocumentsHeight = thePanelHeight
-	documentSetting.theWindowsPositionX = thePanelX
-	documentSetting.theWindowsPositionY = thePanelY
-
-	let allDefaults = `<script>
-		Beat.call("Beat.log('in HTML: Now exectuing the setting of userDefaults')")
-
-		var userDefault = {
-		`
-
-			for([key, value] of Object.entries(userDefault)){
-				allDefaults += `
-					${key} : ${value},`
-			}
-
-		allDefaults += `}
-		
-		Beat.call("Beat.log('in HTML: Now executing the setting of documentSettings')")
-
-		var documentSetting = {`
-
-			for([key, value] of Object.entries(documentSetting)){
-				allDefaults += `
-					${key}: ${value},`
-			}
-
-		allDefaults += `}
-	
-		Beat.call("Beat.log('Successfully done')")
-		
-		documentName = documentSetting.documentName //hack to transfer value to global variable
-		documentSubName = documentSetting.documentSubName //hack to transfer value to global variable
-		documentAuthor = documentSetting.documentAuthor //hack to transfer value to global variable
-
-		</script>`
-
-		Beat.log(allDefaults)
-
-	return allDefaults
-}
-
-Beat.custom.setFrame = function (theWindowsPositionX, theWindowsPositionY, theDocumentsWidth, theDocumentsHeight){
-	htmlWindow.setFrame(theWindowsPositionX, theWindowsPositionY, Math.max(theDocumentsWidth, 380), theDocumentsHeight)
-}
-
-Beat.custom.saveWindowSize = function() {
+Beat.custom.saveWindowSize = function() { //DO NOT REMOVE THIS, IT IS CALLED FROM THE HTML WINDOW
 	
 	let winSize = htmlWindow.getFrame()
 	
-	Beat.setDocumentSetting('xposition', winSize.x)
-	Beat.setDocumentSetting('yposition', winSize.y)
-	Beat.setDocumentSetting('thePanelHeight', winSize.height)
-	Beat.setDocumentSetting('thePanelWidth', winSize.width)
-}
+	Beat.setDocumentSetting('windowSize', {
 
-Beat.custom.limitWidth = function() {
+		x: winSize.x,
+		y: winSize.y,
+		width: winSize.width,
+		height: winSize.height
 
-	let a = htmlWindow.getFrame()
-
-	htmlWindow.setFrame(a.x, a.y, 380, a.height)
-	htmlWindow.runJS("someoneResizedTheWindow()")
-
-}
-//#endregion
-
-function ____________________CHARACTER_TRACKING___________________(){}
-
-Beat.custom.addCharacterClasses = function() {
-
-	let allLines = Beat.lines()
-	//let allScenes = Beat.scenes()
-	let allScenes = Beat.outline()
-	charactersArray = []
-	let occurrencesForCharacter = []
-
-	for (line of allLines){
-		if (line.omitted){continue}
-		if (line.typeAsString() == "Character"){
-			let name = line.string
-			name = name.replace(/^\^/, "") //names starting with ^ are not counted
-			name = name.replace(/^@/, "") //names starting with @ are not counted
-			name = name.replace(/\(.*\)/gm, ''); //names in parentheses are not counted
-			name = name.replace(/\'/gm, '´');	//names with ' are not counted
-			name = titleCaseThis(name)
-			name = name.trim()
-			if (!charactersArray.includes(name)){
-				charactersArray.push(name)
-				occurrencesForCharacter.push(0)
-			}else{
-				occurrencesForCharacter[charactersArray.indexOf(name)] ++
-			}
-		}
-	}
-	
-	let temporarySortingArray = []
-	let biggestNumber
-	let index
-	for (let i = 0; i < occurrencesForCharacter.length; i++){
-
-		biggestNumber = Math.max(...occurrencesForCharacter)
-		index = occurrencesForCharacter.indexOf(biggestNumber)
-		temporarySortingArray.push(charactersArray[index])
-		occurrencesForCharacter[index] = -1
-	}
-
-	charactersArray = temporarySortingArray
-	scenesWithCharactersArray = []
-
-	// I now have all characters. Time to evaluate scenes.
-
-	const outline = [...Beat.outline()]
-	let documentSetting = JSON.parse(Beat.getDocumentSetting("ftoutlinerObject"))
-	let excludeVoiceOvers = documentSetting.excludeVoiceOvers
-	let trackingIncludesSynopsis = documentSetting.trackingIncludesSynopsis
-
-
-	for (scene of allScenes){
-		const lines = Beat.linesForScene(scene)
-		const sceneNumber = outline.indexOf(scene)//scene.sceneNumber
-		let copyOfCharacters = [...charactersArray]
-		let charactersInScene = ""
-
-		//Beat.log("now evaluating characters in a... " + scene.typeAsString() + " with " + lines.length + " lines")
-
-		for (line of lines){
-
-			if (line.omitted){continue}
-
-			if (line.typeAsString() == "Character") {
-				let name = line.string
-
-				if(excludeVoiceOvers){
-					//Beat.log("I AM CHECKING FOR EXLUSION, because EXCLUDE = " + excludeVoiceOvers)
-					let extension = name.match(/\((.*)\)/)
-					if(extension){
-						if (["VO", "V.O", "V.O.", "PRELAP"].includes(extension[1].toUpperCase())) continue
-					}
-				} 
-
-				name = name.replace(/^\^/, "")
-				name = name.replace(/^@/, "")
-				name = name.replace(/\(.*\)/gm, '');
-				name = name.replace(/\'/gm, '´');
-				name = name.trim()
-				name = titleCaseThis(name)
-
-			 	if (copyOfCharacters.includes(name)){
-					copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-					let spacelessName = name.replace(/ /g, "_")
-					spacelessName = spacelessName.replace(/\'|\"/g, "-")
-					charactersInScene += spacelessName + " "
-				}
-			}
-
-			if (line.typeAsString() == "Action" || (trackingIncludesSynopsis && line.typeAsString() == "Synopse")) {
-
-				for (let i=0; i<copyOfCharacters.length; i++){
-					let name = copyOfCharacters[i]
-
-					//new matching
-					// Beat.log("now matching: " + name)
-					// let regOfName = new RegExp(name.toLowerCase().replace(/´/g, "'"))
-					// let matchString = line.string.match(regOfName, "i")
-					// Beat.log(matchString)
-					// if (matchString && matchString[0].substr(0,1) == matchString[0].substr(0,1).toUpperCase()){
-					
-					//old matching
-					//if (line.string.includes(name.replace(/´/g, "'")) || line.string.includes(name.replace(/´/g, "'").toUpperCase())){
-					
-					let matchIndex = line.string.toUpperCase().indexOf(name.toUpperCase().replace(/`/g, "'"))
-					if (matchIndex > -1 && line.string.substr(matchIndex, 1) == line.string.substr(matchIndex, 1).toUpperCase()){
-						// Beat.log("YES (add). The match is: " + matchIndex)
-						// Beat.log(line.string.substr(matchIndex, name.length))
-
-						copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-						let spacelessName = name.replace(/ /g, "_")
-						spacelessName = spacelessName.replace(/\'|\"/g, "-")
-						charactersInScene += spacelessName + " "
-					}
-				}
-			}
-		}
-		scenesWithCharactersArray[sceneNumber]=charactersInScene	
-	}	
-	htmlWindow.runJS("makeCharacterMenu(" + JSON.stringify(charactersArray) + "," + JSON.stringify(scenesWithCharactersArray) + "); updateFilter()")
-}
-
-// Beat.custom.reevaluateCharactersForScene = function(outlineNumber, sendToUpdateTrueOrFalse){
-
-// 	let documentSetting = JSON.parse(Beat.getDocumentSetting("ftoutlinerObject"))
-// 	let excludeVoiceOvers = documentSetting.excludeVoiceOvers
-// 	let trackingIncludesSynopsis = documentSetting.trackingIncludesSynopsis
-
-// 	const scene = Beat.outline()[outlineNumber]
-// 	// const sceneNumber = Beat.outline()[outlineNumber].sceneNumber
-
-// 	const lines = Beat.linesForScene(scene)
-// 	let copyOfCharacters = [...charactersArray]
-// 	let charactersInScene = ""
-
-// 	for (line of lines){
-
-// 		if (line.omitted){continue}
-
-// 		if (line.typeAsString() == "Character") {
-// 			let name = line.string
-
-// 			if(excludeVoiceOvers){
-// 				//Beat.log("I AM CHECKING FOR EXLUSION, because EXCLUDE = " + excludeVoiceOvers)
-
-// 				let extension = name.match(/\((.*)\)/)
-// 				if(extension){
-// 					if (["OS", "O.S.", "VO", "V.O.", "PRELAP"].includes(extension[1].toUpperCase())) continue
-// 				}
-// 			} 
-
-// 			name = name.replace(/^\^/, "")
-// 			name = name.replace(/^@/, "")
-// 			name = name.replace(/\(.*\)/gm, '');
-// 			name = name.replace(/\'/gm, '´');
-// 			name = name.trim()
-// 			name = titleCaseThis(name)
-
-// 			 if (copyOfCharacters.includes(name)){
-// 				copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-// 				let spacelessName = name.replace(/ /g, "_")
-// 				spacelessName = spacelessName.replace(/\'|\"/g, "-")
-
-// 				charactersInScene += spacelessName + " "
-// 			}
-// 		}
-
-// 		if (line.typeAsString() == "Action" || (trackingIncludesSynopsis && line.typeAsString() == "Synopse")) {			for (let i=0; i<copyOfCharacters.length; i++){
-// 				let name = copyOfCharacters[i]
-
-// 				//new matching
-// 				// Beat.log("now matching: " + name)
-// 				// let regOfName = new RegExp(name.toLowerCase().replace(/´/g, "'"))
-// 				// let matchString = line.string.match(regOfName, "i")		
-// 				// Beat.log(matchString)
-// 				// if (matchString && matchString[0].substr(0,1) == matchString[0].substr(0,1).toUpperCase()){
-
-// 				//old matching
-// 				//if (line.string.includes(name.replace(/´/g, "'")) || line.string.includes(name.replace(/´/g, "'").toUpperCase())){
-
-// 				let matchIndex = line.string.toUpperCase().indexOf(name.toUpperCase().replace(/`/g, "'"))
-// 				if (matchIndex > -1 && line.string.substr(matchIndex, 1) == line.string.substr(matchIndex, 1).toUpperCase()){
-// 					//Beat.log("YES (reev). The match is: " + matchIndex)
-// 					// Beat.log(line.string.substr(matchIndex, name.length))
-
-// 					copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-// 					let spacelessName = name.replace(/ /g, "_")
-// 					spacelessName = spacelessName.replace(/\'|\"/g, "-")
-
-// 					charactersInScene += spacelessName + " "
-// 				}
-// 			}
-// 		}
-// 	}
-// 	// scenesWithCharactersArray[sceneNumber]=charactersInScene
-// 	scenesWithCharactersArray[outlineNumber]=charactersInScene
-// 	if(sendToUpdateTrueOrFalse){htmlWindow.runJS("updateFilter(" + JSON.stringify(scenesWithCharactersArray) + ")")}
-// }
-
-Beat.custom.changeElementColor = function (elements, newColor){	
-
-	// Beat.onTextChangeDisabled = true
-	// Beat.onOutlineChangeDisabled = true
-	// Beat.onSelectionChangeDisabled = true
-
-	const allOutlineElements = Beat.outline()
-	for (element of elements){
-		if (element.includes("_")){
-			let parentNumber = Number(element.toString().replace(/^s/, "").replace(/_.*$/, ""))
-			let synopsisNumber = Number(element.toString().replace(/^s.*_/, ""))
-			let synopsis = Beat.outline()[parentNumber].synopsis[synopsisNumber]
-				Beat.setColorForScene(newColor, synopsis)
-		}else{
-			Beat.setColorForScene(newColor, allOutlineElements[element])
-		}
-	}
-
-	// Beat.onTextChangeDisabled = false
-	// Beat.onOutlineChangeDisabled = false
-	// Beat.onSelectionChangeDisabled = false
-
-	//if(!location){
-		location = Beat.selectedRange().location
-	//}
-
-	//htmlWindow.runJS("startSmallUpdate(" + location + ", false, 0)")
+	})
 }
 
 function ____________________NOTES__________(){}
@@ -2100,6 +1738,12 @@ Beat.custom.makeWindowsShareScreen = function(availHeight, availWidth){
 	
 	htmlWindow.setFrame(0, 0, splitX, availHeight)
 	Beat.setWindowFrame(splitX + 1, 0, availWidth/2, availHeight)
+
+}
+
+Beat.custom.setWindowSize = function(x, y, width, height){
+
+	htmlWindow.setFrame(x, y, Math.max(width, 380), height) 
 
 }
 
