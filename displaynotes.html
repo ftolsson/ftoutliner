@@ -630,6 +630,7 @@ function collectNotes(wherefrom){
             console.log(allNotesRaw.length + " notes collected in: " + endTime + "ms")
 
         let allNotes = []
+        // let allNotesBeforeStart = allNotesRaw.filter(note => note.range.location < outline[0].sceneStart) || []
         let allMarkers = []
         let allBeats = []
 
@@ -655,6 +656,8 @@ function collectNotes(wherefrom){
             allMarkers[outlineElementNumber] = markersInScene
             allBeats[outlineElementNumber] = beatsInScene
         }
+
+        //allNotes[0] = allNotesBeforeStart.concat(allNotes[0])
 
         //Done collecting notes and stuff, now send their respective data to the display function && update the notepanel
             if(notesAreDisplayed) displayNotes(allNotes, "note")

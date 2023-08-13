@@ -1015,7 +1015,7 @@ function trackingMenu(from){
     }
     
     mylog(trackingMenu.caller.name)
-    if(trackingMenu.caller.name != "makeCharacterMenu" && trackingMenu.caller.name != "onclick" ){
+    if(trackingMenu.caller.name != "collectCharacters" && trackingMenu.caller.name != "onclick" ){
         // if (!characterMenuList || characterMenuList.length == 0) {
             let redraw = $id("menu").getBoundingClientRect()
             
@@ -1048,22 +1048,15 @@ function trackingMenu(from){
 
     <ul>    
         <p class="name">Tracking Menu</p>
-        <strong>Filter by character:</strong><br/>
+        <strong>Quick-filter by top characters:</strong><br/>
         ${characterString}
 
         <hr>
         
         <li onclick="deselectAllCharacters()">Deselect all characters<span class="shortcut" style="float:right">0</span></li>
-        <li onclick="closeNewMenu(); toggleTrackingContainer()">Full character list...<span class="shortcut" style="float:right">T</span></li>
+        <li onclick="closeNewMenu(); toggleTrackingContainer()">More granular filters...<span class="shortcut" style="float:right">T</span></li>
 
         <hr>
-        <li onclick="toggleExcludeVoiceOvers()">
-            <input id="buttonForVoiceOvers" type="checkbox">
-                <div class="switch"></div>
-                    <label for="buttonForVoiceOvers" style="pointer-events: none">
-                        Include (V.O.) and (PRELAP)<span class="shortcut" style="float:right"></span>
-                    </label>
-        </li>
         <li onclick="toggleIncludeSynopsis()">
             <input id="buttonForIncludeSynopsis" type="checkbox">
                 <div class="switch"></div>
@@ -1071,6 +1064,15 @@ function trackingMenu(from){
                         Include mentions in Synopsis<span class="shortcut" style="float:right"></span>
                     </label>
         </li>
+        <li onclick="toggleExcludeVoiceOvers()">
+            <input id="buttonForVoiceOvers" type="checkbox">
+                <div class="switch"></div>
+                    <label for="buttonForVoiceOvers" style="pointer-events: none">
+                        Track (V.O.) etc separately<span class="shortcut" style="float:right"></span>    
+                    </label>
+        </li>
+        <p class="hint">When selected, names with an extension (V.O.), (O.S.) etc are NOT grouped together with the name</p>
+
         <hr>
             <strong style="padding: 6px">Filter by color:</strong><br/><!--note here!-->
             <li style="padding-top: 0px !important" class="hasSelect">
@@ -1189,7 +1191,10 @@ function settingsMenu(){
             <p>Advanced Settings…
                 <span class="shortcut" style="float:right">⌘,</span></li>
         <hr>
-        <strong>Help:</strong><br/>
+        <strong>Help & Support:</strong><br/>
+        <li onclick="openURL('github.com/ftolsson/ftoutliner/issues')">
+            <p>Report an issue…
+                <span class="shortcut" style="float:right"></span></li>
         <li onclick="displayAboutBox()">
             <p>About…
                 <span class="shortcut" style="float:right"></span></li>
@@ -1213,6 +1218,11 @@ function settingsMenu(){
     $id("menu").innerHTML = ""
     $id("menu").appendChild(innerMenu)
 
+}
+
+function openURL(url){
+
+    window.open('https://github.com/ftolsson/ftoutliner/issues', '_blank')
 }
 
 function exportMenu(){
@@ -1314,7 +1324,7 @@ function setAllButtons(){
 	if($id("buttonForLength")){$id("buttonForLength").checked = (showSceneLengths == 'inline')}
 
 	if($id("buttonForWarnings")){$id("buttonForWarnings").checked = (!warningsAreOn)}
-    if($id("buttonForColors")){$id("buttonForColors").checked = (colorScheme == "Beat")}
+    if($id("buttonForColors")){$id("buttonForColors").checked = (userDefault.colorScheme == "Beat")}
     if($id("buttonForInverted")){$id("buttonForInverted").checked = invertTextOnDark}
     if($id("buttonForRealTimeUpdates")){$id("buttonForRealTimeUpdates").checked = (realTimeIsOn == 0)}
 

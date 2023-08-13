@@ -7,18 +7,15 @@
 function keypress(event){
 
     if(event.altKey) altIsBeingPressed = true
-    console.log(event.key, String.fromCharCode(event.keyCode))
-
-    // console.log(event.key, String.fromCharCode(event.keyCode))
     
     const shortcut = shortcutKeys.find((shortcut) => {
 
         // Check if all the modifier keys are pressed
         const modifiersMatch =
-            (!shortcut.key.includes("Meta") || event.metaKey) &&
-            (!shortcut.key.includes("Control") || event.ctrlKey) &&
-            (!shortcut.key.includes("Alt") || event.altKey) &&
-            (!shortcut.key.includes("Shift") || event.shiftKey);
+            (shortcut.key.includes("Meta") === event.metaKey) &&
+            (shortcut.key.includes("Control") === event.ctrlKey) &&
+            (shortcut.key.includes("Alt") === event.altKey) &&
+            (shortcut.key.includes("Shift") === event.shiftKey);
 
         // Check if the main key matches
         const keyMatch = shortcut.key.at(-1) == event.key;
@@ -43,12 +40,12 @@ let shortcutKeys = [
         command: (event) => {escapeWasPressed(event)}
     },
     {
-        key: [" "],
-        command: (event) => {Beat.call("Beat.focusEditor()")}
-    },
-    {
         key: ["Enter"],
         command: (event) => {
+            if(errorHasFired){
+                document.getElementById("errorClickButton").click()
+			    return
+            }
             let elements = Array.from($$(".section.isSelected, .section-heading.isSelected, .scene.isSelected, .synopsis.isSelected"))
 		    let element = elements.at(-1)
 		        if (element){
@@ -58,120 +55,332 @@ let shortcutKeys = [
     },
     {
         key: ["Control", "Alt", "Meta","ä"],
-        command: (event) => {Beat.call(`Beat.custom.reloadHTML()`)}
+        command: (event) => { Beat.call(`Beat.custom.reloadHTML()`) }
     },
     {
         key: ["Control", "Alt", "Meta","ö"],
-        command: (event) => {forceRestart()}
+        command: (event) => { forceRestart() }
     },
     
     // 1. LETTERS
     
     {
         key: ["Control", "a"],
-        command: (event) => {selectAllElements(true)}
+        command: (event) => { selectAllElements(true) }
     },
     {
         key: ["Meta", "a"],
-        command: (event) => {selectAllElements(false)}
+        command: (event) => { selectAllElements(false) }
+    },
+    {
+        key: ["Meta", "b"],
+        command: (event) => { addShowHideBoneyard() }
+    },
+    {
+        key: ["b"],
+        command: (event) => { toggleDisplayBeats() }
+    },
+    {
+        key: ["Control", "c"],
+        command: (event) => {		
+            document.getElementById("flexiContainer").classList.toggle("greyonly")
+		    if(invertTextOnDark) reevaluateColorContrast()
+		    setAllButtons()
+		    updateDialogPanel()
+        }
+    },
+    {
+        key: ["c"],
+        command: (event) => { toggleColorScheme() }
+    },
+    {
+        key: ["Meta", "d"],
+        command: (event) => { deselectAllElements(false) }
+    },
+    {
+        key: ["d"],
+        command: (event) => { expandOrCollapseSections() }
+    },
+    {
+        key: ["Meta", "e"],
+        command: (event) => { togglePrintMode(true) }
+    },
+    {
+        key: ["e"],
+        command: (event) => { anArrowWasClicked($(".arrowForIndexCards"), true) }
+    },
+    {
+        key: ["f"],
+        command: (event) => { toggleProportional() }
+    },
+    {
+        key: ["h"],
+        command: (event) => { outdoorMode() }
+    },
+    {
+        key: ["Meta", "h"],
+        command: (event) => { flexiContainer.classList.toggle("horizontal") }
+    },
+    {
+        key: ["l"],
+        command: (event) => { toggleShowSceneLength() }
+    },
+    {
+        key: ["Meta", "Alt", "Control", "l"],
+        command: (event) => { Beat.call(() => Beat.openConsole()) }
+    },
+    {
+        key: ["m"],
+        command: (event) => { toggleDisplayMarkers() }
+    },
+    {
+        key: ["Control", "m"],
+        command: (event) => { flexiContainer.classList.toggle("unShowMarkerText") }
     },
     {
         key: ["n"],
         command: (event) => {toggleDisplayNotes()}
+    },
+    {
+        key: ["Meta", "n"],
+        command: (event) => { return }
+    },
+    {
+        key: ["o"],
+        command: (event) => {toggleOneColumnOutline()}
+    },
+    {
+        key: ["Control", "p"],
+        command: (event) => {
+            $id("buttonForPageDividers").click()
+            setAllButtons()}
+    },
+    {
+        key: ["Shift", "Meta", "p"],
+        command: (event) => { newPrintBox() }
+    },
+    {
+        key: ["Meta", "p"],
+        command: (event) => { togglePrintMode() }
+    },
+    {
+        key: ["p"],
+        command: (event) => { toggleShowPageNumbers() }
+    },
+    {
+        key: ["q"],
+        command: (event) => { makeWider(false, true, event.shiftKey) }
+    },
+    {
+        key: ["r"],
+        command: (event) => { toggleDisplayReviews() }
+    },
+    {
+        key: ["s"],
+        command: (event) => { toggleShowSceneNumbers() }
+    },
+    {
+        key: ["Control", "s"],
+        command: (event) => { toggleDocumentSetting("showMultipleSceneLines") }
+    },
+    {
+        key: ["t"],
+        command: (event) => { toggleTrackingContainer() }
+    },
+    {
+        key: ["Control", "t"],
+        command: (event) => { toggleDocumentSetting("showMultipleSectionLines") }
+    },
+    {
+        key: ["Control", "u"],
+        command: (event) => { toggleDocumentSetting("allowLowerCaseSections") }
+    },
+    {
+        key: ["v"],
+        command: (event) => { event.preventDefault(); $id('buttonForVerticals')?.click() }
+    },
+    {
+        key: ["w"],
+        command: (event) => { toggleWarnings() }
+    },
+    {
+        key: ["Meta", "w"],
+        command: (event) => { Beat.call("Beat.custom.reallyQuit(true)") }
+    },
+    {
+        key: ["x"],
+        command: (event) => { toggleIndexCardMode() }
+    },
+    {
+        key: ["y"],
+        command: (event) => { toggleDisplaySynopsis() }
+    },
+    {
+        key: ["Control", "y"],
+        command: (event) => { flexiContainer.classList.toggle("onlySynopsis") }
     },
     
     // 2. NON-LETTERS
     
     {
         key: ["Meta", ","],
-        command: (event) => {openSettingsWindow()}
+        command: (event) => { openSettingsWindow() }
+    },
+    {
+        key: ["*"],
+        command: (event) => { toggleShowRevisions() }
     },
     {
         key: ["F1"],
-        command: (event) => {cycleMenus()}
+        command: (event) => { cycleMenus() }
     },
     {
         key: ["Shift", "F1"],
-        command: (event) => {cycleMenus(true)}
+        command: (event) => { cycleMenus(true) }
     },
     {
-        key: ["Control", "Alt", "§"],
-        command: (event) => {toggleNotepanel()}
+        key: ["?"],
+        command: (event) => { toggleHelpContainer() }
+    },
+    {
+        key: ["§"],
+        command: (event) => { toggleNotepanel() }
+    },
+    {
+        key: ["Control", "§"],
+        command: (event) => { cycleTabs() }
+    },
+    {
+        key: ["Shift", "Control", "§"],
+        command: (event) => { cycleTabs() }
+    },
+    {
+        key: ["Tab"],
+        command: (event) => { cycleNotes(false) }
+    },
+    {
+        key: ["Shift", "Tab"],
+        command: (event) => { cycleNotes(true) }
+    },
+    {
+        key: ["Control", "Tab"],
+        command: (event) => { Beat.call("Beat.nextTab()") }
+    },
+    {
+        key: ["Control", "Shift", "Tab"],
+        command: (event) => { Beat.call("Beat.previousTab()") }
     },
     {
         key: ["ArrowUp"],
         command: (event) => {walkTheOutline(event)}
     },
     {
+        key: ["Shift", "ArrowUp"],
+        command: (event) => {walkTheOutline(event)}
+    },
+    {
         key: ["ArrowDown"],
         command: (event) => {walkTheOutline(event)}
     },
+    {
+        key: ["Shift", "ArrowDown"],
+        command: (event) => {walkTheOutline(event)}
+    },
+    {
+        key: ["ArrowLeft"],
+        command: (event) => {walkTheOutlineSideWays(event)}
+    },
+    {
+        key: ["Shift", "ArrowLeft"],
+        command: (event) => {walkTheOutlineSideWays(event)}
+    },
+    {
+        key: ["ArrowRight"],
+        command: (event) => {walkTheOutlineSideWays(event)}
+    },
+    {
+        key: ["Shift", "ArrowRight"],
+        command: (event) => {walkTheOutlineSideWays(event)}
+    },
     
+    // 3. DIGITS
+
+    {
+        key: ["Meta", "+"],
+        command: (event) => { zoomSizes("+") }
+    },
+    {
+        key: ["Meta", "-"],
+        command: (event) => { zoomSizes("-") }
+    },
+    {
+        key: ["Meta", "0"],
+        command: (event) => { zoomSizes("0") }
+    },
+    {
+        key: ["Meta", "="],
+        command: (event) => { zoomSizes("=") }
+    },
+
+    {
+        key: ["Control", "+"],
+        command: (event) => { changeIndexCardHeight("+") }
+    },
+    {
+        key: ["Control", "-"],
+        command: (event) => { changeIndexCardHeight("-") }
+    },
+    {
+        key: ["Control", "0"],
+        command: (event) => { changeIndexCardHeight("0") }
+    },
+    {
+        key: ["Control", "="],
+        command: (event) => { changeIndexCardHeight("=") }
+    },
+
+    {
+        key: ["0"],
+        command: (event) => { deselectAllCharacters() }
+    },
+    {
+        key: ["1"],
+        command: (event) => { toggleSoloCharacter("1") }
+    },
+    {
+        key: ["2"],
+        command: (event) => { toggleSoloCharacter("2") }
+    },
+    {
+        key: ["3"],
+        command: (event) => { toggleSoloCharacter("3") }
+    },
+    {
+        key: ["4"],
+        command: (event) => { toggleSoloCharacter("4") }
+    },
+    {
+        key: ["5"],
+        command: (event) => { toggleSoloCharacter("5") }
+    },
+    {
+        key: ["6"],
+        command: (event) => { toggleSoloCharacter("6") }
+    },
+    {
+        key: ["7"],
+        command: (event) => { toggleSoloCharacter("7") }
+    },
+    {
+        key: ["8"],
+        command: (event) => { toggleSoloCharacter("8") }
+    },
+    {
+        key: ["9"],
+        command: (event) => { toggleSoloCharacter("9") }
+    },
 
 
-    // {
-    //     key: ["ArrowRight"],
-    //     command: (event) => {
-    //         initializeMove(event, document.querySelector(".selected"), "right")
-    //         move(event, document.querySelector(".selected"), "right")},
-    // },
-    // {
-    //     key: ["ArrowUp"],
-    //     command: (event) => {
-    //         initializeMove(event, document.querySelector(".selected"), "up")
-    //         move(event, document.querySelector(".selected"), "up")}
-    // },
-    // {
-    //     key: ["ArrowDown"],
-    //     command: (event) => {
-    //         initializeMove(event, document.querySelector(".selected"), "down")
-    //         move(event, document.querySelector(".selected"), "down")},
-    // },
-    // {
-    //     key: ["Tab"],
-    //     command: (event) => {
-    //         cycleEvents(event.shiftKey)},
-    // },
-    // {
-    //     key: ["Meta", "1"],
-    //     command: (event) => {
-    //         zoomCalendar(1)},
-    // },
-    // {
-    //     key: ["Meta", "2"],
-    //     command: (event) => {
-    //         zoomCalendar(2)},
-    // },
-    // {
-    //     key: ["Meta", "3"],
-    //     command: (event) => {
-    //         zoomCalendar(3)},
-    // },
-    // {
-    //     key: ["Meta", "4"],
-    //     command: (event) => {
-    //         zoomCalendar(4)},
-    // },
-    // {
-    //     key: ["Meta", "6"],
-    //     command: (event) => {
-    //         zoomCalendar(6)},
-    // },
-    {
-        key: ["Meta", ","],
-        command: (event) => {
-            document.querySelector("#controlpanel").classList.toggle("closed")},
-    },
-    {
-        key: ["Meta", "l"],
-        command: (event) => {
-            document.getElementById("labelframevisibility").click()},
-    },
-    {
-        key: ["Meta", "a"],
-        command: (event) => {
-            selectAll()},
-    },
 ]
 
 //also add all shortcuts of contextmenu to global shortcutKeys variable

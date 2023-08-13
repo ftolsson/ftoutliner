@@ -331,6 +331,9 @@ function removeAddButton(){
 
 function addElement(theClickedThing, whatToAdd, beforeInsteadOfAfter){
 
+    if(!theClickedThing) theClickedThing = $(".isSelected") || $id("youAreHere").closest(".scene, .section")
+    if(!theClickedThing) return
+
     if(["addScene", "addSection"].includes(theClickedThing.id)){
         alertThis("Sorry, you tried to add a scene using the old method. Please add scenes from the context menu instead.")
     }
@@ -340,7 +343,8 @@ function addElement(theClickedThing, whatToAdd, beforeInsteadOfAfter){
     let sceneLine = outline[theClickedThing.closest(".scene, .section").getAttribute("data-my-id")]
     let locationAfter = sceneLine.sceneEnd + 1
         if(sceneLine.typeAsString == "Section"){
-                    locationAfter = sceneLine.line.range.location + sceneLine.line.range.length // to put it after section header, not entire section
+                    //locationAfter = sceneLine.line.range.location + sceneLine.line.range.length // to put it after section header, not entire section
+                    locationAfter = outline[outline.indexOf(sceneLine) + 1]?.sceneStart || sceneLine.sceneEnd // to put it after synopsis if present
                 }
         if(beforeInsteadOfAfter){
             locationAfter = sceneLine.line.range.location

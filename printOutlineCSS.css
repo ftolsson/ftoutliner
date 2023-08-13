@@ -264,6 +264,11 @@ p.headline2{
     color: black !important
 }
 
+.synopsis{
+
+    color: black !important;
+}
+
 #outerEdge{
 
     height: max-content !important;

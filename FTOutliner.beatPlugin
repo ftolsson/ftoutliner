@@ -44,55 +44,57 @@ Beat.setUserDefault("ftoutlinerVersion", "1.60") //also change in description ab
 		return
 	}
 
-var reset = Beat.assetAsString("reset.css")
-var css = Beat.assetAsString("outline.css")
-var globals = Beat.assetAsString("globals.html")
-var template = Beat.assetAsString("outline.html")
-var dnd = Beat.assetAsString("drag-and-drop.html")
-var dialogs = Beat.assetAsString("dialogs.html")
-var charactertracking = Beat.assetAsString("charactertracking.html")
-var displaynotes = Beat.assetAsString("displaynotes.html")
-var contextmenu = Beat.assetAsString("contextmenu.html")
-var keyboard = Beat.assetAsString("keyboard.html")
-var editcontent = Beat.assetAsString("editcontent.html")
-var addelements = Beat.assetAsString("addelements.html")
-var printCSS = Beat.assetAsString("printOutlineCSS.css")
-var indexcards = Beat.assetAsString("indexCards.html")
-var indexcards_css = Beat.assetAsString("indexCards.css")
-var notepanel = Beat.assetAsString("notepanel.html")
-var scenepanel = Beat.assetAsString("scenepanel.html")
-var menu = Beat.assetAsString("menu.html")
-var printing = Beat.assetAsString("printing.html")
-var thePanelWidth, thePanelHeight, thePanelX, thePanelY
-// var storingDefaultsHTML = makeStoringDefaultsDiv()
-var allDefaultsHTML = makeStoringDefaultsDiv()
+	let html = buildHTML()
+
+// var reset = Beat.assetAsString("reset.css")
+// var css = Beat.assetAsString("outline.css")
+// var globals = Beat.assetAsString("globals.html")
+// var template = Beat.assetAsString("outline.html")
+// var dnd = Beat.assetAsString("drag-and-drop.html")
+// var dialogs = Beat.assetAsString("dialogs.html")
+// var charactertracking = Beat.assetAsString("charactertracking.html")
+// var displaynotes = Beat.assetAsString("displaynotes.html")
+// var contextmenu = Beat.assetAsString("contextmenu.html")
+// var keyboard = Beat.assetAsString("keyboard.html")
+// var editcontent = Beat.assetAsString("editcontent.html")
+// var addelements = Beat.assetAsString("addelements.html")
+// var printCSS = Beat.assetAsString("printOutlineCSS.css")
+// var indexcards = Beat.assetAsString("indexCards.html")
+// var indexcards_css = Beat.assetAsString("indexCards.css")
+// var notepanel = Beat.assetAsString("notepanel.html")
+// var scenepanel = Beat.assetAsString("scenepanel.html")
+// var menu = Beat.assetAsString("menu.html")
+// var printing = Beat.assetAsString("printing.html")
+// var thePanelWidth, thePanelHeight, thePanelX, thePanelY
+// // var storingDefaultsHTML = makeStoringDefaultsDiv()
+// // var allDefaultsHTML = makeStoringDefaultsDiv()
 var location, length
-var html
+// var html
 
 var fullUpdateInProgress = false
 var smallUpdateInProgress = false
 
-var	html = //storingDefaultsHTML +
-	reset +
-	css +
-	globals +
-	allDefaultsHTML +
-	// dialogs +
-	charactertracking +
-	displaynotes +
-	contextmenu + 
-	keyboard +
-	indexcards +
-	indexcards_css +
-	notepanel +
-	scenepanel +
-	menu +
-	dialogs + //changed
-	printing +
-	editcontent +
-	addelements +
-	dnd +
-	template
+// var	html = //storingDefaultsHTML +
+// 	reset +
+// 	css +
+// 	globals +
+// 	//allDefaultsHTML +
+// 	// dialogs +
+// 	charactertracking +
+// 	displaynotes +
+// 	contextmenu + 
+// 	keyboard +
+// 	indexcards +
+// 	indexcards_css +
+// 	notepanel +
+// 	scenepanel +
+// 	menu +
+// 	dialogs + //changed
+// 	printing +
+// 	editcontent +
+// 	addelements +
+// 	dnd +
+// 	template
 
 var charactersArray, scenesWithCharactersArray
 var hackyAbsoluteHeightOfLine = 0 // 0.07195301353931427/2 // VERY HACKY: THIS IS TO ADD ONE EXTRA LINE AT TIMES
@@ -122,6 +124,11 @@ var viewSubMenuItems = []
 var showSubMenuItems = []
 var notesSubMenuItems = []
 var dialogSubMenuItems = []
+
+var thePanelX = Beat.getDocumentSetting("xposition") || 0
+var thePanelY = Beat.getDocumentSetting("yposition") || 0
+var thePanelWidth = Beat.getDocumentSetting("thePanelWidth") || 800
+var thePanelHeight = Beat.getDocumentSetting("thePanelHeight") || 800
 
 var htmlWindow = Beat.htmlWindow(html, thePanelWidth, thePanelHeight, function(){Beat.end()});
 	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), thePanelHeight) 
@@ -163,7 +170,7 @@ function createMenu(htmlWindow){
 	let settingsMenuItem = Beat.menuItem("FTOutliner settings", ["alt", "ctrl", ","], function () { htmlWindow.runJS("openSettingsWindow()") })
 	//let aboutMenuItem = Beat.menuItem("About FTOutliner", [], function () { htmlWindow.runJS("displayAboutBox()") })
 	let splitScreenMenuItem = Beat.menuItem("Arrange side-by-side with Beat", ["alt", "ctrl", "\ "], function () { htmlWindow.runJS("setSharedScreen()") })
-	//let switchFocusMenuItem = Beat.menuItem("Switch focus Beat <-> FTOutliner", ["alt", "ctrl", "cmd", "\ "], function () { htmlWindow.runJS("switchFocus()") })
+	let switchFocusMenuItem = Beat.menuItem("Switch focus Beat ⮂ FTOutliner", ["alt", "ctrl", "cmd", "\ "], function () { htmlWindow.runJS("switchFocus()") })
 	let zoomInMenuItem = Beat.menuItem("Increase Font Size", ["alt", "ctrl", "+"], function () { htmlWindow.runJS("zoomSizes('+')") })
 	let zoomOutMenuItem = Beat.menuItem("Decrease Font Size", ["alt", "ctrl", "-"], function () { htmlWindow.runJS("zoomSizes('-')") })
 	let resetZoomMenuItem = Beat.menuItem("Reset Font Size", ["alt", "ctrl", "0"], function () { htmlWindow.runJS("zoomSizes('0')") })
@@ -193,9 +200,13 @@ function createMenu(htmlWindow){
 		highlightCharacterMenuItem,
 		menuDivider4,
 		splitScreenMenuItem, 
-		// switchFocusMenuItem,
+		switchFocusMenuItem,
 	])
 
+}
+
+Beat.custom.switchToHTML = function(){
+	htmlWindow.focus()
 }
 
 Beat.custom.updateShowMenu = function(itemNumber, value){
@@ -240,6 +251,13 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800){
 
 }
 
+//NOTE: This is runtime code, moved here to circumvent hoisting issues
+if(!Beat.getUserDefault("welcomeMessageDisabled")){
+
+	Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
+
+}
+
 Beat.custom.closeSecondWindow = function(){	secondWindow.close() }
 
 Beat.custom.sendToMain = function(key, value, nameOfVariable){
@@ -258,8 +276,8 @@ Beat.custom.sendToMain = function(key, value, nameOfVariable){
 						Beat.log("${nameOfVariable}" + ", " + "${key}")
 						Beat.log(JSON.stringify(${nameOfVariable}.${key}))
 
-						applySettings2023()
-						saveCurrentState2023()
+						applySettings()
+						saveCurrentState()
 					`)
 
 }
@@ -274,54 +292,61 @@ Beat.custom.reloadCode = function(){
 
 Beat.custom.reloadHTML = function(){
 
-	reset = Beat.assetAsString("reset.css")
-	css = Beat.assetAsString("outline.css")
-	globals = Beat.assetAsString("globals.html")
-	template = Beat.assetAsString("outline.html")
-	dnd = Beat.assetAsString("drag-and-drop.html")
-	dialogs = Beat.assetAsString("dialogs.html")
-	charactertracking = Beat.assetAsString("charactertracking.html")
-	displaynotes = Beat.assetAsString("displaynotes.html")
-	contextmenu = Beat.assetAsString("contextmenu.html")
-	keyboard = Beat.assetAsString("keyboard.html")
-	editcontent = Beat.assetAsString("editcontent.html")
-	addelements = Beat.assetAsString("addelements.html")
-	printCSS = Beat.assetAsString("printOutlineCSS.css")
-	indexcards = Beat.assetAsString("indexCards.html")
-	indexcards_css = Beat.assetAsString("indexCards.css")
-	notepanel = Beat.assetAsString("notepanel.html")
-	scenepanel = Beat.assetAsString("scenepanel.html")
-	menu = Beat.assetAsString("menu.html")
-	printing = Beat.assetAsString("printing.html")
-
- 	//storingDefaultsHTML = makeStoringDefaultsDiv()
-	allDefaultsHTML = makeStoringDefaultsDiv()
-
-
-	html = //storingDefaultsHTML +
-	reset +
-	css +
-	globals +
-	allDefaultsHTML +
-	// dialogs +
-	charactertracking +
-	displaynotes +
-	contextmenu + 
-	keyboard +
-	indexcards +
-	indexcards_css +
-	notepanel +
-	scenepanel +
-	menu +
-	dialogs + //changed
-	printing +
-	editcontent +
-	addelements +
-	dnd +
-	template
+	html = buildHTML()
 
 	htmlWindow.setHTML(html)
 	htmlWindow.setFrame(thePanelX, thePanelY, Math.max(thePanelWidth, 380), thePanelHeight) 
+}
+
+function buildHTML(){
+
+	let reset = 		Beat.assetAsString("reset.css")
+	let css = 			Beat.assetAsString("outline.css")
+	let globals = 		Beat.assetAsString("globals.html")
+	let template = 		Beat.assetAsString("outline.html")
+	let dnd = 			Beat.assetAsString("drag-and-drop.html")
+	let dialogs = 		Beat.assetAsString("dialogs.html")
+	let charactertracking = Beat.assetAsString("charactertracking.html")
+	let displaynotes = 	Beat.assetAsString("displaynotes.html")
+	let contextmenu = 	Beat.assetAsString("contextmenu.html")
+	let keyboard = 		Beat.assetAsString("keyboard.html")
+	let editcontent = 	Beat.assetAsString("editcontent.html")
+	let addelements = 	Beat.assetAsString("addelements.html")
+	let printCSS = 		Beat.assetAsString("printOutlineCSS.css")
+	let indexcards = 	Beat.assetAsString("indexCards.html")
+	let indexcards_css = Beat.assetAsString("indexCards.css")
+	let notepanel = 	Beat.assetAsString("notepanel.html")
+	let scenepanel = 	Beat.assetAsString("scenepanel.html")
+	let menu = 			Beat.assetAsString("menu.html")
+	let printing = 		Beat.assetAsString("printing.html")
+
+ 	//storingDefaultsHTML = makeStoringDefaultsDiv()
+	//allDefaultsHTML = makeStoringDefaultsDiv()
+
+	let html = //storingDefaultsHTML +
+		reset +
+		css +
+		globals +
+		//allDefaultsHTML +
+		// dialogs +
+		charactertracking +
+		displaynotes +
+		contextmenu + 
+		keyboard +
+		indexcards +
+		indexcards_css +
+		notepanel +
+		scenepanel +
+		menu +
+		dialogs + //changed
+		printing +
+		editcontent +
+		addelements +
+		dnd +
+		template
+
+	return html
+
 }
 
 Beat.onEscape(function () {
@@ -803,12 +828,13 @@ Beat.custom.setFrame = function (theWindowsPositionX, theWindowsPositionY, theDo
 }
 
 Beat.custom.saveWindowSize = function() {
-	let a = htmlWindow.getFrame()
 	
-	Beat.setDocumentSetting('xposition', a.x)
-	Beat.setDocumentSetting('yposition', a.y)
-	Beat.setDocumentSetting('thePanelHeight', a.height)
-	Beat.setDocumentSetting('thePanelWidth', a.width)
+	let winSize = htmlWindow.getFrame()
+	
+	Beat.setDocumentSetting('xposition', winSize.x)
+	Beat.setDocumentSetting('yposition', winSize.y)
+	Beat.setDocumentSetting('thePanelHeight', winSize.height)
+	Beat.setDocumentSetting('thePanelWidth', winSize.width)
 }
 
 Beat.custom.limitWidth = function() {
@@ -835,10 +861,10 @@ Beat.custom.addCharacterClasses = function() {
 		if (line.omitted){continue}
 		if (line.typeAsString() == "Character"){
 			let name = line.string
-			name = name.replace(/^\^/, "")
-			name = name.replace(/^@/, "")
-			name = name.replace(/\(.*\)/gm, '');
-			name = name.replace(/\'/gm, '´');
+			name = name.replace(/^\^/, "") //names starting with ^ are not counted
+			name = name.replace(/^@/, "") //names starting with @ are not counted
+			name = name.replace(/\(.*\)/gm, ''); //names in parentheses are not counted
+			name = name.replace(/\'/gm, '´');	//names with ' are not counted
 			name = titleCaseThis(name)
 			name = name.trim()
 			if (!charactersArray.includes(name)){
@@ -867,8 +893,10 @@ Beat.custom.addCharacterClasses = function() {
 	// I now have all characters. Time to evaluate scenes.
 
 	const outline = [...Beat.outline()]
-	let excludeVoiceOvers = (Beat.getUserDefault("excludeVoiceOvers") == "true")
-	let trackingIncludesSynopsis = (Beat.getDocumentSetting("trackingIncludesSynopsis") == "true")
+	let documentSetting = JSON.parse(Beat.getDocumentSetting("ftoutlinerObject"))
+	let excludeVoiceOvers = documentSetting.excludeVoiceOvers
+	let trackingIncludesSynopsis = documentSetting.trackingIncludesSynopsis
+
 
 	for (scene of allScenes){
 		const lines = Beat.linesForScene(scene)
@@ -941,80 +969,82 @@ Beat.custom.addCharacterClasses = function() {
 	htmlWindow.runJS("makeCharacterMenu(" + JSON.stringify(charactersArray) + "," + JSON.stringify(scenesWithCharactersArray) + "); updateFilter()")
 }
 
-Beat.custom.reevaluateCharactersForScene = function(outlineNumber, sendToUpdateTrueOrFalse){
+// Beat.custom.reevaluateCharactersForScene = function(outlineNumber, sendToUpdateTrueOrFalse){
 
-	let excludeVoiceOvers = (Beat.getUserDefault("excludeVoiceOvers") == "true")
-	let trackingIncludesSynopsis = (Beat.getDocumentSetting("trackingIncludesSynopsis") == "true")
-	const scene = Beat.outline()[outlineNumber]
-	// const sceneNumber = Beat.outline()[outlineNumber].sceneNumber
+// 	let documentSetting = JSON.parse(Beat.getDocumentSetting("ftoutlinerObject"))
+// 	let excludeVoiceOvers = documentSetting.excludeVoiceOvers
+// 	let trackingIncludesSynopsis = documentSetting.trackingIncludesSynopsis
 
-	const lines = Beat.linesForScene(scene)
-	let copyOfCharacters = [...charactersArray]
-	let charactersInScene = ""
+// 	const scene = Beat.outline()[outlineNumber]
+// 	// const sceneNumber = Beat.outline()[outlineNumber].sceneNumber
 
-	for (line of lines){
+// 	const lines = Beat.linesForScene(scene)
+// 	let copyOfCharacters = [...charactersArray]
+// 	let charactersInScene = ""
 
-		if (line.omitted){continue}
+// 	for (line of lines){
 
-		if (line.typeAsString() == "Character") {
-			let name = line.string
+// 		if (line.omitted){continue}
 
-			if(excludeVoiceOvers){
-				//Beat.log("I AM CHECKING FOR EXLUSION, because EXCLUDE = " + excludeVoiceOvers)
+// 		if (line.typeAsString() == "Character") {
+// 			let name = line.string
 
-				let extension = name.match(/\((.*)\)/)
-				if(extension){
-					if (["OS", "O.S.", "VO", "V.O.", "PRELAP"].includes(extension[1].toUpperCase())) continue
-				}
-			} 
+// 			if(excludeVoiceOvers){
+// 				//Beat.log("I AM CHECKING FOR EXLUSION, because EXCLUDE = " + excludeVoiceOvers)
 
-			name = name.replace(/^\^/, "")
-			name = name.replace(/^@/, "")
-			name = name.replace(/\(.*\)/gm, '');
-			name = name.replace(/\'/gm, '´');
-			name = name.trim()
-			name = titleCaseThis(name)
+// 				let extension = name.match(/\((.*)\)/)
+// 				if(extension){
+// 					if (["OS", "O.S.", "VO", "V.O.", "PRELAP"].includes(extension[1].toUpperCase())) continue
+// 				}
+// 			} 
 
-			 if (copyOfCharacters.includes(name)){
-				copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-				let spacelessName = name.replace(/ /g, "_")
-				spacelessName = spacelessName.replace(/\'|\"/g, "-")
+// 			name = name.replace(/^\^/, "")
+// 			name = name.replace(/^@/, "")
+// 			name = name.replace(/\(.*\)/gm, '');
+// 			name = name.replace(/\'/gm, '´');
+// 			name = name.trim()
+// 			name = titleCaseThis(name)
 
-				charactersInScene += spacelessName + " "
-			}
-		}
+// 			 if (copyOfCharacters.includes(name)){
+// 				copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
+// 				let spacelessName = name.replace(/ /g, "_")
+// 				spacelessName = spacelessName.replace(/\'|\"/g, "-")
 
-		if (line.typeAsString() == "Action" || (trackingIncludesSynopsis && line.typeAsString() == "Synopse")) {			for (let i=0; i<copyOfCharacters.length; i++){
-				let name = copyOfCharacters[i]
+// 				charactersInScene += spacelessName + " "
+// 			}
+// 		}
 
-				//new matching
-				// Beat.log("now matching: " + name)
-				// let regOfName = new RegExp(name.toLowerCase().replace(/´/g, "'"))
-				// let matchString = line.string.match(regOfName, "i")		
-				// Beat.log(matchString)
-				// if (matchString && matchString[0].substr(0,1) == matchString[0].substr(0,1).toUpperCase()){
+// 		if (line.typeAsString() == "Action" || (trackingIncludesSynopsis && line.typeAsString() == "Synopse")) {			for (let i=0; i<copyOfCharacters.length; i++){
+// 				let name = copyOfCharacters[i]
 
-				//old matching
-				//if (line.string.includes(name.replace(/´/g, "'")) || line.string.includes(name.replace(/´/g, "'").toUpperCase())){
+// 				//new matching
+// 				// Beat.log("now matching: " + name)
+// 				// let regOfName = new RegExp(name.toLowerCase().replace(/´/g, "'"))
+// 				// let matchString = line.string.match(regOfName, "i")		
+// 				// Beat.log(matchString)
+// 				// if (matchString && matchString[0].substr(0,1) == matchString[0].substr(0,1).toUpperCase()){
 
-				let matchIndex = line.string.toUpperCase().indexOf(name.toUpperCase().replace(/`/g, "'"))
-				if (matchIndex > -1 && line.string.substr(matchIndex, 1) == line.string.substr(matchIndex, 1).toUpperCase()){
-					//Beat.log("YES (reev). The match is: " + matchIndex)
-					// Beat.log(line.string.substr(matchIndex, name.length))
+// 				//old matching
+// 				//if (line.string.includes(name.replace(/´/g, "'")) || line.string.includes(name.replace(/´/g, "'").toUpperCase())){
 
-					copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
-					let spacelessName = name.replace(/ /g, "_")
-					spacelessName = spacelessName.replace(/\'|\"/g, "-")
+// 				let matchIndex = line.string.toUpperCase().indexOf(name.toUpperCase().replace(/`/g, "'"))
+// 				if (matchIndex > -1 && line.string.substr(matchIndex, 1) == line.string.substr(matchIndex, 1).toUpperCase()){
+// 					//Beat.log("YES (reev). The match is: " + matchIndex)
+// 					// Beat.log(line.string.substr(matchIndex, name.length))
 
-					charactersInScene += spacelessName + " "
-				}
-			}
-		}
-	}
-	// scenesWithCharactersArray[sceneNumber]=charactersInScene
-	scenesWithCharactersArray[outlineNumber]=charactersInScene
-	if(sendToUpdateTrueOrFalse){htmlWindow.runJS("updateFilter(" + JSON.stringify(scenesWithCharactersArray) + ")")}
-}
+// 					copyOfCharacters.splice(copyOfCharacters.indexOf(name), 1)
+// 					let spacelessName = name.replace(/ /g, "_")
+// 					spacelessName = spacelessName.replace(/\'|\"/g, "-")
+
+// 					charactersInScene += spacelessName + " "
+// 				}
+// 			}
+// 		}
+// 	}
+// 	// scenesWithCharactersArray[sceneNumber]=charactersInScene
+// 	scenesWithCharactersArray[outlineNumber]=charactersInScene
+// 	if(sendToUpdateTrueOrFalse){htmlWindow.runJS("updateFilter(" + JSON.stringify(scenesWithCharactersArray) + ")")}
+// }
 
 Beat.custom.changeElementColor = function (elements, newColor){	
 
@@ -1766,6 +1796,10 @@ Beat.custom.printThis = function (content, classListOfFlexiContainer) {
 	documentAuthor = Beat.getDocumentSetting("documentAuthor") || false
 	if(documentAuthor == "false")documentAuthor = false
 
+	let css = Beat.assetAsString("outline.css")
+	let printCSS = Beat.assetAsString("printOutlineCSS.css")
+	let notepanel = Beat.assetAsString("notepanel.html")
+
 	loopToFetchDocumentTitles()
 
 	if (!documentName){
@@ -1786,7 +1820,7 @@ Beat.custom.printThis = function (content, classListOfFlexiContainer) {
 		<body>
 		${css}  
 		${printCSS}  
-		${notepanel} 
+		${notepanel}
 			<div id="outerEdge">
 				<p class="headline"> ${documentName ? documentName.toUpperCase() : ""} </p>
 				<p class="headline2"> ${documentSubName ? documentSubName : ""} </p>
