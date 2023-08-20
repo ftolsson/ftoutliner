@@ -9,6 +9,7 @@
 <div id="buttonRow">
 	<div id="helpButton" class="bottomButton" onclick="mylog('clicked settingsButton'); toggleNewMenu('settingsMenu')"></div>
 	<div id="printButton" class="bottomButton" onclick="mylog('clicked exportButton'); toggleNewMenu('exportMenu')"></div>
+	<div id="infoField"></div>
 	<div id="indexCardButton" class="bottomButton" onclick="mylog('clicked indexCardButton'); toggleNewMenu('indexCardMenu')"></div>
 	<div id="showStuffButton" class="bottomButton" onclick="mylog('clicked stuffButton'); toggleNewMenu('showStuffMenu')"></div>
 	<div id="notesButton" class="bottomButton" onclick="mylog('clicked notesButton'); toggleNewMenu('notesMenu')"></div>
@@ -31,7 +32,8 @@
 	</div>
 	<div id="dialogpanelbuttons">
 		<div class="hasSelect dropDownSpan">
-			<select id="allDialogFor" class="colorDropdown" onchange="initiateCharacterBubbles()">
+			<!-- <select id="allDialogFor" class="colorDropdown" onchange="initiateCharacterBubbles()"> -->
+			<select id="allDialogFor" class="colorDropdown" onchange="showCharacterBubbles()">
 				<option>None</option>
 			</select>
 		</div>
@@ -105,7 +107,6 @@ if(!document.createElement('dialog').showModal){
 	var synopsisAreDisplayed = false;
 	var beatsAreDisplayed = false;
 	var scenesAreHidden = false;
-	var oneColumnOutline;
 	var indexCardMode = false;
 	var currentZoomLevel;
 
@@ -115,7 +116,6 @@ if(!document.createElement('dialog').showModal){
 	var coverContainer = document.getElementById('cover');
 	var theRoot = document.querySelector(':root');
 	var blockOrNone = ['block', 'none'];
-	var flexOrInLineBlock = ['flex', 'inline-block']
 
 	var classListArray = []
 
@@ -253,7 +253,7 @@ function hover() {
 	unhover()
 
 	//Popping up scene name for small scenes
-		if (element.closest(".scene")?.classList.contains("hideSlugIfSmall") && !altIsBeingPressed){
+		if (element.closest(".scene")?.classList.contains("sluglineIsHidden") && !altIsBeingPressed){
 			hiddenSlugPopup(element)
 		}
 
@@ -276,8 +276,11 @@ function hiddenSlugPopup(element) {
 	previouslyHovered = JSON.stringify(element.closest(".scene")?.id)
 	currentlyHoveredElement = false
 
-	let x = parseInt(JSON.stringify(event.clientX))
-	let y = parseInt(JSON.stringify(element.closest(".scene").getBoundingClientRect().top))
+	// let x = parseInt(JSON.stringify(event.clientX))
+	// let y = parseInt(JSON.stringify(event.clientY))
+	let x = (event.clientX)
+	let y = (event.clientY)
+	// let y = parseInt(JSON.stringify(element.closest(".scene").getBoundingClientRect().top))
 	let width = parseInt(JSON.stringify(element.closest(".scene").getBoundingClientRect().width)) + 20
 	let color = window.getComputedStyle(element.closest(".scene")).getPropertyValue('background-color')
 
@@ -291,7 +294,8 @@ function hiddenSlugPopup(element) {
 		hiddenSceneTitlePopupDiv.classList.add("clickThru")
 		hiddenSceneTitlePopupDiv.classList.add("sceneTitlePopup")
 		hiddenSceneTitlePopupDiv.style.left = (x + 10) + "px"
-		hiddenSceneTitlePopupDiv.style.top = (y - 22) + "px"
+		// hiddenSceneTitlePopupDiv.style.top = (y - 22) + "px"
+		hiddenSceneTitlePopupDiv.style.top = (y + 10) + "px"
 		hiddenSceneTitlePopupDiv.style.maxWidth = width + "px"
 		hiddenSceneTitlePopupDiv.style.backgroundColor = color
 		
@@ -301,7 +305,11 @@ function hiddenSlugPopup(element) {
 	let elementToGivePopup = $id('hiddenSceneTitlePopup')
 	popupTimer = setTimeout(function(){
 		elementToGivePopup.classList.add('revealPopup')
-		},1200
+			setTimeout(function(){
+				elementToGivePopup.classList.remove('revealPopup')
+				// elementToGivePopup.remove()
+			}, 3000)
+		},400
 	)
 }
 
@@ -318,6 +326,10 @@ function unhover(){
 
 	if(relatedElement && (relatedElement.classList.contains("review"))){
 		highlightReviewInPanel()
+	}
+
+	if(relatedElement && (relatedElement.classList.contains("beat"))){
+		unhoverAllBeats()
 	}
 	
 	previouslyHovered = false
@@ -374,6 +386,7 @@ function updateEntireOutline(json, location, length, absoluteLength, linesAsJson
 		collectRevisionIndices()
 		updateDialogPanel()
 		updateScenePanel()
+		updateSelectionInfo()
 
 		youAreHere(location, length) 
 		toggleWaitState(false)	
@@ -683,8 +696,8 @@ function divMaker(){
 
 				let sceneheadingDiv = document.createElement("div")
 					sceneheadingDiv.classList.add("sceneheading")
-					if ($id(num) && $id(num).classList.contains("hideSlugIfSmall")){
-						sceneDiv.classList.add("hideSlugIfSmall")
+					if ($id(num) && $id(num).classList.contains("sluglineIsHidden")){
+						sceneDiv.classList.add("sluglineIsHidden")
 					}
 					sceneheadingDiv.dataset.line = currentItem.sceneStart
 					if(color){
@@ -1103,7 +1116,7 @@ function recalculateHeights(wherefrom){
 
 	let allScenes = $$(".scene, .orphanText")
 	let allSections = $$(".section")
-	let allActs = $$(".level1")
+	let allActs = $$(".level1:not(.boneyard)")
 	
 	if ((allScenes.length == 0 && allSections.length == 0) || !outline || outline.length == 0){
 		mylog("returns from recalculateHeights because no scenes and no sections")
@@ -1124,7 +1137,7 @@ function recalculateHeights(wherefrom){
 		if(theIndicator){theIndicator.style.top = "calc(16px * var(--fontSizeFactor))"}
 
 		//then set height of act lanes
-		if (oneColumnOutline == 0){
+		if (!documentSetting.oneColumnOutline){
 			for (act of allActs){
 				referenceForHeight = Math.max(referenceForHeight, Number(act.getBoundingClientRect().bottom) - Number(act.getBoundingClientRect().top))
 				}
@@ -1247,24 +1260,20 @@ function positionTheIndicator(){
 
 function hideSlugFor(entries){
 	
-	if (indexCardMode || $id("flexiContainer").classList.contains("nonProportionalMode")) {return}
+	if (indexCardMode || $id("flexiContainer").classList.contains("nonProportionalMode")) {
+		$$(".sluglineIsHidden").forEach(item => {item.classList.remove("sluglineIsHidden")})
+		$$(".animateOpacity").forEach(item => {item.classList.remove("animateOpacity")})
+		return
+	}
+	
+	$$(".scene").forEach(scene => {
+		
+		let trueOrFalse = (Number(scene.getBoundingClientRect().height) < (11.5 * currentZoomLevel))
 
-	return 
-	// this is turned off for now, and taken care of by the containerquery in css. 
-	// DO NOTE, though, that the containerquery is hard-coded to 14px, so does not take into account the zoom level.
-
-		let scenes = $$(".scene")
-			
-			for (let scene of scenes){
-			
-			if (Number(scene.getBoundingClientRect().height) < (11.5 * currentZoomLevel)){
-				scene.classList.add("animateOpacity")
-				scene.classList.add("hideSlugIfSmall")
-			}else{
-				scene.classList.remove("hideSlugIfSmall")
-			}
-		}
-	// }
+			scene.classList.toggle("animateOpacity", trueOrFalse)
+			scene.classList.toggle("sluglineIsHidden", trueOrFalse)
+		
+	})
 }
 
 function youAreHere(location, length, positionChangeOnly){
@@ -1378,6 +1387,7 @@ function youAreHere(location, length, positionChangeOnly){
 		let theIndicatorDiv = document.createElement("div")
 			theIndicatorDiv.id = "youAreHere"
 			theIndicatorDiv.classList.add("indicator")
+			theIndicatorDiv.dataset.location = location
 			theIndicatorDiv.setAttribute("data-percentageIntoScene", percentageIntoScene)
 			theIndicatorDiv.setAttribute("data-outlineElementCount", whichSceneAreWeIn)
 			theIndicatorDiv.setAttribute("data-theSceneNumber", whichSceneNumberAreWeIn)
@@ -1469,6 +1479,7 @@ function applySettings(){
 		markersAreDisplayed: false,
 		beatsAreDisplayed: false,
 		reviewsAreDisplayed: false,
+		allowMarkerTextInAllViews: false,
 
 	//tracking settings
 		trackingIncludesSynopsis: true,
@@ -1478,12 +1489,13 @@ function applySettings(){
 		showMultipleSectionLines: false, 
 		allowLowerCaseSections: false, 
 		showLengthsInSections: false, 
+		showSelectionInfo: false,
 
 	//indexCard Stuff
 		showLengths: "none", 
 		showNumbers: "inline", 
 		showPages: "inline", 
-		oneColumnOutline: 0, 
+		oneColumnOutline: false, 
 		currentZoomLevel: 1,
 		
 		indexCardHeight: 5,
@@ -1498,7 +1510,7 @@ function applySettings(){
 		greyonly: false, 
 		boneyardIsClosed: true, 
 		notepanel: false, 
-		notepanelWidth: false,
+		notepanelWidth: "200",
 
 		windowSize: {	
 			x: 0, 
@@ -1555,6 +1567,7 @@ function applySettings(){
 	$id("flexiContainer").classList.toggle("dualSectionLines", documentSetting.showMultipleSectionLines)
 	$id("flexiContainer").classList.toggle("allowLowerCaseSections", documentSetting.allowLowerCaseSections)
 	$id("flexiContainer").classList.toggle("showLengthsInSections", documentSetting.showLengthsInSections)
+	$id("flexiContainer").classList.toggle("allowMarkerTextInAllViews", documentSetting.allowMarkerTextInAllViews)
 	
 	$id("flexiContainer").classList.toggle("showPageDividers", documentSetting.showPageDividers)
 	
@@ -1564,7 +1577,6 @@ function applySettings(){
 
 	document.documentElement.setAttribute('data-outdoors', documentSetting.outdoor)
 
-
 	//DOCUMENT SETTINGS
 
 		scenesAreProportional = documentSetting.scenesAreProportional 
@@ -1573,7 +1585,6 @@ function applySettings(){
 		showSceneLengths = documentSetting.showSceneLengths || "inline"
 		showSceneNumbers = documentSetting.showSceneNumbers || "inline"
 		showPageNumbers = documentSetting.showPageNumbers || "inline"
-		oneColumnOutline = documentSetting.oneColumnOutline || 0
 		currentZoomLevel = documentSetting.currentZoomLevel || 1
 		
 		
@@ -1582,8 +1593,14 @@ function applySettings(){
 		if(indexCardMode == "false" || indexCardMode == 0 || indexCardMode == "0"){indexCardMode = false}
 		if(indexCardMode != false){indexCardMode = true} 
 		
-		if (documentSetting.notepanel){toggleNotepanel()}
+		if (documentSetting.notepanel){
+			$id("notepanel").classList.toggle("expanded", documentSetting.notepanel)
+    		$id("flexiContainer").classList.toggle("notepanelIsExpanded", documentSetting.notepanel)
+		}
+
 		if (documentSetting.notepanelWidth) theRoot.style.setProperty('--note-panel-width', documentSetting.notepanelWidth + "px") 
+		console.log("applying notepanelWidth: " + documentSetting.notepanelWidth)
+	
 		
 		notesAreDisplayed = documentSetting.notesAreDisplayed || false
 		markersAreDisplayed = documentSetting.markersAreDisplayed || false
@@ -1622,13 +1639,14 @@ function applySettings(){
 
 	//NOW EXECUTING SOM STUFF BASED ON THE DEFAULTS WE GOT!
 
-		document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
-		$id("flexiContainer").style.display = flexOrInLineBlock[oneColumnOutline]
-
-		if(scenesAreProportional != 1){
-			document.getElementById("flexiContainer").classList.add("nonProportionalMode")
-		}
-
+	
+	document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
+	flexiContainer.style.display = documentSetting.oneColumnOutline ? "inline-block" : "flex"
+	
+	if(scenesAreProportional != 1){
+		document.getElementById("flexiContainer").classList.add("nonProportionalMode")
+	}
+	
 		if (indexCardMode){
 			toggleIndexCardMode(true)
 			toggleIndexCardMode(true)
@@ -1662,7 +1680,6 @@ function saveCurrentState() {
 		showNumbers: showSceneNumbers,
 		showLengths: showSceneLengths,
 		showPages: showPageNumbers,
-		oneColumnOutline: oneColumnOutline,
 		currentZoomLevel: currentZoomLevel,
 		notepanelWidth: parseInt(getComputedStyle(theRoot).getPropertyValue('--note-panel-width')),
 
@@ -1728,6 +1745,8 @@ function saveCurrentState() {
 		documentSettingString = JSON.stringify(documentSetting)
 		Beat.call((documentSettingString) => {Beat.setDocumentSetting("ftoutlinerObject", documentSettingString)}, documentSettingString)
 
+		console.log("just wrote:" + documentSetting.notepanelWidth)
+
 		// if($id("dumpDiv")) $id("dumpDiv").innerHTML = JSON.stringify(documentSetting, null, 2)
 	
 	if(!isFullScreen)Beat.call("Beat.custom.saveWindowSize()")
@@ -1764,7 +1783,7 @@ function __________LISTENING (){}
 
 function openSettingsWindow(){
 
-	Beat.call(() => Beat.custom.displaySecondWindow("Advanced Settings", "settingswindow.html", 700, 500))
+	Beat.call(() => Beat.custom.displaySecondWindow("Advanced Settings", "settingswindow.html", 700, 800))
 
 }
 
@@ -1865,21 +1884,11 @@ function somethingWasClicked() {
 	mylog("before if(event.altKey)")
 
 	if(event.altKey && !event.metaKey){
-		//can soon be rewritten without the switch as soon as I commit to not using buttons for adding scenes
-		switch(theClickedThing.id){
-			// case "addScene":
-			// 	mylog("case: addScene")
-			// 	addElement(theClickedThing)
-			// 	return
-			// case "addSection":
-			// 	mylog("case: addSection")
-			// 	addElement(theClickedThing)
-			// 	return
-			default:
-				muteColors(theClickedThing, event.shiftKey) 
-				//NOTE: sending literal clicked thing here, so can be either scene or sceneheading!
-				return
-		}
+
+		muteColors(theClickedThing, event.shiftKey) 
+		//NOTE: sending literal clicked thing here, so can be either scene or sceneheading!
+		return
+		
 	}
 
 	let gotoIndex = Math.max(parseInt(theClickedThing.getAttribute("data-line")), 0.1) //why?
@@ -1952,18 +1961,22 @@ function somethingWasClicked() {
 		return false
 	}
 
+	// LOGIC TO SELECT AND DESELECT CLICKED ELEMENT(S)
+
 	if (a.includes("section-heading")) {theClickedThing = theClickedThing.parentNode; a = [...theClickedThing.classList]}
 	if (a.includes("sceneheading")) {theClickedThing = theClickedThing.parentNode; a = [...theClickedThing.classList]}
 
 	if (event.metaKey && !event.altKey){
 		if (a.includes("isSelected")) {
 			theClickedThing.classList.remove('isSelected')
+			updateSelectionInfo()
 			return
 		}
 
 		if (a.includes("scene") || a.includes("section") || a.includes("synopsis")) {
 			theClickedThing.classList.add('isSelected')
 		}
+		updateSelectionInfo()
 		if(!documentSetting.clickingFocusesEditor) return
 	}
 
@@ -1974,9 +1987,11 @@ function somethingWasClicked() {
 					let setCurrentElementToStartElement = $id("youAreHere").parentNode.id
 					$id(setCurrentElementToStartElement).classList.add("isSelected")
 				}else{
-			theClickedThing.classList.add('isSelected')
-			return
-			}
+					theClickedThing.classList.add('isSelected')
+					updateSelectionInfo()
+					return
+				}
+			//updateSelectionInfo()
 		}
 
 		if (a.includes("synopsis")){
@@ -2044,6 +2059,7 @@ function somethingWasClicked() {
 				}
 			}
 		}
+		updateSelectionInfo()
 		return
 	}
 
@@ -2079,6 +2095,8 @@ function somethingWasClicked() {
 		theClickedThing.closest(".section").classList.add("isSelected")
 	}
 
+	updateSelectionInfo()
+
 	// setTimeout(makeWider(theClickedThing),210)
 
 	mylog("end of sthWasClicked -- " + theClickedThing.classList)
@@ -2094,6 +2112,54 @@ function somethingWasClicked() {
 
 	if (gotoIndex) {goto(gotoIndex, theClickedThing, length)}
 	mylog("now returning")
+}
+
+var selectionInfo = {}
+
+function updateSelectionInfo(){
+
+	if(!documentSetting.showSelectionInfo) return
+	if(!$$(".isSelected, .dimmedScene, .dimmedSection, .uncolorAllScenesBut")) return
+
+	let selectionInfo = {}
+		selectionInfo.length = 0
+		selectionInfo.numberOfScenes = $$(".scene.isSelected").length
+		selectionInfo.numberOfSections = $$(".section.isSelected").length
+
+		$id("infoField").style.backgroundColor = "" //resets color if set previously
+		$id("infoField").style.opacity = "" //resets opacity if set previously
+
+	let measurableStuff = $$(".scene.isSelected, .orphan.isSelected, .section.isSelected")
+	let actionWord = "selected scene" + (measurableStuff.length > 1 ? "s" : "")
+
+	if (measurableStuff.length == 0 && $(".dimmedScene, .dimmedSection")) {
+		console.log("no selected scenes, but dimmed scenes")
+		measurableStuff = $$(".scene:not(.dimmedScene), .section:not(.dimmedSection)")
+		actionWord = "scene" + (measurableStuff.length > 1 ? "s" : "") + " with " + $id("characterMenuList").selectedOptions[0].value
+	}else if (measurableStuff.length == 0 && flexiContainer.classList.contains("uncolorAllScenesBut")) {
+		let color = colorsArray.find(color => flexiContainer.classList.contains(color.toLowerCase()))?.toLowerCase()
+		console.log("no selected scenes, but uncolorAllScenesBut && " + color)
+		measurableStuff = $$(".scene." + color)
+		actionWord = color + " scene" + (measurableStuff.length > 1 ? "s" : "")
+		// $id("infoField").style.backgroundColor = "var(--" + actionWord + ")"
+		$id("infoField").style.backgroundColor = "color-mix(in oklab, hsl(var(--" + color + ")), white 20%)"
+		$id("infoField").style.opacity = "0.8"
+	}
+
+	measurableStuff.forEach(element => {
+		
+		selectionInfo.length += Number(element.dataset.lengthOfScene)
+
+	})
+
+	console.log("measurableStuff: ", measurableStuff)
+
+	$id("infoField").innerHTML = measurableStuff.length > 0 ?
+		`${selectionInfo.numberOfScenes || measurableStuff.length} ${actionWord}<br/>
+		${numberIntoEights(selectionInfo.length).replace(/pg(s*)/, "")} pages total`
+		: ""
+
+
 }
 
 function makeWider(theClickedThing, cycledWithKey, shift){
@@ -2155,49 +2221,38 @@ function makeWider(theClickedThing, cycledWithKey, shift){
 
 function walkTheOutline(e){
 
-	console.log("walkTheOutline", e)
 	mylog()
-	closeContextMenu()
 
 	let direction = (e.key == "ArrowDown") ? 1 : -1
 
-	mylog(direction)
-
 	let selectedElements = $$(".isSelected")
 	let startingElement
-		if (selectedElements.length == 1){
-			mylog("length was > 0")
-			startingElement = selectedElements[0]
-			if (selectedElements.length > 1){
-				if (direction == 1) startingElement = selectedElements[selectedElements.length -1]
+
+		if (selectedElements.length > 0) {
+			if (direction == 1) {
+				startingElement = selectedElements[selectedElements.length - 1].closest(".scene, .section");
+				} else {
+				startingElement = selectedElements[0].closest(".scene, .section");
 			}
-		}else{
-			mylog("length was <= 0")
-			if(!$id("youAreHere")) return
-			startingElement = $id("youAreHere").closest(".scene, .section")
-			// mylog("but there was a you are here?")
-			// let elementNumber = Number($id("youAreHere").getAttribute('data-outlineElementCount'))
-			// startingElement = $id(elementNumber)
+		} else {
+			if (!$id("youAreHere")) return;
+			startingElement = $id("youAreHere").closest(".scene, .section");
 		}
 
 	let gotoElement = Number(startingElement.id) + direction
-		while (outline[gotoElement + direction] && outline[gotoElement].typeAsString == "Synopse") {gotoElement = gotoElement + direction}
+		if (gotoElement < 0 || gotoElement > outline.length - 1) return
 
-		let allScenesOrSections = $$(".section, .scene")
-			lastSceneOrSection = allScenesOrSections[allScenesOrSections.length - 1]
-		if(gotoElement < 0 || gotoElement > Number(lastSceneOrSection.id)){return}
+		if(!e.shiftKey)deselectAllElements()
 
-	if(!e.shiftKey)deselectAllElements()
+		$id(gotoElement).classList.add("isSelected")
+		updateSelectionInfo()
 
-	$id(gotoElement).classList.add("isSelected")
-		let gotoIndex = $id(gotoElement).getAttribute("data-line")
-		let theClickedThing = $id(gotoElement)
-		let length = outline[gotoElement].line.string.length + 1
-		let blinkColor = theClickedThing.style.backgroundColor
+	let gotoIndex = $id(gotoElement).getAttribute("data-line")
+	let theClickedThing = $id(gotoElement)
+	let length = outline[gotoElement].line.string.length + 1
+	let blinkColor = theClickedThing.style.backgroundColor
 
-	mylog("now goto")
 	goto(gotoIndex, theClickedThing, length, blinkColor)
-
 
 }
 
@@ -2238,6 +2293,7 @@ function walkTheOutlineSideWays(e){
 	let gotoIndex = gotoElement.getAttribute("data-line")
 	let length = outline[gotoElement.id].line.range.length
 	// let blinkColor = gotoElement.style.backgroundColor	
+	updateSelectionInfo()
 	goto(gotoIndex, gotoElement, length)
 
 
@@ -2354,13 +2410,12 @@ function toggleInvertText(){
 }
 
 function toggleOneColumnOutline() { 
-	mylog("toggleOneColumnOutline")
+	mylog()
 
 	documentSetting.oneColumnOutline = !documentSetting.oneColumnOutline
-	oneColumnOutline = documentSetting.oneColumnOutline
 
-	document.getElementById("flexiContainer").style.display = flexOrInLineBlock[oneColumnOutline]
-	$id("flexiContainer").classList.toggle("oneColumnOutline", oneColumnOutline)
+	flexiContainer.style.display = documentSetting.oneColumnOutline ? "inline-block" : "flex"
+	$id("flexiContainer").classList.toggle("oneColumnOutline", documentSetting.oneColumnOutline)
 	
 	setAllButtons()
 	saveCurrentState()
@@ -2391,22 +2446,15 @@ function toggleIndexCardMode(firstrun){
 
 			mylog("indexCards ON")
 
-			if($(".hideSlugIfSmall")){
-				mylog("YES TO HIDE SLUG")
-				let smalls = $$(".hideSlugIfSmall")
-				for (small of smalls){
-					mylog ("REMOVING")
-					small.classList.remove("hideSlugIfSmall")
-				}
-			}
+			$$(".sluglineIsHidden").forEach(element => {
+				element.classList.remove("sluglineIsHidden")
+			})
 
 			scenesWereProportionalBeforeIndexMode = (scenesAreProportional == 1) ? true : false
 				scenesAreProportional = 0
 				document.getElementById("flexiContainer").classList.remove("nonProportionalMode")
 						
-			//document.getElementById("indexCardButton").classList.add("buttonIsActive")
 			document.getElementById("flexiContainer").classList.add("indexcards")
-			// document.getElementById("flexiContainer").classList.remove("showSynopsisInScenes")
 			document.getElementById("indexCardButton").innerHTML = newIndexCardIcon
 			
 	}else{
@@ -2575,7 +2623,7 @@ function toggleDisplayBeats() {
 	documentSetting.beatsAreDisplayed = !documentSetting.beatsAreDisplayed
 	beatsAreDisplayed = documentSetting.beatsAreDisplayed
 	
-	if(beatsAreDisplayed){
+	if(documentSetting.beatsAreDisplayed){
 		$("#flexiContainer").classList.add("beatsAreDisplayed")
 		collectNotes("toggleDisplayBeats")
 	}else{
@@ -2656,12 +2704,11 @@ function toggleColorScheme() {
 
 function outdoorMode(){
 
-	mylog(outdoor)
+	mylog("outdoorMode:" + documentSetting.outdoor)
 
-	outdoor = 1 - outdoor
-	document.documentElement.setAttribute('data-outdoors', outdoor)
+	documentSetting.outdoor = 1 - documentSetting.outdoor
+	document.documentElement.setAttribute('data-outdoors', documentSetting.outdoor)
 
-	documentSetting.outdoor = outdoor
 	setAllButtons()
 	updateDialogPanel()
 	reevaluateColorContrast()
@@ -2700,10 +2747,9 @@ function toggleProportional(absolute) {
 		document.getElementById("flexiContainer").classList.add("nonProportionalMode")
 		document.getElementById("indexCardButton").innerHTML = fixedIcon
 	
-		let scenes = $$(".scene")
-		for (let scene of scenes){
-			scene.classList.remove("hideSlugIfSmall")
-		}
+		$$(".sluglineIsHidden").forEach(element => {
+			element.classList.remove("sluglineIsHidden")
+		})
 	}
 
 	if (documentSetting.notesAreDisplayed){
@@ -2861,6 +2907,7 @@ function selectAllElements(altWasPressed) {
 		element.classList.add("isSelected")
 		}
 	}
+	updateSelectionInfo()
 }
 
 // Below is a function stolen from https://davidwalsh.name/javascript-debounce-function

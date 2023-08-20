@@ -221,11 +221,11 @@ p.headline2{
 
 }
 
-.hideSlugIfSmall, .scene.hideSlugIfSmall {
+.sluglineIsHidden, .scene.sluglineIsHidden {
     color: rgba(0,0,0,0) !important;
 }
 
-/* .hideSlugIfSmall, .sceneheading.hideSlugIfSmall{
+/* .sluglineIsHidden, .sceneheading.sluglineIsHidden{
 		color: rgba(0,0,0,1) !important;
         overflow: hidden !important;
         -webkit-column-width: 100px !important;
@@ -281,8 +281,8 @@ p.headline2{
 }
 
 .boneyard, 
-.marker, 
-.note, 
+/* .marker,  */
+/* .note,  */
 .notepanel {
 
     display: none;

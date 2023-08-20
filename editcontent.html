@@ -248,7 +248,7 @@ function editContent(ev, elementToEdit) {
         }
     }
 
-    if([...theElement.classList].includes("hideSlugIfSmall")){
+    if([...theElement.classList].includes("sluglineIsHidden")){
         Beat.call(`Beat.alert("Can't edit hidden text", "You are trying to edit the heading of a scene that's too small to fit on the screen.\\n\\nPlease edit directly in the document, or switch to non-flexible view (shortcut F) to see all scenes regardless of length.")`)
         return
     }

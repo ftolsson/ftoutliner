@@ -1106,7 +1106,7 @@ function ifYesToMove(){ //this is visually-related stuff only and does not alter
             clone.classList.add("countMeOut") //this is all a convoluted way when preserving open and collapsed sections... phew...
             clone.classList.add("longerAnimation", "shrinkToNone")
             clone.classList.remove("beingDragged", "isSelected")
-            document.getElementById("dropDiv").insertAdjacentElement("beforebegin", clone)
+            document.getElementById("dropDiv")?.insertAdjacentElement("beforebegin", clone)
             onlyToProvokeAnimation = document.getElementById(cloneName).getBoundingClientRect()         
             document.getElementById(cloneName).classList.remove("shrinkToNone")
         scene.classList.add("shrinkToNone")
@@ -1120,6 +1120,7 @@ function ifYesToMove(){ //this is visually-related stuff only and does not alter
             scene.style.minHeight = "0"
             scene.style.margin = "0"
         }
+        
         if (closeBoneyardAfter){
             $id("flexiContainer").classList.add("boneyardIsClosed")
             closeBoneyardAfter = false

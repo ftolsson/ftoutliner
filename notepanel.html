@@ -737,6 +737,26 @@ function notePanelColorButtons(){
     $$(".noteButton").forEach(notebtn => {
         if(!$(`.notepanelNote[data-color="${notebtn.dataset.color}"]`)) notebtn.remove()
         })
+
+    if ($(".notepanelReview")){
+
+        let btndiv = document.createElement("div")
+            btndiv.id = "noteButtonReview"
+
+        let btn = document.createElement("input")
+            
+            btn.type = "checkbox"
+            // btn.label = colbtn
+            btn.classList.add("review")
+            btn.id = "notepanelReviewIcon"
+                
+            btn.checked = true
+            
+
+            btndiv.appendChild(btn)        
+            $(".noteButtons").appendChild(btndiv)        
+
+    }
 }
 
 function resizeNotepanel(){
@@ -775,21 +795,16 @@ function finalizeResizingNotepanel(){
     document.body.classList.remove("notepanelIsBeingResized")
     flexiContainer.classList.remove("noAnimation")
 
+    saveCurrentState()
+
 }
 
-function updateNotepanel(allNotes){
+function updateNotepanel(){
 
     mylog("updateNotepanel, which has... " + $id("notepanel").classList || "nothing")
-    console.log(allNotes)
+    console.log(globalAllNotes)
 
-    allNotes = allNotes.flat()
-    
-    //if(!$id("notepanel").classList.contains("expanded")){mylog("...so aborting"); return}
-    //if(!globalNotesData || globalNotesData.length == 0){collectNotes()}
-    //if(!globalReviewsData || globalReviewsData.length == 0){collectReviews()}
-    
-    //mylog ("globalNotesData: " + globalNotesData?.length)
-    //mylog ("globalReviewsData: " + globalReviewsData?.length)
+    let allNotes = globalAllNotes.flat()
 
     $$(".notepanelNote").forEach(note => {note.remove()})
     $$(".notepanelReview").forEach(note => {note.remove()})
@@ -895,12 +910,17 @@ function toggleNotepanel() {
     $id("flexiContainer").classList.toggle("notepanelIsExpanded", $id("notepanel").classList.contains("expanded"))
 
     collectNotes()
+
+    if(!$id("notepanel").classList.contains("expanded")){
+        unShowCharacterBubbles()   
+    }
             
     // $$(".notepanelNote").forEach(note => {note.remove()})
     // $$(".displayNumberOf").forEach(bubble => {bubble.remove()})
     // $$(".connector").forEach(connector => {connector.remove()})
 
     clearSearchBox()
+    saveCurrentState()
     setAllButtons()
     reevaluateColorContrast()
 }

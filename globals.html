@@ -171,6 +171,9 @@ var globalNotesData
 var globalMarkerData
 var globalBeatData
 var globalReviewsData
+
+var globalAllNotes //this is not the same as globalNotesData, but after being processed by collectNotes()
+
 var weAreCurrentlyEditingText = false
 var currentlyHoveredElement = false // this holds the currently hovered element so that any time we press ALT, buttons will appear
 
@@ -203,7 +206,17 @@ var storyColors=[
     "forestgreen", 
     "firebrick", 
     "deeppink", 
-    "black"
+    "black",
+    "darkslategray",
+    "indigo",
+    "maroon",  
+    "darkgoldenrod",
+    "darkolivegreen",
+    "darkslateblue",
+    "darkviolet",
+    "darkmagenta",
+    "darkred",
+    "darkorange",
 ]
 
 var alternatePageNumber = 0
@@ -243,7 +256,6 @@ var synopsisAreDisplayed = false;
 var beatsAreDisplayed = false;
 var reviewsAreDisplayed = false;
 var scenesAreHidden = false;
-var oneColumnOutline;
 var indexCardMode = false;
 var currentZoomLevel;
 
@@ -253,7 +265,6 @@ var helpContainer = document.getElementById('helpWindow');
 var coverContainer = document.getElementById('cover');
 var theRoot = document.querySelector(':root');
 var blockOrNone = ['block', 'none'];
-var flexOrInLineBlock = ['flex', 'inline-block']
 
 var classListArray = []
 
@@ -292,8 +303,6 @@ var globalEndTime
 var documentName
 var documentSubName
 var documentAuthor
-
-var outdoor = 0
 
 var butWeAreInASynopsis = false
 var currentParentScroll = false

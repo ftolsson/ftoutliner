@@ -252,7 +252,7 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800){
 
 }
 
-//NOTE: This is runtime code, moved here to circumvent hoisting issues
+//NOTE: This is runtime code NOT INSIDE A FUNCTION, moved down here to circumvent hoisting issues
 if(!Beat.getUserDefault("welcomeMessageDisabled")){
 
 	Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
@@ -327,15 +327,10 @@ function buildHTML(){
 	let menu = 			Beat.assetAsString("menu.html")
 	let printing = 		Beat.assetAsString("printing.html")
 
- 	//storingDefaultsHTML = makeStoringDefaultsDiv()
-	//allDefaultsHTML = makeStoringDefaultsDiv()
-
-	let html = //storingDefaultsHTML +
+	let html = 
 		reset +
 		css +
 		globals +
-		//allDefaultsHTML +
-		// dialogs +
 		charactertracking +
 		displaynotes +
 		contextmenu + 
@@ -345,7 +340,7 @@ function buildHTML(){
 		notepanel +
 		scenepanel +
 		menu +
-		dialogs + //changed
+		dialogs + 
 		printing +
 		editcontent +
 		addelements +
@@ -395,14 +390,15 @@ Beat.onTextChange(function(location, length) {
 	pauseOnePaginationUpdate = false //used to come after the timer. Putting it here should exclude the possibility that a change that needs pagination is overruled by one that doesn't.
 
 	htmlWindow.runJS(`toggleWaitState(true)`)
-    onTextChangeTimer = Beat.timer(0.1, function() {
+    onTextChangeTimer = Beat.timer(0.2, function() {
 		
 		//determine which line changed
 			let parser = Beat.currentParser
 			let line = parser.lineAtPosition(location)
+				if(!line) return //try to circumvent error when typing on last line
 
 			// First coarse guard clause: this means several lines were changed (e.g. copy/paste) so make full update
-			if((location + length > parser.lineAtPosition(location).range.location + line.range.length)){
+			if((location + length > line?.range?.location + line?.range?.length)){
 				console.log("Sending to previewFinished b/c multiple lines changed")
 				fullUpdateInProgress = true
 				return 
@@ -418,8 +414,8 @@ Beat.onTextChange(function(location, length) {
 				(previousLineObject.filter(line => line.typeAsString === "Heading").map(line => line.UUID).join(",") !== Beat.outline().filter(line => line.typeAsString() === "Heading").map(line => line.UUID).join(","))
 				){
 				console.log("Deferring to previewFinished b/c number/order of outline objects, or some sceneheading UUID, changed")
-				fullUpdateInProgress = true
 				console.timeEnd("checking for headings and hidden lines")
+				fullUpdateInProgress = true
 				return
 			}
 			console.timeEnd("checking for headings and hidden lines")
@@ -1844,163 +1840,3 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 	})
 
 }
-
-function __________REMOVE_EVERYTING_BELOW_THIS_LINE(){}
-
-Beat.custom.collectNotes = function() {
-	Beat.log("collecting notes")
-	
-	Beat.dispatch(function(){
-		Beat.log("in dispatch")
-
-		let note = []
-		let marker = []
-		let beats = []
-		let numberOfStorylines = 0
-		let actualNote = []
-		let outlineElementNumber = -1
-		let lastElementThatWasScene = -1
-		let entry = 0
-
-		let reg = (/\[\[.*?\]\]/g)
-		
-			let allLines = Beat.lines()
-									
-					for (line of allLines){
-						
-						if (["Heading", "Section"].includes(line.typeAsString())){
-							outlineElementNumber ++
-							lastElementThatWasScene = outlineElementNumber
-						}
-
-						// if (!line.note && !line.string.includes("[[")) continue
-						if (!line.noteData().length) continue
-
-						//first check: inline notes
-						if(!line.note){
-							if(!["Heading", "Section", "Synopse"].includes(line.typeAsString())){
-
-								let result = line.string.match(reg)
-
-								if (!!result){
-									for (res of result){
-
-										note[entry] = {}
-										let inlineNote = res
-										let inlineNoteIndex = res.index || 0
-										
-										note[entry].outlineElementNumber = lastElementThatWasScene
-										note[entry].position = (line.position + inlineNoteIndex)
-										note[entry].string = line.noteData()[result.indexOf(res)].content
-										note[entry].color = line.noteData()[result.indexOf(res)].color
-											if(res.startsWith("[[!")) note[entry].color = "red"
-											if(res.startsWith("[[!!")) note[entry].color = "magenta"
-											if(res.startsWith("[[!!!")) note[entry].color = "#8000FF"
-											if(res.startsWith("[[?")) note[entry].color = "lime"
-											if(!note[entry].color && (res.match(/(\[\[(#*\w+):)/))) note[entry].color = (res.match(/(\[\[(\w+):)/)[2])
-										note[entry].type = "note"
-										note[entry].stringForDisplay = res.replace(/((\[\[)(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
-
-
-										let notepos = line.range.location + line.string.indexOf(res)
-										let notelen = res.length
-											note[entry].range = {"position": notepos, "length": notelen}
-										note[entry].inline = "1"
-
-										entry ++
-									}
-								}
-							}
-						}
-
-						//second check: full-line notes
-						if(line.note) {
-							
-							//third check: full-line but not starting
-							if(!line.string.trim().startsWith("[[")) {
-
-									try{ note[entry-1].string += "<br/>" + line.string.replace(/((\[\[)?(!*\?*|#*\w+:)?\s*(.*)?(\]\]))/, "$4")
-										 note[entry-1].stringForDisplay += "<br/>" + line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
-										 note[entry-1].range.length += line.range.length 
-									} catch {
-										continue
-									}
-								continue
-							}
-							
-							note[entry] = {}
-							note[entry].outlineElementNumber = lastElementThatWasScene
-							note[entry].position = line.position
-							note[entry].string = line.noteData()[0].content
-							note[entry].color = line.noteData()[0].color
-								if(line.string.startsWith("[[!")) note[entry].color = "red"
-								if(line.string.startsWith("[[!!")) note[entry].color = "magenta"
-								if(line.string.startsWith("[[!!!")) note[entry].color = "#8000FF"
-								if(line.string.startsWith("[[?")) note[entry].color = "lime"
-								if(!note[entry].color && (line.string.match(/^(\[\[(\w+):)/))) note[entry].color = (line.string.match(/^(\[\[(\w+):)/)[2])
-							note[entry].type = "note"
-							note[entry].stringForDisplay = line.string.trim().replace(/((\[\[)?(!*\?*|#*\w+:)?\s*([^\]]*)?(\]*))/, "$4")
-
-							let notepos = line.range.location
-							let notelen = line.range.length
-								note[entry].range = {"position": notepos, "length": notelen}
-							note[entry].inline = "0"
-							entry ++
-						}
-					}
-				outlineElementNumber ++ //this is redundant, no?
-
-
-			// Cycle all notes and put them in different arrays depending on type.
-			// (This opens for creating new subsets of notes depending on starting term.)
-			for (entry of note){
-				if (entry.string.trim().startsWith("marker")){
-					let stringIntoColor = entry.string.trim().toLowerCase().replace(/marker:*\s*/, "")
-					stringIntoColor = stringIntoColor.match(/^#+[0-9]+|[a-z]*/)
-					entry.color = entry.color || stringIntoColor
-					if(entry.string.includes(":")){
-						stringIntoStory = entry.string?.replace(/^(.*?):/,"")?.replace(/\]\]/, "")?.toUpperCase()
-						entry.story = stringIntoStory
-						entry.type = "marker"
-					}
-					marker.push(entry)
-				}else if(entry.string.trim().startsWith("beat")){
-					let strippedString = entry.string.replace(/\[\[beat\s*/i, "").replace(/\]\]/,"")
-					let stringIntoStory = strippedString?.toUpperCase()
-					if(strippedString.includes(":")){
-						stringIntoStory = strippedString?.match(/^.*:/)[0]?.replace(/:/,"")?.toUpperCase()
-					}
-						//check if this is an existing storyline
-						let thisStoryline = false
-						let existingStoryline = false
-						for(let prev=0; prev<beats.length; prev++){
-							if (stringIntoStory == beats[prev].story){
-								thisStoryline = beats[prev].storyline
-								existingStoryline = true
-								break //breaks out of prev-loop
-							}
-						}
-						if(!existingStoryline){
-							numberOfStorylines++
-						}
-					let stringIntoContent = strippedString.substring(stringIntoStory.length).replace(/^\s*:\s*/, "")
-						entry.storyline = thisStoryline || numberOfStorylines
-						entry.story = stringIntoStory || "UNNAMED BEAT"
-						entry.content = stringIntoContent
-						beats.push(entry)
-				}else{
-					actualNote.push(entry)
-				}
-			}
-
-			// Beat.log(JSON.stringify([...actualNote]))
-			// Beat.log(JSON.stringify([...marker]))
-			// Beat.log(JSON.stringify([...beats]))
-
-			Beat.dispatch_sync(function (){
-
-				htmlWindow.runJS("displayNotes(" + JSON.stringify([...actualNote]) + "," + JSON.stringify([...marker]) + "," + JSON.stringify([...beats]) + ")")
-
-			})
-	})
-}	

@@ -511,17 +511,11 @@ function setItemColor(item, color){
 
 function deselectAllElements(){
 
-mylog()
+    mylog()
 
-let selectedElements = $$('.isSelected')
+    $$('.isSelected').forEach(item => item.classList.remove('isSelected'))
+    updateSelectionInfo()
 
-if (selectedElements.length){
-    for (i = selectedElements.length - 1; i > -1; i--) {
-        selectedElements[i].classList.remove('isSelected')
-    }
-}
-
-mylog("end of deselectallelements")
 }
 
 </script>

@@ -2,7 +2,7 @@
 	<hr> -->
 <div id = "main">
 	<ul>
-		<strong>Scene And Sections: (all views)</strong><br/>&nbsp;
+		<strong class="subheading">Scene And Sections (all views)</strong><!--br/-->&nbsp;
 		<li  onclick="toggleThis('showMultipleSceneLines', 'buttonFor-showMultipleSceneLines')">
 			<input id="buttonFor-showMultipleSceneLines" type="checkbox">
 			<label for="buttonFor-showMultipleSceneLines">Show multiple SCENE lines<span class="shortcut" style="float:right">^S</span></label>
@@ -24,7 +24,7 @@
 	<br/>
 	<hr>
 	<ul>
-		<strong><br/>Index Cards View:</strong><br/>&nbsp;
+		<br/><strong class="subheading">Index Cards View</strong><!--br/-->&nbsp;
 		<li  onclick="toggleThis('showVerticals', 'buttonFor-showVerticals')">
 			<input id="buttonFor-showVerticals" type="checkbox">
 			<label for="buttonFor-showVerticals">Show vertical bars for section levels<span class="shortcut" style="float:right">^V</span></label>
@@ -41,7 +41,17 @@
 	<br/>
 	<hr>
 	<ul>
-	<strong><br/>Behavior Settings</strong><br/>&nbsp;
+		<br/><strong class="subheading">Production Helpers</strong><!--br/-->&nbsp;
+		<li onclick="toggleThis('showSelectionInfo', 'buttonFor-showSelectionInfo')">
+			<input id="buttonFor-showSelectionInfo" type="checkbox">
+			<label for="buttonFor-showSelectionInfo">Show info in bottom bar for selected/filtered scenes<span class="shortcut" style="float:right"></span></label>
+			<!--span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span-->
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<ul>
+	<br/><strong class="subheading">Behavior Settings</strong><!--br/-->&nbsp;
 	<li onclick="toggleThis('clickingFocusesEditor', 'buttonFor-clickingFocusesEditor')">
 		<input id="buttonFor-clickingFocusesEditor" type="checkbox">
 		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" style="float:right"></span></label>
@@ -50,7 +60,12 @@
 	<li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
 		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
 		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" style="float:right"></span></label>
-		<span class="explanation">When OFF, the same can be temporarily achieved with ctrl+alt+cmd+click.</span>
+		<span class="explanation">When OFF, the same can be achieved ad hoc with ctrl+alt+cmd+click.</span>
+	</li>
+	<li onclick="toggleThis('allowMarkerTextInAllViews', 'buttonFor-allowMarkerTextInAllViews')">
+		<input id="buttonFor-allowMarkerTextInAllViews" type="checkbox">
+		<label for="buttonFor-allowMarkerTextInAllViews">Allow marker text in all views<span class="shortcut" style="float:right"></span></label>
+		<span class="explanation">When OFF, markers don't display text in non-proportional and index card mode. When ON, marker text is visible, but markers may obscure each other as well as the content of index cards. Use wisely!</span>
 	</li>
 	<br/>
 	<li  onclick="toggleThis('warningsAreOn', 'buttonFor-warningsAreOn', true)">
@@ -124,6 +139,9 @@
 		let valueAsJSON = JSON.stringify(documentSetting[settingName])
 			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "documentSetting") `)
 
+			//note to self: To save me one step, go directly to applySettings in outline.html.
+			//that's where sendToMain will send the setting, so next step is now to add code to apply it.
+
 	}
 
 
@@ -139,6 +157,12 @@
 	    --menu-hover-color: #027aff;
 
     }
+
+	.subheading{
+
+		line-height: 35px !important;
+
+	}
 
     @media (prefers-color-scheme: dark) {
 
@@ -213,8 +237,9 @@
 
 	button:hover{
 
-		border: inherit !important;
-		border-radius: inherit !important; 
+		border: initial !important;
+		border-radius: 4px !important; 
+		padding: 2px 8px 3px 8px;
 		background-color: var(--menu-hover-color);
 		color: white;
 		/* pointer-events: none; */

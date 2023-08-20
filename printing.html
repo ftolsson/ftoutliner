@@ -25,9 +25,9 @@ function togglePrintMode(exportInstead){
 		let allScenes = $$(".scene")
 		let flexiHeight = $id("flexiContainer").getBoundingClientRect().height
 			for(scene of allScenes){
-				scene.classList.remove("hideSlugIfSmall")
+				scene.classList.remove("sluglineIsHidden")
 				if (scene.getBoundingClientRect().height / flexiHeight < 0.012){
-					scene.classList.add("hideSlugIfSmall")
+					scene.classList.add("sluglineIsHidden")
 				}
 			}
 	}

@@ -1014,8 +1014,10 @@ function trackingMenu(from){
         $id("menu").innerHTML = "<br/><br/><br/><center>Loading...</center><br/><br/><br/>"
     }
     
+    console.log("trackingmenu from", trackingMenu.caller.name)
     mylog(trackingMenu.caller.name)
     if(trackingMenu.caller.name != "collectCharacters" && trackingMenu.caller.name != "onclick" ){
+        // so what we do here is that if the menu just opened, we need to collect the charactes
         // if (!characterMenuList || characterMenuList.length == 0) {
             let redraw = $id("menu").getBoundingClientRect()
             
@@ -1131,6 +1133,10 @@ function zoomMenu(){
 
 }
 
+function openFeedbackWindow(){
+    Beat.call("Beat.custom.displaySecondWindow('Feedback', 'feedback.html', width=800, height=800)")
+}
+
 function settingsMenu(){
 
     let debugMenuItems = (loggingIsOn || altIsBeingPressed)? 
@@ -1187,13 +1193,14 @@ function settingsMenu(){
         </li>
         <hr>
         <!--strong>Advanced:</strong><br/-->
-        <li onclick='if(!$id("advancedSettings").open)$id("advancedSettings").showModal()'>
+        <!--li onclick='if(!$id("advancedSettings").open)$id("advancedSettings").showModal()'-->
+        <li onclick='openSettingsWindow()'>
             <p>Advanced Settings…
                 <span class="shortcut" style="float:right">⌘,</span></li>
         <hr>
         <strong>Help & Support:</strong><br/>
-        <li onclick="openURL('github.com/ftolsson/ftoutliner/issues')">
-            <p>Report an issue…
+        <li onclick="openFeedbackWindow()">
+            <p>Report an issue…</p>
                 <span class="shortcut" style="float:right"></span></li>
         <li onclick="displayAboutBox()">
             <p>About…
@@ -1303,7 +1310,7 @@ function setAllButtons(){
     if($id("menu")){
         let whichOne = $id("menu").firstChild?.id
         mylog(whichOne)
-            fillNewMenu(whichOne)
+            //fillNewMenu(whichOne)
     }
 
     setButtonForExpandedScenes()
@@ -1316,7 +1323,7 @@ function setAllButtons(){
     if($id("buttonForFixed")){$id("buttonForFixed").checked = ((scenesAreProportional == 0) && !indexCardMode)}
         Beat.call("Beat.custom.updateViewsMenu('1'," + ((scenesAreProportional == 0) && !indexCardMode) + ")")
 
-    if($id("buttonForOneColumn")){$id("buttonForOneColumn").checked = !(oneColumnOutline == 1)}
+    if($id("buttonForOneColumn")){$id("buttonForOneColumn").checked = !(documentSetting.oneColumnOutline)}
     if($id("buttonForBoneyard")){$id("buttonForBoneyard").checked = !(flexiContainer.classList.contains("boneyardIsClosed"))}
 
     if($id("buttonForNumbers")){$id("buttonForNumbers").checked = (showSceneNumbers == 'inline')}
@@ -1342,7 +1349,7 @@ function setAllButtons(){
     if($id("buttonForOnlySynopsis")){$id("buttonForOnlySynopsis").checked = (flexiContainer.classList.contains("onlySynopsis"))}
     
     if($id("buttonForGreyOnly")){$id("buttonForGreyOnly").checked = ($id("flexiContainer").classList.contains("greyonly"))}
-    if($id("buttonForOutdoor")){$id("buttonForOutdoor").checked = (outdoor == 1)}
+    if($id("buttonForOutdoor")){$id("buttonForOutdoor").checked = (documentSetting.outdoor == 1)}
     
     mylog("indexcards = " + indexCardMode + " & AreScenesProp = " + scenesAreProportional)
 

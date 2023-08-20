@@ -3,24 +3,28 @@ v 1.61 BETA
 
 This marks the first-ever actual test version of FTOutliner. 
 
-It includes the changes of the never-released v 1.60 (changelog below, but most notably: PAGE NUMBERS are now spot on!) but most of all, this is the beginning of a journey towards rewriting most if not all of the code, trying to make it a reliable and fast as the main app.
+It includes the changes of the never-released v 1.60 (changelog below, but most notably: **PAGE NUMBERS are now spot on!**) but most of all, this is the beginning of a journey towards rewriting most if not all of the code, trying to make it a reliable and fast as the main app.
 
 Under-the-hood changes in this build (none of which will be immediately visible to the user):
 * Completely re-vamped system for updating FTOutliner's timeline. More reliable, less chance of mismatch between document and outline.
-* Re-vamped context menu system. Looking almost exactly the same, but much more maintainable and expandable. 
-* New system for collecting and displaying notes and markers. Again, looking exactly the same, but much faster and more reliable.
+* Less communication back and forth between FTOutliner and Beat when it's not needed, with speed gains for both.
+* Re-vamped context menu system. Looking almost exactly the same so don't expect anything exciting, but also much more maintainable and expandible. 
+* New system for collecting and displaying notes and markers. Again, looking exactly the same, but faster and more reliable.
 * Changed how dialog boxes work (for those who wonder: By opening in a new window instead of divs that may or may not fit within FTOutliner's window size). Currently, this affects the Advanced Settings dialog, but others will gradually move over too.
 
 Stuff that is somewhat visible:
-* Better interaction between main window and plugin
+* Advanced Settings option when selecting several scenes at once to display their total length in pages in the bottom button row.
+* Options to adjust the interaction between main window and plugin:
 - Should you want to, you can set each click to immediately focus the document, allowing you to start writing at once. (See Advanced Settings)
 - Should you not want that, but you're still a keyboard-centric user and want to switch focus back and forth between FToutliner and document, there is now a keyboard shortcut (ctrl+alt+cmd+SPACE) to do that.
 - FTOutliner is easier to use keyboard-only: Walk scenes with arrow keys, hit ENTER to open context menu at selected scene, use keys in context menu. (This will gradually happen for the menus at the bottom as well. They can already be opened with F1, but not selected using keys.)
 * To add new scenes or sections from directly within the outline, instead of holding ALT (which annoyingly made buttons appear and scenes shift around when you held ALT for other reasons) adding new content is now done from the right click (context) menu.
+* The same goes for increasing and decreasing the level of sections, which is done via the context menu too. 
 * Lots of minor visual tweaks. I hope I got everything right.
 
 Drawbacks:
 * For now, omitting (hiding) scenes from within FTOutliner has been disabled. The old logic for how to do that was not reliable enough, and until it is, I don't think anyone should use it. So there.
+* There will be bugs. See below.
 
 Bugfixes:
 The bugfixes are too many to mention, many of them never fixed per se but rather just not there anymore after rewriting the context where they appeared.
