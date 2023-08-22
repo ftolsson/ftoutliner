@@ -238,9 +238,9 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800){
 	secondWindow.setHTML(`
 		<body>${html}
 			<script>
-				window.addEventListener("blur", function (){
-					Beat.call("Beat.custom.closeSecondWindow()")
-				})
+				// window.addEventListener("blur", function (){
+				// 	Beat.call("Beat.custom.closeSecondWindow()")
+				// })
 			</script>
 		</body>
 	`)
@@ -254,7 +254,7 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800){
 
 //NOTE: This is runtime code NOT INSIDE A FUNCTION, moved down here to circumvent hoisting issues
 let showWelcome = JSON.parse(Beat.getUserDefault("ftoutlinerObject"))
-	//showWelcome = false //temporarily always showing welcome window
+	showWelcome = false //temporarily always showing welcome window
 	if(!showWelcome.neverShowWelcomeWindowAgain){
 
 		Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
@@ -373,12 +373,16 @@ var pauseOnePaginationUpdate = false
 var paginationPauseTimer = null
 var onTextChangeTimer = null
 
+var emergencyExit = false
+
 Beat.onTextChange(function(location, length) { 
 
 	// This function checks every change for whether it affects layout.
 	// If it does not, we skip pagination which is time consuming. 
 	
 	console.log("onTextChange")
+
+	emergencyExit = true
 
 	if(fullUpdateInProgress){ //this is now set when deferring to onPreviewFinished, so that a full paginated update can never be missed
 		return
@@ -516,6 +520,8 @@ Beat.onPreviewFinished(function(changedIndices) {
 Beat.custom.updateEntireOutline = function (location, length) {
 
 	fullUpdateInProgress = true		
+	emergencyExit = false
+
 	htmlWindow.runJS(`toggleWaitState(true)`);
 	console.log("updateEntireOutline")
 
@@ -617,6 +623,9 @@ function outlineWithPagination() {
 		sceneData = []
 	
 	for (const scene of Beat.outline()) {
+
+		if(emergencyExit) break
+
 		let data = scene.json()
 
 		data.numberOfPages = pagination.heightForRange({ location: scene.position, length: scene.length }) / Beat.currentPagination().maxPageHeight
