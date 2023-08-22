@@ -738,7 +738,7 @@ function deleteScene(){
     if (elements.length == 0) return
 
         for(element of elements){
-            element.classList.add("dimmedScene")
+            element.classList.add("toBeDeleted")
         }
 
     let elementsToDelete = []
@@ -766,7 +766,7 @@ function ifYesToDelete(){ //this is visually-related stuff only and does not alt
 
     mylog("YES TO DELETE: Now shrinking the scenes.")
 
-    let selectedScenes = document.querySelectorAll('.dimmedScene')
+    let selectedScenes = document.querySelectorAll('.toBeDeleted')
     // console.log(selectedScenes)
 
     mylog("this many: " + selectedScenes.length)

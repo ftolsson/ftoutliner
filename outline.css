@@ -1290,12 +1290,15 @@ ________COLORS{}
 .uncolorAllScenesBut.black .synopsiscontainer:not(.black),
 
 .scene.dimmedScene, 
+.scene.toBeDeleted,
 
 .dimmedSection > .section-heading,
 .dimmedSection > .synopsiscontainer,
 
 .section.dimmedScene > .section-heading,
+.section.toBeDeleted > .section-heading,
 .section.dimmedScene > .orphanText > .displayNumberOf
+.section.toBeDeleted > .orphanText > .displayNumberOf
 {
 
 	opacity: 0.15 !important

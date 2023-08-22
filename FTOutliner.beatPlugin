@@ -253,11 +253,13 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800){
 }
 
 //NOTE: This is runtime code NOT INSIDE A FUNCTION, moved down here to circumvent hoisting issues
-if(!Beat.getUserDefault("welcomeMessageDisabled")){
+let showWelcome = JSON.parse(Beat.getUserDefault("ftoutlinerObject"))
+	//showWelcome = false //temporarily always showing welcome window
+	if(!showWelcome.neverShowWelcomeWindowAgain){
 
-	Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
+		Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
 
-}
+	}
 
 Beat.custom.closeSecondWindow = function(){	secondWindow.close() }
 
@@ -445,29 +447,33 @@ Beat.onTextChange(function(location, length) {
 
 				try{
 
-				//NEW FUNCTION SIMILAR TO previewFinished, BUT WHICH DOES NOT CALL PAGINATION
-					let startTime1 = Date.now()
-					let json = JSON.stringify(outlineWithoutPagination())
-					let endTime1 = Date.now()
-					Beat.log("1️⃣ Getting UNpaginated outline: " + (endTime1 - startTime1) + "ms")
+					Beat.async(function () {
 
-				// Get all lines as JSON
-					let startTime3 = Date.now()
-					let linesAsJSON = Beat.linesAsJSON()
-					let endTime3 = Date.now()
-					Beat.log("2️⃣ getting Beat.linesAsJSON: " + (endTime3 - startTime3) + "ms")
+						//NEW FUNCTION SIMILAR TO previewFinished, BUT WHICH DOES NOT CALL PAGINATION
+							let startTime1 = Date.now()
+							let json = JSON.stringify(outlineWithoutPagination())
+							let endTime1 = Date.now()
+							Beat.log("1️⃣ Getting UNpaginated outline: " + (endTime1 - startTime1) + "ms")
 
-				// Get entire screenplay
-					let fullScreenplay = Beat.getText()
-					
-					//Beat.sync(function () {
-						console.log("SENDING WITHOUT PAGINATION")
-						htmlWindow.runJS(`updateEntireOutline(${json}, ${location}, ${length}, ${fullScreenplay.length}, ${linesAsJSON})`)
-					//})
+						// Get all lines as JSON
+							let startTime3 = Date.now()
+							let linesAsJSON = Beat.linesAsJSON()
+							let endTime3 = Date.now()
+							Beat.log("2️⃣ getting Beat.linesAsJSON: " + (endTime3 - startTime3) + "ms")
 
-					console.time("stringifyingLine")
-					previousLineObject = JSON.parse(linesAsJSON)
-					console.timeEnd("stringifyingLine")
+						// Get entire screenplay
+							let fullScreenplay = Beat.getText()
+							
+							Beat.sync(function () {
+								console.log("SENDING WITHOUT PAGINATION")
+								htmlWindow.runJS(`updateEntireOutline(${json}, ${location}, ${length}, ${fullScreenplay.length}, ${linesAsJSON})`)
+							})
+
+							console.time("stringifyingLine")
+							previousLineObject = JSON.parse(linesAsJSON)
+							console.timeEnd("stringifyingLine")
+
+					})	
 
 				}catch(e){
 
@@ -546,12 +552,12 @@ Beat.custom.updateEntireOutline = function (location, length) {
 				}
 			})
 			
-			fullUpdateInProgress = false
-			outlineJustFired = false
-
+			
 			console.time("stringifyingLine")
 			previousLineObject = JSON.parse(linesAsJSON)
 			console.timeEnd("stringifyingLine")
+
+			fullUpdateInProgress = false
 	
 		let endTime = Date.now()
 		Beat.log("3️⃣ Entire time in background thread to make Beat deliver Pagination and LinesAsJSON for " + json.length + " lines: " + (endTime - startTime) + "ms")

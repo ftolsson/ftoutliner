@@ -2135,7 +2135,7 @@ function updateSelectionInfo(){
 	if (measurableStuff.length == 0 && $(".dimmedScene, .dimmedSection")) {
 		console.log("no selected scenes, but dimmed scenes")
 		measurableStuff = $$(".scene:not(.dimmedScene), .section:not(.dimmedSection)")
-		actionWord = "scene" + (measurableStuff.length > 1 ? "s" : "") + " with " + $id("characterMenuList").selectedOptions[0].value
+		actionWord = "scene" + (measurableStuff.length > 1 ? "s" : "") + " with " + $id("characterMenuList")?.selectedOptions[0]?.value
 	}else if (measurableStuff.length == 0 && flexiContainer.classList.contains("uncolorAllScenesBut")) {
 		let color = colorsArray.find(color => flexiContainer.classList.contains(color.toLowerCase()))?.toLowerCase()
 		console.log("no selected scenes, but uncolorAllScenesBut && " + color)
