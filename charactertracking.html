@@ -328,7 +328,7 @@ function collectCharacters() {
         let wordsplitters = /[,.:;!?\)\(\s\")]+/ //for now, I have removed apostrophes \' from wordsplitters to catch names like O'Neil
         for (line of lines){
 
-            if (line.omitted) continue
+            //if (line.omitted) continue
 
             if (line.typeAsString == "Heading" || line.typeAsString == "Section"){
                 outlineElementNumber ++
@@ -338,7 +338,7 @@ function collectCharacters() {
                 scenesWithDialog2023[outlineElementNumber] = []
             }
             
-            if (line.typeAsString == "Character"){
+            if (line.typeAsString == "Character" && !line.omitted){
                 trimmedName = line.string.replace(/^@/, "").toUpperCase().replace(removal, "").replace(/\'/, "’").trim() 
                 if(sortedCharacters.some(character => character.toUpperCase() == trimmedName.toUpperCase())){
                     if (!outlineElementsWithCharactersDialogOnly[outlineElementNumber]?.includes(trimmedName)) {
@@ -350,7 +350,7 @@ function collectCharacters() {
                 }
                 alsoCollectDialog()
             }
-            if (line.typeAsString == "Action"){
+            if (line.typeAsString == "Action" && !line.omitted){
                 sortedCharacters.forEach(character => {
                     apostrophedCharacter = character.replace(/’/g, `\'`) //replacing character BACK to normal apostrophe when comparing to avoid repeating for every word
                     if (compareThese(line.string, apostrophedCharacter)) { 
@@ -524,13 +524,9 @@ function collectCharacters() {
 
     mylog("end of collect")
 
-    //FINALLY, added for 2023 version:
-    //1. make the dialog global so as to be available for the dialogpanel
-    //2. if the dialogpanel is open, update that too with the new data:
-    globalScenesWithDialog = scenesWithDialog2023
-    if (($id("notepanel").classList.contains("expanded") && $(".selectedtab").classList.contains("dialogtab"))){
-        showCharacterBubbles()
-    } 
+    // FINALLY, added for 2023 version:
+    // make the dialog global so as to be available for the dialogpanel
+        globalScenesWithDialog = scenesWithDialog2023
 
 }
 
@@ -748,31 +744,11 @@ function _____________(){}
 
 function initiateCharacterBubbles(){
 
-// console.time("bubbles")
-
-    //let's remake this into two functions:
-    // whatever is needed to switch to the container and draw its outer boundaries
-
-        //let's do that from here
-
-    //and the update dialog panel, which is the same function as now BUT RUN FROM WITHIN UPDATE FILTER
-
-// if($id("characterMenuList").options.length == 0){
-    
-    //collectCharacters()
-
-// }else{
-
-    //showCharacterBubbles() //15 aug commented out
-
     collectCharacters()
 
-//     // More notes to self: 
-//     // The two lines below are now only executed if the list is already poopulated!
-//     // if it is empty, they are instead run from wihtin makeCharacterMenu, due to asynchronicity
-//          name = $id("allDialogFor").selectedOptions[0]?.innerText.toUpperCase() || "ALL"
-//          Beat.call("Beat.custom.runHightlightCharacter('" + name + "')")
-// }
+    //$id("allDialogFor").selectedIndex = 0
+
+    showCharacterBubbles("ALL")
 
 }
 
@@ -782,7 +758,7 @@ function unShowCharacterBubbles(){
     $$(".connectorcontainer").forEach( connector => { connector.remove() })
     $$(".displayNumberOf").forEach( numberof => { numberof.remove() })
 
-    deselectAllCharacters()
+    if(!$id("dialogsearch")?.value) {deselectAllCharacters()} //avoid blinkage: don't remove "dimmedScene" if filtering underway
 
     $$(".scene .orphan").forEach(element => {
         element.removeEventListener("mouseenter", function(){
@@ -853,56 +829,52 @@ function updateDialogPanel(scenesWithDialog){
 
     if (!($id("notepanel").classList.contains("expanded") && $(".selectedtab").classList.contains("dialogtab"))){ return }
 
+    let alreadySelected = $id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL"
+
     collectCharacters()
-
-
-
+    showCharacterBubbles(alreadySelected, true)
 
 }
 
-function showCharacterBubbles(){//}, characterName, redraw){
+function showCharacterBubbles(characterName, redraw){
 
     mylog()
 
     console.time("bubbles")
 
-    //this selects already selected character, forget that for now.
-    // $id("allDialogFor").selectedIndex = ([...$id("allDialogFor").options].map(option => option.value.toUpperCase())).indexOf(characterName)
-
-    let characterName = $id("allDialogFor").selectedOptions[0]?.innerText.trim()/*.toUpperCase()*/ || "ALL"
-        console.log(characterName)
-    let redraw = false //this was previously sent from outside, check to see where it comes from
+    // re-select already selected character!
+        if(characterName){
+            $id("allDialogFor").selectedIndex = ([...$id("allDialogFor").options].map(option => option.value.toUpperCase())).indexOf(characterName) || 0
+        }else{
+            characterName = $id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL"
+        }
     
     let scrolledAmountBeforeRedraw = $id("dialogpanelcontent").scrollTop
     let allChunks = $$(".sceneChunk")
     
-    if(allChunks.length > 0){  
-        //when chunks already present, clean up before doing anything else:
+    //when chunks already present, clean up before doing anything else:
+        if(allChunks.length > 0){  
             unShowCharacterBubbles()
-    }
+        }
 
     //if no character is selected, loop all dialog, otherwise only loop dialog for selected character
-    // let selectedScenesWithDialog = characterName == "ALL" ? globalScenesWithDialog : globalScenesWithDialog.filter(scene => scene.some(line => line.character == characterName))
-    let selectedScenesWithDialog = characterName == "ALL" ? globalScenesWithDialog : globalScenesWithDialog.map(scene => scene.filter(line => line.character == characterName))
+        let selectedScenesWithDialog = characterName == "ALL" ? globalScenesWithDialog : globalScenesWithDialog.map(scene => scene.filter(line => line.character == characterName))
     
-console.log("selectedScenesWithDialog", selectedScenesWithDialog)
-console.log("alllines", lines)
-
-// let fragment = document.createDocumentFragment()
-
     for (let scene of selectedScenesWithDialog){
 
         let theId = selectedScenesWithDialog.indexOf(scene)
+            
+        // This PROBABLY helps against a bug PROBABLY caused by the scenes being updated from the plugin while this loop is running
+            if(!$id(theId)) break 
+
         let orphanId
-            if($id(theId).classList.contains("section")){
-                // console.log("found an orphan:" , $id(theId).querySelector(".orphanText")?.id)
+            if($id(theId)?.classList.contains("section")){
                 orphanId = $id(theId).querySelector(".orphanText")?.id
             }
 
         if (scene.length == 0) continue
 
         let chunk = document.createElement("div")
-            // $id("dialogpanelcontent").appendChild(chunk)
             
             chunk.id = "dialogIn" + theId
             chunk.dataset.orphanId = orphanId
@@ -951,23 +923,20 @@ console.log("alllines", lines)
                 chunkHTML = chunkHTML.replace(/\*\*(.*)\*\*/g, "<b>$1</b>")
                 chunkHTML = chunkHTML.replace(/\*(.*)\*/g, "<i>$1</i>")
                 chunkHTML = chunkHTML.replace(/\_(.*)\_/g, "<u>$1</u>")
-
             }
-
-        chunkHTML += `</div>` //finalizes the last chunk-in-chunk div
+            chunkHTML += `</div>` //finalizes the last chunk-in-chunk div
 
         //add all dialogChunks to the sceneChunk:
+            chunk.innerHTML += chunkHTML
+            chunk.dataset.startPos = chunk.firstChild.data-line
+            chunk.dataset.endPos = chunk.lastChild.data-line + chunk.lastChild.innerText.length
 
-        chunk.innerHTML += chunkHTML
-        chunk.dataset.startPos = chunk.firstChild.data-line
-        chunk.dataset.endPos = chunk.lastChild.data-line + chunk.lastChild.innerText.length
-
-        //and the sceneChunk to the sidepanel:
-            
+        //and the sceneChunk to the sidepanel:          
             $id("dialogpanelcontent").appendChild(chunk)
-            //     if(thisIsTheCurrentChunk && !redraw) $id(thisIsTheCurrentChunk).classList.add("selectedDialog")
+                // if(thisIsTheCurrentChunk && !redraw) $id(thisIsTheCurrentChunk).classList.add("selectedDialog")
                 //if(thisIsTheCurrentChunk && !redraw) $id(thisIsTheCurrentChunk).classList.add("hasCursor")
 
+        if($id("dialogsearch").value) chunk.classList.add("displayNone")
                 //chunkSizes = chunk.getBoundingClientRect()
 
         //add number of dialogs to corresponding scene
@@ -984,7 +953,7 @@ console.log("alllines", lines)
                 displayNumberOf.style.top = "50%"
                 displayNumberOf.style.left = "50%"
                 
-                displayNumberOf.textContent = chunk.querySelectorAll(".dialogChunk").length //+ " LINE" + (chunk.querySelectorAll(".dialogChunk").length > 1 ? "S" : "")
+                displayNumberOf.textContent = chunk.querySelectorAll(".dialogChunk").length
 
                 displayNumberOf.onmouseenter = onmouseenterForDNO                
                     function onmouseenterForDNO(){
@@ -1019,8 +988,6 @@ console.log("alllines", lines)
             })
     }
 
-    // $id("dialogpanelcontent").appendChild(fragment)
-
     $id("dialogpanelcontent").scrollTo({
         top: scrolledAmountBeforeRedraw,
         left: 0,
@@ -1028,7 +995,7 @@ console.log("alllines", lines)
         });
 
     $id("dialogpanelcontent").onscroll = function(){ updateDialogPanelOnScroll() }
-    if($id("dialogsearch").value) onlyShowMatchingDialogs()
+    if($id("dialogsearch").value) onlyShowMatchingDialogs(true)
 
     console.timeEnd("bubbles")
 
@@ -1174,7 +1141,6 @@ function onlyShowMatchingDialogs(nodelay){
                         dialog.innerHTML = newHTML;
                     }
                 }
-
         })
 
         let provokeRedraw = $id("dialogpanelcontent").getBoundingClientRect()

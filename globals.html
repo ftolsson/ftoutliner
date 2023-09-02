@@ -177,7 +177,6 @@ var globalAllNotes //this is not the same as globalNotesData, but after being pr
 var weAreCurrentlyEditingText = false
 var currentlyHoveredElement = false // this holds the currently hovered element so that any time we press ALT, buttons will appear
 
-var indexCardMode
 var indexCardHeight
 
 var paperHeightFactor // second heightFactor for printing purposes, set by CalclateHeights()
@@ -236,7 +235,6 @@ var outlineBeforeUpdate = []
 
 var popupTimer
 
-var invertTextOnDark = true
 var loggingIsOn = false
 
 var documentSetting = {}
@@ -256,7 +254,6 @@ var synopsisAreDisplayed = false;
 var beatsAreDisplayed = false;
 var reviewsAreDisplayed = false;
 var scenesAreHidden = false;
-var indexCardMode = false;
 var currentZoomLevel;
 
 var settingsContainer = document.getElementById('settings');
@@ -269,7 +266,6 @@ var blockOrNone = ['block', 'none'];
 var classListArray = []
 
 var contextMenuIsOpen = false
-var updateWithoutDelay = false
 
 var logArray=[]
 
@@ -299,10 +295,6 @@ var previouslyHovered
 var entireScreenplay
 var globalStartTime
 var globalEndTime
-
-var documentName
-var documentSubName
-var documentAuthor
 
 var butWeAreInASynopsis = false
 var currentParentScroll = false

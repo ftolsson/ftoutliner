@@ -796,7 +796,6 @@ function collectNotes(wherefrom){
 
 function collectReviews(){
         
-        console.log("sdfadgadfgdsfgsdfgsdfgsdfg")
         if(!documentSetting.reviewsAreDisplayed) return
         
         Beat.callAndWait(() => {
@@ -852,6 +851,7 @@ function collectReviews(){
 function displayNotes(allNotes, typeOfNote){
 
     mylog()
+    console.log("displayNotes", allNotes, typeOfNote)
 
     if(!outline || !allNotes) return
 
@@ -900,13 +900,13 @@ function displayNotes(allNotes, typeOfNote){
                     noteElement.dataset.length = note.range.length
                     noteElement.dataset.headline = note.headline
 
-                    noteElement.dataset.color = note.color || "#FFFF00"
                     noteElement.style.backgroundColor = note.color || ""
                     noteElement.style.setProperty("--mycolor", note.color || "red")
 
                 let noteNumber = allNotes.flat().indexOf(note)
                     noteElement.dataset.noteNumber = noteNumber
-                    noteElement.id = "noteNumber" + noteNumber
+                    // noteElement.id = "noteNumber" + noteNumber
+                    noteElement.id = typeOfNote + "Number" + noteNumber
 
                 if(typeOfNote == "note"){
                     if (userDefault.oldNoteBehavior == true){
@@ -929,6 +929,7 @@ function displayNotes(allNotes, typeOfNote){
                     noteElement.innerHTML = note.formattedContent
                 
                     currentContainer.appendChild(noteElement)
+                    noteElement.dataset.color = colorsArray.includes(note.color.charAt(0).toUpperCase() + note.color.slice(1)) ? note.color : (rgbToHex(window.getComputedStyle(noteElement).backgroundColor) || "#FFFF00")
 
                     if(typeOfNote == "marker"){
                         noteElement.style.color = blackOrWhite(window.getComputedStyle(noteElement).backgroundColor)
@@ -1127,26 +1128,20 @@ setTimeout(() => {
 
 }
 
-function __________xxx(){}
-
-// function collectReviews(){
-
-//     return
-
-//     if (!reviewsAreDisplayed) return
-
-//     Beat.call("Beat.custom.collectReviews()")
-// }
-
 function collectReviewsAndThenCreateDoc(){
 
-    Beat.call("Beat.custom.collectReviews(true)")
+    alertThis("This feature is currently disabled")
+
+    return
+
+    //here, we should collect reviews if not collected already, then do as much as possible in here before sending to a new doc
+
 }
 
 function createDocFromReviews(reviewsData){
 
     let newDocumentContents = ">Below is a summary of all REVIEW items in the script<\n\n"
-        newDocumentContents += ">**" + (documentName?.toUpperCase() || "UNTITLED") +"**<\n"
+        newDocumentContents += ">**" + (documentSetting.documentName?.toUpperCase() || "UNTITLED") +"**<\n"
     let review = 0
 
     for (element of outline){
@@ -1268,7 +1263,7 @@ function createDocFromNotes(){
     if(!globalNotesData)collectNotes()
 
     let newDocumentContents = ">Below is a summary of all NOTES in the script<\n\n"
-        newDocumentContents += ">**" + (documentName?.toUpperCase() || "UNTITLED") +"**<\n"
+        newDocumentContents += ">**" + (documentSetting.documentName?.toUpperCase() || "UNTITLED") +"**<\n"
     let note = 0
 
     for (element of outline){
@@ -1354,7 +1349,7 @@ function displayBeats(){
         if((outline[globalBeatData[im].outlineElementNumber]?.typeAsString != "Section" 
             ||
             outline[globalBeatData[im].outlineElementNumber]?.numberOfPages > 0)
-            && scenesAreProportional == 1){
+            && documentSetting.scenesAreProportional){
             beatVerticalPosition = globalBeatData[im].position - outline[globalBeatData[im].outlineElementNumber]?.line.position
             let percentageIntoScene = beatVerticalPosition / outline[globalBeatData[im].outlineElementNumber]?.sceneLength
 
@@ -1698,6 +1693,8 @@ function collectRevisionIndices(){
 }
 
 function paintRevisions(changedAsJSON, reviewAsJSON){
+
+    if(!outline) return
 
     mylog()
 

@@ -21,7 +21,7 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 
 	mylog()
 	if (!theClickedThing)return
-	if (!indexCardMode && scenesAreProportional) return
+	if (!documentSetting.indexCardMode && documentSetting.scenesAreProportional) return
 	//mylog("this was clicked: " + theClickedThing.classList )
 
 	console.log("anArrowWasClicked", theClickedThing, triggeredWithKey)
@@ -104,6 +104,8 @@ function rememberCardState(){
 
 }
 
+var blurListener
+
 function indexCardEditor(theElement, e){
 
 	mylog()
@@ -143,11 +145,11 @@ function indexCardEditor(theElement, e){
 		synEditBox.style.backgroundImage = "none"
 		synEditBox.style.color = "black"
 		synEditBox.style.border = attributes.border
-			if(indexCardMode) synEditBox.style.position = "absolute"
-			if(scenesAreProportional == 0) synEditBox.style.position = "relative"
+			if(documentSetting.indexCardMode) synEditBox.style.position = "absolute"
+			if(!documentSetting.scenesAreProportional) synEditBox.style.position = "relative"
 		synEditBox.style.top = 0 + "px"
 		synEditBox.style.left = 0 + "px"
-			if(indexCardMode 
+			if(documentSetting.indexCardMode 
 					&& !synopsisContainer.closest(".scene, .section").classList.contains("level1")
 					&& !synopsisContainer.closest(".scene, .section").classList.contains("special")){
 				synEditBox.style.height = measures.height + "px"
@@ -202,7 +204,7 @@ function indexCardEditor(theElement, e){
 	// synopsisContainer.appendChild(synEditBox)
 	synopsisContainer.insertAdjacentElement("afterbegin", synEditBox)
 
-	let blurListener = new AbortController()
+	blurListener = new AbortController()
 
 	addConfirmButtons(synopsisContainer, blurListener)
 	
@@ -281,7 +283,6 @@ function addConfirmButtons(synopsisContainer, blurListener){
 		cancelButton.style.position = "absolute"
 		cancelButton.style.left = boxPos.x - flexiContainer.getBoundingClientRect().left - 10 + "px"
 		cancelButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
-		// cancelButton.classList.add("addButton")
 		cancelButton.classList.add("confirmButtons")
 		cancelButton.innerHTML = "×"
 		cancelButton.style.color = "#F33"
@@ -293,7 +294,6 @@ function addConfirmButtons(synopsisContainer, blurListener){
 			okButton.style.position = "absolute"
 			okButton.style.left = boxPos.x - flexiContainer.getBoundingClientRect().left - 10 + boxPos.width + "px"
 			okButton.style.top = boxPos.y + boxScroll + boxPos.height - 10 + "px"
-			// okButton.classList.add("addButton")
 			okButton.classList.add("confirmButtons")
 			okButton.innerHTML = "OK"
 
@@ -458,15 +458,14 @@ function exitFromIndexCardEditor(confirmed){
     coverContainer.style.display = "none"
 	
 	if(confirmed){
-		console.log("IF CONFIRMED")
+		console.log("CONFIRMED")
 		$id("synEditBox").classList.add("wait")
-		let doUpdate = parseIndexCardPostEditing()
-		if(doUpdate){
-			//the non-delayed update is now handled by the plugin
-			//updateWithoutDelay = true
-			//startSmallUpdate()
-		}
+		let runUpdate = parseIndexCardPostEditing()
+			if(runUpdate){
+				firstRun() //to make sure the outline updates, since synopsis won't trigger updates by itself
+			}
 	}else{
+		console.log("NOT CONFIRMED")
 		$id("synEditBox").remove()
 	}
 
@@ -825,11 +824,11 @@ function disableUpdating(){
 #flexiContainer.drag:is(.indexcards, .nonProportionalMode):has(#ghost > .synopsis) .synopsiscontainer,
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox,#synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
-.indexcards:not(:has(.editBox,#synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .scene:hover > .synopsiscontainer,
-.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox, .addButton)) .synopsiscontainer:hover {
+.indexcards:not(:has(.editBox,#synEditBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer,
+.indexcards:not(:has(.editBox,#synEditBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox)) .section:has( > .section-heading:hover) > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox)) .scene:hover > .synopsiscontainer,
+.showSynopsisInScenes:not(.indexcards, :has(.editBox,#synEditBox)) .synopsiscontainer:hover {
 
 	min-height: calc(14px * var(--fontSizeFactor)) !important;
 	transition: min-height 0.2s !important;
@@ -850,11 +849,11 @@ function disableUpdating(){
 } */
 
 /*new behavior for act and special with hidden synopsiscontainer 2 of 2*/
-.indexcards:not(:has(.editBox, #synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.indexcards:not(:has(.editBox, #synEditBox, .addButton)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .scene:hover > .synopsiscontainer:empty::after,
-.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox, .addButton)) .synopsiscontainer:empty:hover::after {
+.indexcards:not(:has(.editBox, #synEditBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)):has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.indexcards:not(:has(.editBox, #synEditBox)) .section:is(.level1, .special:has( > .synopsiscontainer:empty)) > .synopsiscontainer:empty:hover::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox)) .section:has( > .section-heading:hover) > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox)) .scene:hover > .synopsiscontainer:empty::after,
+.nonProportionalMode.showSynopsisInScenes:not(.indexcards, :has(.editBox, #synEditBox)) .synopsiscontainer:empty:hover::after {
 
 	content: "double click to add synopsis";
 	text-align: center;
@@ -942,7 +941,6 @@ function disableUpdating(){
 
 }
 
-.promoteButtons,
 .confirmButtons{
 
     margin: 0px !important;
@@ -972,107 +970,6 @@ function disableUpdating(){
 	box-shadow: 0px 0px 4px rgba(0,0,0,0.4);
 
     /* transform: translate(-110%, -110%); */
-
-}
-
-.promoteButtons{
-
-	color: rgba(255,255,255,1) !important;
-	background: black !;
-	width: 30px !important;
-	border-radius: 10px;
-
-	z-index: 1 !important;
-	
-	translate: 0 -60%;
-	box-shadow: none;
-
-}
-
-.promoteButtons::before,
-.addButton:not(:hover)::before{
-	content: "";
-
-	width: 9px;
-	height: 9px;
-	background: white;
-
-	position: absolute;
-	top: calc(2.88px * 1.2);
-
-	z-index: -1 !important;
-	
-	clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 66% 33%, 0% 0%);
-	
-}
-
-.addButton:not(:hover)::before{
-
-	rotate: 135deg;
-	left: 3.5px;
-	top: 11px;
-
-	z-index: -1111 !important;
-
-
-}
-
-#promoteButton::before{
-	
-	rotate: -135deg;
-	left: calc(-4.32px * 1.0);
-	z-index: -20 !important;
-	
-}
-
-#demoteButton::before{
-	
-	rotate: 45deg;
-	right: calc(-4.32px * 1.1);
-	z-index: -20 !important;
-
-}
-
-#actioncontainer:has(.addButton:hover) #demoteButton{
-	translate: 50px -60%;
-	opacity: 0.2;
-	transition: translate 0.2s, opacity 0.2s;
-}
-#actioncontainer:has(.addButton:hover) #promoteButton{
-	translate: -50px -60%;
-	opacity: 0.2;
-	transition: translate 0.2s, opacity 0.2s;
-}
-
-/* .promoteButtons::after,
-.confirmButtons::after{
-
-	position: absolute;
-	content: "";
-	left: 50%;
-	top: 50%;
-	width: 100%;
-	height: 100%;
-
-	translate: -50% -50%; 
-
-	border: 20px solid transparent;
-	border-radius: 50%;
-
-}
-
-.promoteButtons:hover::after,
-.confirmButtons:hover::after{
-
-	border-color: rgba(255, 255, 255, 0.0);
-	transition: 0.2s;
-
-} */
-
-.promoteButtons:hover{
-
-	background: #ccc;
-	color: black !important;
 
 }
 

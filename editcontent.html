@@ -185,24 +185,19 @@ function editContent(ev, elementToEdit) {
         let sceneHeight = sceneSize?.height || false
 
     let editBoxDelay = 0
-    
-        //LEGACY: I have not seen this problem for a long time.
-            //having the below line turned on means editbox does not scroll with rest of screen
-            //but turning it off AT LEAST means scrolled page will have editbox appear in wrong place
-            //flexiContainer.classList.remove("positionRelative") //why?
 
         //this sends us to the new synopsisEditor!
-        //NOTE: the code for synopsis editing still lingering below WILL produce an error
-        //because it still expects synopsis to be outline elements. 
+            //NOTE: any code for synopsis editing still lingering below WILL produce an error
+            //because it still expects synopsis to be outline elements. Remove it. 
         if((theElement.classList.contains("synopsis") || theElement.classList.contains("synopsiscontainer"))){
 
-            if(!indexCardMode && scenesAreProportional != 0){
+            if(!documentSetting.indexCardMode && documentSetting.scenesAreProportional){
 
                 alertThis("Editing synopsis in this view is disabled", "By its nature, Flexible view hides content all the time which makes it unsuitable for inline editing.\n\nOn the other hand, in the FIXED and INDEX CARD views, editing synopsis is easier than ever.\n\nSwitch to one of those views by hitting F or X and edit the card from there.")
                 return
             }
 
-            if(indexCardMode && documentSetting.autoWiden && !theElement.closest(".level1").classList.contains("wider")) {
+            if(documentSetting.indexCardMode && documentSetting.autoWiden && !theElement.closest(".level1").classList.contains("wider")) {
                 makeWider(theElement)
                 editBoxDelay = 250
             }
@@ -215,7 +210,7 @@ function editContent(ev, elementToEdit) {
 
     mylog("before if dots")
 
-    //to prevent editing dots, this is a copy of the same thing in insertaddbutton
+    //to prevent editing dots:
     if( [...$id("flexiContainer").classList].includes("indexcards")
         &&
         [...theElement.classList].includes("scene")){
@@ -235,7 +230,6 @@ function editContent(ev, elementToEdit) {
         return
     }
 
-    console.log("hello", theElement)
     //return if trying to edit uneditable things
         if (!["section-heading", "sceneheading", "notepanelNote", "expandedNote"].some(allowedClass => theElement.classList.contains(allowedClass))){ //experimental 2023-01-08
             return
@@ -256,13 +250,11 @@ function editContent(ev, elementToEdit) {
     mylog("past all the guard clauses, now setting weAreCurrentlyEditingText to true")
     //================================================================================
 
-    //This used to sit BEFORE the guard clauses, but I moved it here to not risk undraggable elements after illegal edit efforts
-        initialDraggability = !(!theElement.draggable) //will freeze the value
-        theElement.draggable = false
+    initialDraggability = !(!theElement.draggable) //will freeze the value
+    theElement.draggable = false
 
     weAreCurrentlyEditingText = true
 
-    // document.removeEventListener("keydown", checkWhatKeyGotPressed)
     toggleCaptureKeypresses(false)
     document.addEventListener('keydown', editBoxListen)
     theElement.ondblclick=""
@@ -291,6 +283,7 @@ function editContent(ev, elementToEdit) {
             if (a.includes("section-heading")){
                 kindOf = "inSection"
                 // theElement.parentNode.classList.add("isSelected")
+                theElement.classList.remove("isSelected")
                 theElement.parentNode.classList.remove("isSelected")
             }
             if ([...theElement.parentNode.classList].includes("level1")){
@@ -330,7 +323,7 @@ function editContent(ev, elementToEdit) {
                 }
 
             let scrolledAmount = $id("flexiContainer").scrollTop
-            if(scenesAreProportional == 1 && sceneHeight) theElement.closest(".scene").style.minHeight = sceneHeight
+            if(documentSetting.scenesAreProportional && sceneHeight) theElement.closest(".scene").style.minHeight = sceneHeight
         
             $id("flexiContainer").appendChild(editBox)
 
@@ -349,8 +342,12 @@ function editContent(ev, elementToEdit) {
         let elementCSS = window.getComputedStyle(theElement)
 
             editBox.style.color = elementCSS.color
-                if ([...theElement.classList].includes("sceneheading")){
+            console.log(elementCSS.color, theElement)
+                if (theElement.classList.contains("sceneheading")){
                     editBox.style.color = "black"
+                }
+                if (theElement.classList.contains("section-heading")){
+                    editBox.style.color = "white"
                 }
                 if (theElement.classList.contains("section-heading") && !flexiContainer.classList.contains("allowLowerCaseSections")){
                     editBox.style.textTransform = "uppercase";
@@ -365,7 +362,7 @@ function editContent(ev, elementToEdit) {
             editBox.style.paddingBottom = "0"
             editBox.style.border = elementCSS.border
             editBox.style.margin = elementCSS.margin
-            if (indexCardMode) {
+            if (documentSetting.indexCardMode) {
                 editBox.style.borderRadius = elementCSS.borderRadius
             }else if(theElement.closest(".scene, .section")){
                 editBox.style.borderRadius = window.getComputedStyle(theElement.closest(".scene, .section"))?.borderRadius
@@ -382,8 +379,7 @@ function editContent(ev, elementToEdit) {
 
         editBoxResizeObserver = new ResizeObserver(entries => {
             for (entry of entries){
-                //let xtra = theElement.classList.contains("section-heading") ? 0 : 0
-                theElement.style.height = entry.contentRect.height + /*xtra +*/ "px"
+                theElement.style.height = entry.contentRect.height + "px"
             }
         })
         editBoxResizeObserver.observe($(".editBox"))
@@ -394,7 +390,7 @@ function editContent(ev, elementToEdit) {
             editBoxResizeObserver.disconnect()
             theElement.style.height = ""
             event.preventDefault();
-            exitEdit(theElement, changed)}) //used to be false, but I think only ESC should exit without changing
+            exitEdit(theElement, changed)}) 
 
         mylog("eventlisteners appended")
 
@@ -455,8 +451,6 @@ function exitEdit(theElement, changesWereConfirmed) {
             
             mylog("this means changes were confirmed = true")
 
-
-            updateWithoutDelay = true //forces update of display even if non-realtime (and with zero delay)
             currentOutlineCount = findOutlineCountFor(theElement)
 
             let shownLine

@@ -342,6 +342,15 @@
             greyOutIf: () => { return document.querySelectorAll(".isSelected").length > 1 },  
             command: (item) => { addElement(item, "scene") },
         },
+        {   
+            menuItem: "Unlocked scenes to A-scenes",
+            shortcut: ["!"],
+            icon: "",
+            iconColor: "",
+            showFor: ["flexiContainer"],
+            greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
+            command: (item) => { addLetteredScenesWhenLocked() },
+        },
     ])
 
 function displayContextMenu(event, element){
@@ -350,6 +359,7 @@ function displayContextMenu(event, element){
 
     event.preventDefault()
     event.stopPropagation()
+    closeNewMenu()
 
     element = element || event.target //the element is sent when triggering menu with keys
     let item = element.closest(".synopsis, .scene, .section, .flexiContainer")
@@ -360,6 +370,8 @@ function displayContextMenu(event, element){
 
     document.querySelectorAll(".contextMenu").forEach( menu => {menu.remove()})
     if (!item) return
+
+
 
     let contextMenu = document.createElement("div")
         contextMenu.id = "contextMenu"
@@ -675,7 +687,7 @@ function omitScene(){
 
     let elements = $$('.isSelected')
 
-        if(scenesAreProportional == 1){
+        if(documentSetting.scenesAreProportional){
             for(element of elements){
                 //element.classList.add("dimmedScene")
                 element.classList.add("shrinkingWhenOmitting")
@@ -700,8 +712,7 @@ function omitScene(){
     }
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    updateWithoutDelay = true
-    Beat.call("Beat.custom.omitScene(" + scenesAreProportional + ", [" + [...elementsToOmit] + "])")
+    Beat.call("Beat.custom.omitScene(" + documentSetting.scenesAreProportional + ", [" + [...elementsToOmit] + "])")
     deselectAllElements()
 }
 
@@ -723,7 +734,6 @@ function unOmitScene(){
         }
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    updateWithoutDelay = true
     Beat.call("Beat.custom.unOmitScene([" + [...elementsToUnOmit] + "])")
     deselectAllElements()
 }

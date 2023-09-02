@@ -1,48 +1,34 @@
 <p class="headline">Welcome to FTOutliner!</p>
 <div id = "main">
-It seems this your first time opening this version, so here are some quick words before you go ahead.<br/><br/>
-<li>
-	<strong>• First of all, this a pre-release version.</strong><br/>
-	FTOutliner is written by a screenwriter, no a coder. Over the couple of years that FTOutliner has existed, I've become marginally less sucky at coding, but the codebase is still riddled with scars from back when (and a lot o new wounds from trying to fix them .<br/> 
-	In order to straighten all that up, I'm currently rewriting it quite fundamentally to eliminate the worst beginner mistakes. But as a result:
-</li>
+This seems to be your first time opening this version, so here are some quick words before you go ahead.<br/><br/>
+<strong>If you've never used FTOutliner before,</strong><br/>
+first of all: Welcome! This is a plugin for navigating, editing and getting a bird's eye view of your screenplay. Don't be overwhelmed — FToutliner is meant to make your screenwriting life esier. Just keep it open next to your screenplay as you write. Gradually, you'll find your own ways to use it.<br/><br/>
+<strong>This version has been rewritten. A lot.</strong><br/>
+That's a good thing, of course. FTOutliner is written by a screenwriter, not a coder. But over time, it appears old dogs can learn too. <br/>
+This is a version that aims to fix a lot of my newbie mistakes. But in doing so I'm bound to introduce new ones. Because oh well. And on that note:
 <br/><br/>
-<strong>• Bugs will happen. Please report them.</strong><br/>
-Some stuff is still being worked on. For others, I'm hoping to learn from other people's usage the things and situations I didn't foresee. And that's where I need your help:
+<strong>Please report any bugs or quirks you run into.</strong><br/>
+Some stuff is still being worked on. Some is not, but ought to be. And for that to happen I depend on your help.
 <br/><br/>
-For that reason, <strong>there is a new menu item in the Settings Menu</strong> that launches a small browser window with my gitHub issues page. Please use it, and tell me whatever problems you encounter! (You need a user account to post, but it's free to sign up)
-<br/><br/>
-<strong>• What has changed?</strong><br/>
-If you have used FTOutliner before, most will look the same. There are a couple of small, new features, but this version is mostly about getting the plugin much more reliable and stable.<br/>
-If you're curious, do check out the changlog in the settings menu.
-<br/><br/>
-Finally. If you have never used FTOutliner before, then once again welcome. Don't feel overwhelmed — this plugin is meant to make your screenwriting life esier. Just go ahead and write your screenplay with FTOtliner open next to it, and you will hopefully gradually get a hang of what it can do for you.
-<br/><br/>
-<strong>• Finally</strong><br/>
-That's about it, I think. I've taken enough of your time already. Let's go writing, both of us!<br/><br/>
+<!--li style="padding-right: 40px"-->
+	<i>in the Settings menu, there is now a menu itemo to <strong>&quot;Report an issue&quot;</strong>, which launches a browser window with FTOutliner's GitHub issues page. Please use it, and tell me what you encounter! (You'll need a user account to post, but it's free to sign up)
+	</i><br/><br/>
+<!--/li-->
+<!--strong>What has changed?</strong><br/>
+If you have used FTOutliner before, most will look the same. There are a couple of small, new features, but most changes are internal to make the plugin more stable. If you're curious, check the changelog from the Settings menu.
+<br/>
+If you haven't, then once again welcome. Don't feel overwhelmed — FToutliner is meant to make your screenwriting life esier. Just keep it open next to your screenplay as you write — hopefully, you'll gradually find your own ways to use it.
+<br/><br/-->
+<strong>Finally,</strong><br/>
+That's about it. I've taken enough of your time already. Let's go writing, both of us!<br/><br/>
 	<!--hr-->
 	<ul>
 	<!--strong><br/>Behavior Settings</strong><br/-->
-	<li onclick="toggleThis('neverShowWelcomeWindowAgain', 'buttonFor-neverShowWelcomeWindowAgain')"> 
-		<input id="buttonFor-neverShowWelcomeWindowAgain" type="checkbox">
-		<label for="buttonFor-neverShowWelcomeWindowAgain">Don't ever show this dialog again, goddamit!<span class="shortcut" style="float:right"></span></label>
+	<li id="changeThis" style="width: max-content; margin-left: auto; margin-right: auto; padding-right: 40px"> 
+		<input id="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion type="checkbox">
+		<label for="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion>Enough with this dialog already, don't ever show it again!<span class="shortcut" style="float:right"></span></label>
 		<span class="explanation">Unless there's something new to say that's really really important.<br/>In which case sure, fine, go ahead.</span>
 	</li>
-	<!--li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
-		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
-		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" style="float:right"></span></label>
-		<span class="explanation">When OFF, the same can be temporarily achieved with ctrl+alt+cmd+click.</span>
-	</li>
-	<br/>
-	<li  onclick="toggleThis('warningsAreOn', 'buttonFor-warningsAreOn', true)">
-		<input id="buttonFor-warningsAreOn" type="checkbox">
-		<label for="buttonFor-warningsAreOn">Disable Warning Messages<span class="shortcut" style="float:right">^P</span></label>
-	</li>
-	<li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
-		<input id="buttonFor-realTimeIsOn" type="checkbox">
-		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" style="float:right">^P</span></label><br/>
-		<class="explanation">This is generally not recommended</class>
-	</li-->
 	</ul>
 
 	<p><br/></p>
@@ -53,6 +39,30 @@ That's about it, I think. I've taken enough of your time already. Let's go writi
 </div>
 
 <script>
+
+	//Dynamically adding version number to checkbox to automatically reset it when new version is released:
+
+	window.addEventListener('load', function () {
+
+		Beat.callAndWait(() => {
+			let ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion")
+			return(ftoutlinerVersion)
+		})
+		.then(
+        	response => {
+				
+				ftoutlinerVersion = response.replace(/\./g, "")
+				
+				let listItem = document.getElementById("changeThis")
+					listItem.onclick = function(){
+						toggleThis('dontShowWelcomeWindowFor' + ftoutlinerVersion, 'buttonFor-dontShowWelcomeWindowFor' + ftoutlinerVersion)
+					}
+					listItem.querySelector("input").id = "buttonFor-dontShowWelcomeWindowFor" + ftoutlinerVersion
+					listItem.querySelector("label").setAttribute("for", "buttonFor-dontShowWelcomeWindowFor" + ftoutlinerVersion)
+		},
+        	error => { console.log("Error retrieving userDefault") }
+    	)
+	})
 
 	//STARTUP SEQUENCE:
 
@@ -101,7 +111,7 @@ That's about it, I think. I've taken enough of your time already. Let's go writi
 	function toggleThis(settingName, settingButton, invertSelection){
 
 		userDefault[settingName] = document.getElementById("buttonFor-" + settingName).checked
-
+		
 		let valueAsJSON = JSON.stringify(userDefault[settingName])
 			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "userDefault") `)
 
@@ -151,9 +161,9 @@ That's about it, I think. I've taken enough of your time already. Let's go writi
 
 	.headline {
 
-		font-size: 24px;
+		font-size: 32px;
 		font-weight: 800;
-		line-height: 28px;
+		line-height: 38px;
 		margin: 20px 0px 20px 0px;
 		display: block;
 
@@ -176,7 +186,7 @@ That's about it, I think. I've taken enough of your time already. Let's go writi
 
 		font-size: 11px;
 		line-height: 14px;
-		margin-left: 40px;
+		margin-left: 21px;
 		margin-top: -2px;
 		display: block;
 

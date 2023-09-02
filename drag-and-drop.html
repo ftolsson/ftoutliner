@@ -204,7 +204,6 @@ function onDragStart(e) {
 
     e.stopPropagation()
     collapseNote()
-    removeAddButton()
 
     // Beat.call("Beat.onTextChangeDisabled = true")
     // Beat.call("Beat.onOutlineChangeDisabled = true")
@@ -221,7 +220,7 @@ function onDragStart(e) {
     mylog("onDragStart: " + e.target.classList)
 
     //don't drag scene dots in index card mode for sections
-    if(indexCardMode && e.target.classList.contains('scene') && ![...e.target.parentNode.classList].includes('isExpanded')){
+    if(documentSetting.indexCardMode && e.target.classList.contains('scene') && ![...e.target.parentNode.classList].includes('isExpanded')){
         Beat.call("Beat.alert('Not allowed', 'Moving scene dots around in this view would be quite insecure and finicky. So no.')")
         return
     }
@@ -355,7 +354,7 @@ function onDragStart(e) {
 
                     if (outline[i].typeAsString == "Synopse"){mylog("synopsis so continuing"); continue}
 
-                    if (outline[i].omitted == 1 && scenesAreProportional == 1){reasonString = "It may look as if they are, but the range you are trying to move contains one or more hidden (omitted) scenes, which were not selected. \\n\\nSwitch to non-flexible mode (shortcut: F) to select the entire range."}
+                    if (outline[i].omitted == 1 && documentSetting.scenesAreProportional){reasonString = "It may look as if they are, but the range you are trying to move contains one or more hidden (omitted) scenes, which were not selected. \\n\\nSwitch to non-flexible mode (shortcut: F) to select the entire range."}
             
                     e.stopPropagation()
                     e.preventDefault()
@@ -575,7 +574,7 @@ function onDragOverForSynopsis(e, draggedOver, previouslyDraggedOverElement){
     //expand scene dots and return
     if (draggedOver.classList.contains("scene") &&
         !draggedOver.closest(".section")?.classList.contains("isExpanded") &&
-        indexCardMode){
+        documentSetting.indexCardMode){
             draggedOver.closest(".section")?.classList.add("isExpanded")
             return
     }
@@ -868,7 +867,7 @@ function onDragOverForScenes(e, draggedOver){
         if (draggedOver.parentNode?.classList.contains("section") &&
             !draggedOver.parentNode?.classList.contains("level1") &&
             !draggedOver.parentNode?.classList.contains("isExpanded") &&
-            indexCardMode){
+            documentSetting.indexCardMode){
                 draggedOver.closest(".section")?.classList.add("isExpanded")
                 return
         }
@@ -889,7 +888,7 @@ function onDragOverForScenes(e, draggedOver){
             sectionbounding.top = boundingForHeading.top
             sectionbounding.bottom = boundingForHeading.bottom
 
-            if(indexCardMode && !draggedOver.closest(".section").classList.contains(".collapsedSection")){
+            if(documentSetting.indexCardMode && !draggedOver.closest(".section").classList.contains(".collapsedSection")){
 
                 boundingForContainer = draggedOver.closest(".section").querySelector(".synopsiscontainer").getBoundingClientRect()
                 sectionbounding.bottom = boundingForContainer.bottom
@@ -1054,7 +1053,6 @@ function onDrop(e){
     mylog("insert before" + insertBeforeScene)
     
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
-    updateWithoutDelay = true
     let synopsisMove = $id("dropDiv").dataset.dropSynopsisHere || null
 
     // alertThis(synopsisMove)

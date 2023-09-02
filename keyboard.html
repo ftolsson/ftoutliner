@@ -84,7 +84,7 @@ let shortcutKeys = [
         key: ["Control", "c"],
         command: (event) => {		
             document.getElementById("flexiContainer").classList.toggle("greyonly")
-		    if(invertTextOnDark) reevaluateColorContrast()
+		    if(userDefault.invertTextOnDark) reevaluateColorContrast()
 		    setAllButtons()
 		    updateDialogPanel()
         }
@@ -223,8 +223,16 @@ let shortcutKeys = [
     // 2. NON-LETTERS
     
     {
+        key: ["Shift", "!"],
+        command: (event) => { throwError() }
+    },
+    {
         key: ["Meta", ","],
         command: (event) => { openSettingsWindow() }
+    },
+    {
+        key: ["'"],
+        command: (event) => { toggleShowRevisions() }
     },
     {
         key: ["*"],
