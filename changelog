@@ -1,37 +1,43 @@
-v 1.61 BETA
-===========
+#v 1.7 (September 3, 2023)
 
-This marks the first-ever actual test version of FTOutliner. 
+FINALLY, a long overdue, much-needed update! Part of me would like to call this version 2.0, because it has been extensively rewritten, but for one thing most of the changes are under-the-hood, and for another this is an ongoing process where some stuff still waits to be rewritten. So 1.7 it is. And here's the state of things as of this release:
 
-It includes the changes of the never-released v 1.60 (changelog below, but most notably: **PAGE NUMBERS are now spot on!**) but most of all, this is the beginning of a journey towards rewriting most if not all of the code, trying to make it a reliable and fast as the main app.
+1. It includes the changes of the never-released v 1.60. See changelog below if you're curious, but the big highlight is this:
+* PAGE NUMBERS are now spot on between the Beat document and FTOutliner
+  - As a result, there is a now an option in the view menu)to have page-by-page numbering visible in the margin of the acts. (The page numbers are clickable too. Imagine a feedback meeting where someone says "so on page 48" -- click and you're there. Personally, I keep them turned on all the time.)
+  - Lengths and ranges are now much more reliable as a result, and you can also display total lengths on sections (via Advanced Settings)
 
-Under-the-hood changes in this build (none of which will be immediately visible to the user):
+2. It includes lots of under-the-hood changes (none of which will be immediately visible to the user):
 * Completely re-vamped system for updating FTOutliner's timeline. More reliable, less chance of mismatch between document and outline.
 * Less communication back and forth between FTOutliner and Beat when it's not needed, with speed gains for both.
 * Re-vamped context menu system. Looking almost exactly the same so don't expect anything exciting, but also much more maintainable and expandible. 
 * New system for collecting and displaying notes and markers. Again, looking exactly the same, but faster and more reliable.
 * Changed how dialog boxes work (for those who wonder: By opening in a new window instead of divs that may or may not fit within FTOutliner's window size). Currently, this affects the Advanced Settings dialog, but others will gradually move over too.
 
-Stuff that is somewhat visible:
-* Advanced Settings option when selecting several scenes at once to display their total length in pages in the bottom button row.
+3. Stuff that is somewhat visible:
+* Option when selecting one or more scenes to display their total length in pages in the bottom button row.
+* In High Contrast Mode, a slider lets you decide the color saturation for scenes from white only to fully colored.
+* Option to (temporarily?) show scenes colored by progress instead of assigned scene color. Progress is entered manually by adding a note with a percentage such as [[50%]] anywhere in a scene. 
+* Menu Item to report bugs directly through GitHub Issues
 * Options to adjust the interaction between main window and plugin:
-- Should you want to, you can set each click to immediately focus the document, allowing you to start writing at once. (See Advanced Settings)
-- Should you not want that, but you're still a keyboard-centric user and want to switch focus back and forth between FToutliner and document, there is now a keyboard shortcut (ctrl+alt+cmd+SPACE) to do that.
-- FTOutliner is easier to use keyboard-only: Walk scenes with arrow keys, hit ENTER to open context menu at selected scene, use keys in context menu. (This will gradually happen for the menus at the bottom as well. They can already be opened with F1, but not selected using keys.)
+  - Should you want to, you can set each click to immediately focus the document, allowing you to start writing at once.
+  - Should you not want that, but you're still a keyboard-centric user and want to switch focus back and forth between FToutliner and document, there is now a keyboard shortcut (ctrl+alt+cmd+SPACE) to do that.
+  - FTOutliner is easier to use keyboard-only: Walk scenes with arrow keys, hit ENTER to open context menu at selected scene, use keys in context menu. (This will gradually happen for the menus at the bottom as well. They can already be opened with F1, but not selected using keys.)
 * To add new scenes or sections from directly within the outline, instead of holding ALT (which annoyingly made buttons appear and scenes shift around when you held ALT for other reasons) adding new content is now done from the right click (context) menu.
 * The same goes for increasing and decreasing the level of sections, which is done via the context menu too. 
 * Lots of minor visual tweaks. I hope I got everything right.
 
-Drawbacks:
-* For now, omitting (hiding) scenes from within FTOutliner has been disabled. The old logic for how to do that was not reliable enough, and until it is, I don't think anyone should use it. So there.
+4. Known Issues:
+* For now, omitting (hiding) scenes from within FTOutliner has been disabled. FTOutliner's old logic was not really reliable, and until it is, I don't think we should use it. So there.
 * There will be bugs. See below.
 
-Bugfixes:
-The bugfixes are too many to mention, many of them never fixed per se but rather just not there anymore after rewriting the context where they appeared.
-On the flip side, I'm sure I have introduced new ones. Please do report whatever you run into!
+5. Bugfixes:
+* The bugfixes are too many to mention, many of them never fixed per se but rather just not there anymore after rewriting the context where they appeared.
+* On the flip side, I'm sure I have introduced new ones. Please do report whatever you run into -- I have been using FTOutliner daily for my day job during development and find it more stable than ever, but for every new user there will be new was to work. So please help me catch the stuff I didn't foresee.
+
 
 v 1.60 (never released)
-=====================
+=======================
 
 This is mainly an update to bring FTOutliner up to speed with Beat's new pagination system.
 But WHAT A PAGINATION SYSTEM that is! Thanks to Lauri-Matti for your hard work (and for explaining very patiently how to use it).

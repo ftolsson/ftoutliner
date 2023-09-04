@@ -5,20 +5,20 @@
 		<strong class="subheading">Scene And Sections (all views)</strong><!--br/-->&nbsp;
 		<li  onclick="toggleThis('showMultipleSceneLines', 'buttonFor-showMultipleSceneLines')">
 			<input id="buttonFor-showMultipleSceneLines" type="checkbox">
-			<label for="buttonFor-showMultipleSceneLines">Show multiple SCENE lines<span class="shortcut" style="float:right">^S</span></label>
+			<label for="buttonFor-showMultipleSceneLines">Show multiple SCENE lines<span class="shortcut" >^S</span></label>
 		</li>
 		<li  onclick="toggleThis('showMultipleSectionLines', 'buttonFor-showMultipleSectionLines')">
 			<input id="buttonFor-showMultipleSectionLines" type="checkbox">
-			<label for="buttonFor-showMultipleSectionLines">Show multiple SECTION lines<span class="shortcut" style="float:right">^T</span></label>
+			<label for="buttonFor-showMultipleSectionLines">Show multiple SECTION lines<span class="shortcut" >^T</span></label>
 		</li>
 	<br/>
 		<li onclick="toggleThis('allowLowerCaseSections', 'buttonFor-allowLowerCaseSections')">
 			<input id="buttonFor-allowLowerCaseSections" type="checkbox">
-			<label for="buttonFor-allowLowerCaseSections">Show SECTION capitalization as typed rather than uppercase only<span class="shortcut" style="float:right">^U</span></label>
+			<label for="buttonFor-allowLowerCaseSections">Show SECTION capitalization as typed rather than uppercase only<span class="shortcut" >^U</span></label>
 		</li>
 		<li onclick="toggleThis('showLengthsInSections', 'buttonFor-showLengthsInSections')">
 			<input id="buttonFor-showLengthsInSections" type="checkbox">
-			<label for="buttonFor-showLengthsInSections">Show accumulated length-in-pages for sections<span class="shortcut" style="float:right"></span></label>
+			<label for="buttonFor-showLengthsInSections">Show accumulated length-in-pages for sections<span class="shortcut" ></span></label>
 		</li>
 	</ul>
 	<br/>
@@ -27,15 +27,15 @@
 		<br/><strong class="subheading">Index Cards View</strong><!--br/-->&nbsp;
 		<li  onclick="toggleThis('showVerticals', 'buttonFor-showVerticals')">
 			<input id="buttonFor-showVerticals" type="checkbox">
-			<label for="buttonFor-showVerticals">Show vertical bars for section levels<span class="shortcut" style="float:right">^V</span></label>
+			<label for="buttonFor-showVerticals">Show vertical bars for section levels<span class="shortcut" >^V</span></label>
 		</li>
 		<li  onclick="toggleThis('autoWiden', 'buttonFor-autoWiden')">
 			<input id="buttonFor-autoWiden" type="checkbox">
-			<label for="buttonFor-autoWiden">Automatically widen index cards when editing<span class="shortcut" style="float:right"></span></label>
+			<label for="buttonFor-autoWiden">Automatically widen index cards when editing<span class="shortcut" ></span></label>
 		</li>
 		<li  onclick="toggleThis('widenedColumnsGetAutoHeight', 'buttonFor-widenedColumnsGetAutoHeight')">
 			<input id="buttonFor-widenedColumnsGetAutoHeight" type="checkbox">
-			<label for="buttonFor-widenedColumnsGetAutoHeight">Widened cards also adjust height to fit<span class="shortcut" style="float:right"></span></label>
+			<label for="buttonFor-widenedColumnsGetAutoHeight">Widened cards also adjust height to fit<span class="shortcut" ></span></label>
 		</li>
 	</ul>
 	<br/>
@@ -44,13 +44,19 @@
 		<br/><strong class="subheading">Production Helpers</strong><!--br/-->&nbsp;
 		<li onclick="toggleThis('showSelectionInfo', 'buttonFor-showSelectionInfo')">
 			<input id="buttonFor-showSelectionInfo" type="checkbox">
-			<label for="buttonFor-showSelectionInfo">Show info in bottom bar for selected/filtered scenes<span class="shortcut" style="float:right"></span></label>
+			<label for="buttonFor-showSelectionInfo">Show info in bottom bar for selected/filtered scenes<span class="shortcut" ></span></label>
 			<!--span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span-->
 		</li>
 		<li onclick="toggleThis('showRevisions', 'buttonFor-showRevisions')">
 			<input id="buttonFor-showRevisions" type="checkbox">
-			<label for="buttonFor-showRevisions">Indicate lines with revision marks<span class="shortcut" style="float:right">* OR '</span></label>
+			<label for="buttonFor-showRevisions">Indicate lines with revision marks<span class="shortcut" >*</span></label>
 			<!--span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span-->
+		</li>
+		<li onclick="toggleThis('colorByPercentage', 'buttonFor-colorByPercentage')">
+			<input id="buttonFor-colorByPercentage" type="checkbox">
+			<label for="buttonFor-colorByPercentage">Color scenes by progress instead of COLOR attribute<span class="shortcut" >%</span></label>
+			<span class="explanation">When ON, a note or marker with a percentage such as [[50%]] anywhere in a scene will display that scene ranging from red to green based on the value. Scenes with no percentage will show as white.<br/>
+				Toggle this by typing % to temporarily switch to see what scenes remain to finish.</span>
 		</li>
 	</ul>
 	<br/>
@@ -59,27 +65,27 @@
 	<br/><strong class="subheading">Behavior Settings</strong><!--br/-->&nbsp;
 	<li onclick="toggleThis('clickingFocusesEditor', 'buttonFor-clickingFocusesEditor')">
 		<input id="buttonFor-clickingFocusesEditor" type="checkbox">
-		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" style="float:right"></span></label>
+		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" ></span></label>
 		<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
 	</li>
 	<li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
 		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
-		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" style="float:right"></span></label>
+		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" ></span></label>
 		<span class="explanation">When OFF, the same can be achieved ad hoc with ctrl+alt+cmd+click.</span>
 	</li>
 	<li onclick="toggleThis('allowMarkerTextInAllViews', 'buttonFor-allowMarkerTextInAllViews')">
 		<input id="buttonFor-allowMarkerTextInAllViews" type="checkbox">
-		<label for="buttonFor-allowMarkerTextInAllViews">Allow marker text in all views<span class="shortcut" style="float:right"></span></label>
+		<label for="buttonFor-allowMarkerTextInAllViews">Allow marker text in all views<span class="shortcut" ></span></label>
 		<span class="explanation">When OFF, markers don't display text in non-proportional and index card mode. When ON, marker text is visible, but markers may obscure each other as well as the content of index cards. Use wisely!</span>
 	</li>
 	<br/>
-	<li  onclick="toggleThis('warningsAreOn', 'buttonFor-warningsAreOn', true)">
+	<li  onclick="toggleThisUserDefault('warningsAreOn', 'buttonFor-warningsAreOn', true)">
 		<input id="buttonFor-warningsAreOn" type="checkbox">
-		<label for="buttonFor-warningsAreOn">Disable Warning Messages<span class="shortcut" style="float:right">^P</span></label>
+		<label for="buttonFor-warningsAreOn">Show Warning Messages when deleting and moving<span class="shortcut" >^P</span></label>
 	</li>
 	<!--li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
 		<input id="buttonFor-realTimeIsOn" type="checkbox">
-		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" style="float:right">^P</span></label><br/>
+		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" >^P</span></label><br/>
 		<class="explanation">This is generally not recommended</class>
 	</li-->
 	</ul>
@@ -149,6 +155,18 @@
 
 	}
 
+	function toggleThisUserDefault(settingName, settingButton, invertSelection){
+
+		userDefault[settingName] = document.getElementById("buttonFor-" + settingName).checked
+
+		let valueAsJSON = JSON.stringify(userDefault[settingName])
+			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "userDefault") `)
+
+			//note to self: To save me one step, go directly to applySettings in outline.html.
+			//that's where sendToMain will send the setting, so next step is now to add code to apply it.
+
+	}
+
 
 </script>
 
@@ -204,7 +222,21 @@
 
 	.shortcut {
 
-		display: none;
+		opacity: 0;
+		padding-left: 10px;
+		/* display: none; */
+
+		transition: opacity 0.5s ease-out;
+
+	}
+
+
+	li:hover .shortcut {
+
+		opacity: 50%;
+		/* display: inline; */
+
+		transition: 0ms;
 
 	}
 
@@ -219,11 +251,7 @@
 		font-style: italic;
 		opacity: 60%;
 
-	}
-
-	label:hover .shortcut {
-
-		display: inline;
+		padding-right: 40px
 
 	}
 

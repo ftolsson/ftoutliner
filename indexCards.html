@@ -3,7 +3,6 @@
 function expandOrCollapseSections(){
 
 	mylog()
-	console.log("expandOrCollapseSections")
 
 	let trueOrFalse = !$(".section:not(.level1)")?.classList.contains("collapsedSection")
 	
@@ -20,12 +19,9 @@ function expandOrCollapseSections(){
 function anArrowWasClicked(theClickedThing, triggeredWithKey){
 
 	mylog()
+
 	if (!theClickedThing)return
 	if (!documentSetting.indexCardMode && documentSetting.scenesAreProportional) return
-	//mylog("this was clicked: " + theClickedThing.classList )
-
-	console.log("anArrowWasClicked", theClickedThing, triggeredWithKey)
-
 
 	let closestSectionAbove = theClickedThing.closest(".section")
 
@@ -58,8 +54,6 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 		}
 	}else{
 
-		console.log("invert all isExpanded")
-
 		let doCollapse = closestSectionAbove.classList.contains("isExpanded")
 			
 		$$(".section").forEach(section => {
@@ -85,10 +79,8 @@ function anArrowWasClicked(theClickedThing, triggeredWithKey){
 function rememberCardState(){
 
 	mylog()
-	console.log("rememberCardState")
 
 	if(!outline || !$$(".section").length){
-		console.log("returning without remembering cardstate")
 		return}
 
 	cardState = []
@@ -109,8 +101,6 @@ var blurListener
 function indexCardEditor(theElement, e){
 
 	mylog()
-
-	console.log(e, event)
 
 	if($id("synEditBox"))return
 	
@@ -369,7 +359,6 @@ function fixContentEditableWeirdness(){
 	//2. FIX (I hope) for taking a colorclass distributed when hitting ENTER, and storing it in dataset until parsing time
 
 	if (sel.anchorOffset == 0){
-		//console.log(sel.anchorNode.classList || sel.anchorNode.parentElement.classList)
 		let classes = new Set(Array.from(sel.anchorNode?.classList || sel.anchorNode?.parentElement?.classList || ""))
 			classes.delete("synopsis")
 			classes.delete("clickThru")
@@ -412,7 +401,6 @@ function fixContentEditableWeirdness(){
 
 function synEditBoxListen(event){
 
-	console.log("synEditBoxListen")
 	mylog()
 
 	//NOTE: must catch ENTER, and add own new div -- or else .id will be repeated. Stupid contenteditable!
@@ -433,7 +421,6 @@ function synEditBoxListen(event){
 function exitFromIndexCardEditor(confirmed){
 
 	mylog()
-	console.log("exitFromIndexCardEditor", confirmed, exitFromIndexCardEditor.caller.name, event)
 
 	if(event.relatedTarget?.classList.contains("confirmButtons"))return
 
@@ -458,14 +445,12 @@ function exitFromIndexCardEditor(confirmed){
     coverContainer.style.display = "none"
 	
 	if(confirmed){
-		console.log("CONFIRMED")
 		$id("synEditBox").classList.add("wait")
 		let runUpdate = parseIndexCardPostEditing()
 			if(runUpdate){
 				firstRun() //to make sure the outline updates, since synopsis won't trigger updates by itself
 			}
 	}else{
-		console.log("NOT CONFIRMED")
 		$id("synEditBox").remove()
 	}
 
@@ -536,8 +521,6 @@ function parseIndexCardPostEditing(){
 	let postEditDivs = Array.from($$("#synEditBox > .synopsis"))
 	let resultDivs = []
 
-	console.log(postEditDivs)
-
 	let previousIds = []
 
 	for (post of postEditDivs){
@@ -561,7 +544,6 @@ function parseIndexCardPostEditing(){
 	}
 
 	resultDivs.sort((a,b) => (a.id > b.id) ? 1 : ((b.id > a.id) ? -1 : 0))
-	console.log(resultDivs)
 
 		//Now time to loop the result array BACKWARDS (so that INDEX/POSITIONS remains true) and take the decided actions
 		resultDivs = resultDivs.reverse()
@@ -576,7 +558,6 @@ function parseIndexCardPostEditing(){
 
 				let string = "`= " + result.innerText + colorstring+ "\n`"
 				let doThis = `Beat.addString(${string}, ${insertionPoint})`.replaceAll("\n", "\\n")
-					// console.log(doThis)
 					Beat.call(doThis)
 			}
 
@@ -586,7 +567,6 @@ function parseIndexCardPostEditing(){
 				let endPoint = result.dataset.lineEnd - insertionPoint
 				let string = "`\n`"
 				let doThis = `Beat.replaceRange(${insertionPoint}, ${endPoint}, ${string})`.replaceAll("\n", "\\n")
-					// console.log(doThis)
 					Beat.call(doThis)
 			}
 
@@ -600,7 +580,6 @@ function parseIndexCardPostEditing(){
 				let string = `"\n"`
 					if (result.dataset.changeTo.trim() > "") string = "`= " + result.dataset.changeTo + colorstring + "\n`"
 				let doThis = `Beat.replaceRange(${insertionPoint}, ${endPoint}, ${string})`.replaceAll("\n", "\\n")
-					// console.log(doThis)
 					Beat.call(doThis)
 
 			}

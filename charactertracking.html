@@ -294,7 +294,6 @@ function collectCharacters() {
     // (and no, I don't dare calling updateFilter from here, in case this function should be able to be called without)
 
     mylog()
-    console.log("collectCharacters from ", collectCharacters.caller.name)
     console.time("collectCharacters2023")
 
     let removal = userDefault.excludeVoiceOvers ? /(\(.+\))$/ : ""
@@ -424,10 +423,6 @@ function collectCharacters() {
             return false
         }
 
-    // console.log("outlineElementsWithCharactersDialogOnly", outlineElementsWithCharactersDialogOnly)
-    // console.log("outlineElementsWithCharactersIncludingAction", outlineElementsWithCharactersIncludingAction)
-    // console.log("outlineElementsWithCharactersInSynopsisOnly", outlineElementsWithCharactersInSynopsisOnly)
-
     //Finally, here's an array with characters in both action AND synopsis
     let outlineElementsWithChactersAnywhere = 
         outlineElementsWithCharactersIncludingAction.map((characters, index) => 
@@ -435,7 +430,6 @@ function collectCharacters() {
         )
 
     console.timeEnd("collectCharacters2023")
-    console.log(scenesWithDialog2023)
 
     //For now, in order to be able to use old code, let's merge this into the old variable names! Aug 2023
 
@@ -463,8 +457,6 @@ function collectCharacters() {
                     reselectThese.push(character.value)
                 }
             }
-            console.log($id("characterMenuList").selectedOptions)
-            console.log("reselectThese", reselectThese)
 
         //populating/re-populating the character menu and track dialog menu (in case something changed)
             $id("characterMenuList").innerHTML = "" 
@@ -488,7 +480,6 @@ function collectCharacters() {
 
         //and reselect those we remembered previously
             if (reselectThese.length){
-                console.log("reselecting", reselectThese)
                 for (character of reselectThese){
                     for (i = 0; i < characterMenuList.length; i++){
                         if (characterMenuList[i].value == character){
@@ -507,16 +498,6 @@ function collectCharacters() {
         iCameFromMenu = false
         trackingMenu()
     }
-
-    // if ($id("notepanel").classList.contains("expanded") && $(".selectedtab").classList.contains("dialogtab")){
-    //     //if dialogpanel is open, then 
-    //     //1. check what name is selected
-    //     //2. off to plugin to collect dialog
-    //     name = $(".dialogtab").dataset.currentCharacter || "ALL"
-    //     $id("allDialogFor").selectedIndex = ([...$id("allDialogFor").options].map(option => option.value.toUpperCase())).indexOf(name)
-
-    //     Beat.call("Beat.custom.runHightlightCharacter('" + name + "')")
-    // }
 
     if(trackingContainerVisibility == 1){
         document.getElementById("characterMenuList").focus()
@@ -554,9 +535,7 @@ function alsoFillColorDropdown(){
 
 function updateFilter(scenesWithCharactersProxy){
 
-    mylog()
-    console.log("updateFilter", scenesWithCharacters)
-    
+    mylog()    
 
     let allScenes = $$('.scene')
     let allSections = $$('.section')
@@ -564,7 +543,6 @@ function updateFilter(scenesWithCharactersProxy){
     //if (scenesWithCharactersProxy) {scenesWithCharacters = scenesWithCharactersProxy} //again making it global
 
     let selectedCharacters = $id("characterMenuList").selectedOptions
-    console.log("selectedCharacters", selectedCharacters)
 
     if (selectedCharacters.length){
 
@@ -581,13 +559,7 @@ function updateFilter(scenesWithCharactersProxy){
                         
                         removeDim = true
                         for (currentCharacter of selectedCharacters){
-                            // console.log("scenesWithCharacters[num]", scenesWithCharacters[num], currentCharacter.value)
 
-                            // 2023: forget about spaceless names bc array now
-                            // let spacelessName = currentCharacter.value.replace(/ /g, "_")
-                            // spacelessName = spacelessName.replace(/\'|\’|\"/g, "-")
-
-                            //if (!scenesWithCharacters[num].includes(spacelessName)) {
                             if (!scenesWithCharacters[num].includes(currentCharacter.value.toUpperCase())) {
                             removeDim = false
                             }
@@ -905,13 +877,6 @@ function showCharacterBubbles(characterName, redraw){
                     chunkHTML += `<div class='dialogChunk' id='dialog${dlgNumber}'
                     onclick = selectThisDialog('dialog${dlgNumber}')>`
                 }
-                
-                // //this is not correct, but should be used to find the chunk where the caret is.
-                // //except that it doesn't work. it probably also only updates on paint and not on re-select?
-                // if($id("youAreHere")?.dataset.location > line.currentLine.range.location) {
-                //     console.log("YEEESSS")
-                //     thisIsTheCurrentChunk = "dialog" + dlgNumber
-                // }
 
                 let omittedString = ""
                     if(line.omitted) omittedString = " omitted"
@@ -1052,7 +1017,6 @@ function createOrUpdateConnectorFor(element){
                 if (window.getComputedStyle(connectedScene).display == "none"){
                     nextVisibleScene = connectedScene
                     while ($id(Number(nextVisibleScene.id) + 1) && window.getComputedStyle(nextVisibleScene).display == "none") {
-                        // console.log("looping: ", nextVisibleScene)
                         nextVisibleScene = $id(Number(nextVisibleScene.id) + 1)
                     }
                     nextSceneSizes = nextVisibleScene?.getBoundingClientRect()

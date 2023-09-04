@@ -2,8 +2,8 @@
 
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
-Copyright: Fredrik T Olsson 2021-2022
-Version: 1.60
+Copyright: Fredrik T Olsson 2021-2023
+Version: 1.70
 Compatibility: 1.996.0
 Type: Tool
 Image: screenshot.jpg
@@ -17,14 +17,14 @@ a {
 </style>
 <p>A <b>Flexible Time Outliner</b> for navigating, structuring and editing your screenplay.</p>
 <ul>
-	<li>Scenes arranged per #act and displayed proportionally to their length in the script</li>
-	<li>Notes and markers displayed right in their corresponding place in the outline</li>
-	<li>Color, hide or delete scenes via right click context menu</li>
+	<li>Arrange your scenes vertically per #act, proportionally to their length in the script</li>
+	<li>Show your notes and markers right in their corresponding places in the outline</li>
+	<li>Right click to color, delete or rename scenes or sequences</li>
 	<li>Drag-and-drop to rearrange scenes or entire sequences</li>
-	<li>Track characters by highlighting scenes, or isolate scenes of certain color</li>
-	<li>Print your outline (or export to PDF)
+	<li>Track characters by highlighting scenes, or filter by colors</li>
+	<li>Export your outline to PDF
 	<li>Fully editable index card view
-	<li>Slide-over Note Panel with all notes in one list
+	<li>Slide-over Note Panel with all your notes in one long list
 	<li>Boneyard (for storing scenes outside of the script structure)
 	<li>and lots more...
 </ul>
@@ -35,41 +35,26 @@ a {
 
 function __________VARIABLES(){}
 
-var ftoutlinerVersion = "1.62"
-Beat.setUserDefault("ftoutlinerVersion", ftoutlinerVersion) //also change in description above!
+//VERSION NUMBER checking -- also change in the download description above!
+var ftoutlinerVersion = "1.7"
+Beat.setUserDefault("ftoutlinerVersion", ftoutlinerVersion) 
 
-	if (!Beat.compatibleWith(1.996)){
+if (!Beat.compatibleWith(1.996)){
 
-		Beat.alert("You need to update Beat to run FTOutliner",
-			"This version of FTOutliner uses new features introduced in Beat 1.996 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
-		return
-	}
+	Beat.alert("You need to update Beat to run FTOutliner",
+		"This version of FTOutliner uses new features introduced in Beat 1.996 and will not run with older versions.\n\nPlease visit Apple's AppStore to update.")
+	return
+}
 
+//GLOBAL PLUGIN-ONLY VARIABLES
+
+var windowTitle = "FTOutliner"
 let html = buildHTML()
 
 var location, length
 
 var fullUpdateInProgress = false
-var smallUpdateInProgress = false
-
-var charactersArray, scenesWithCharactersArray
-
-var startTime
-var midTime1, midTime2, midTime3
-var endTime
-var endTimes =  []
-var dispatchTimes = []
-var paginateStartTime, paginateEndTime, timeSpentPaginatingLines = 0
-var runCounter = 0
-var runCounterText = 0
-
-var fullTimer = false
 var selectionTimer = null
-
-var reallyDelete
-var windowTitle = "FTOutliner"
-
-var outlineJustFired
 
 var previousLineObject = {} //used to check whether a change is in a line that affects pagination
 
@@ -179,7 +164,7 @@ function __________EXTERNAL_WINDOW_STUFF(){}
 
 var secondWindow
 
-Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, selfClose=true){
+Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, selfClose=true, data=false){
 
 	//if (secondWindow) secondWindow.close()
 	secondWindow = false
@@ -195,6 +180,7 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, se
 		<body>${html}
 			<script>
 				${selfCloseString}
+				var pageData = ${data}
 			</script>
 		</body>
 	`)
@@ -212,7 +198,7 @@ function __________welcomeWindow(){}
 let showWelcome = JSON.parse(Beat.getUserDefault("ftoutlinerObject"))["dontShowWelcomeWindowFor" + ftoutlinerVersion.replace(".", "")]
 	if(!showWelcome){
 
-		Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 800)
+		Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)
 
 	}
 
@@ -370,12 +356,12 @@ Beat.onTextChange(function(location, length) {
 				return 
 			} 
 			// Second: check if the nummber of linewraps in the line-at-cursor changed.
-			// console.log("wrapped lines: ", numberOfWrappedLines(line.string, line.typeAsString()), numberOfWrappedLines(previousLineObject[Beat.lines().indexOf(line)].string, line.typeAsString()))
-			// if(numberOfWrappedLines(line.string, line.typeAsString()) != numberOfWrappedLines(previousLineObject[Beat.lines().indexOf(line)].string, line.typeAsString())){
-			// 	console.log("Sending to previewFinished b/c number of wrapped lines for this line changed")
-			// 	fullUpdateInProgress = true
-			// 	return 
-			// }
+				// console.log("wrapped lines: ", numberOfWrappedLines(line.string, line.typeAsString()), numberOfWrappedLines(previousLineObject[Beat.lines().indexOf(line)].string, line.typeAsString()))
+				// if(numberOfWrappedLines(line.string, line.typeAsString()) != numberOfWrappedLines(previousLineObject[Beat.lines().indexOf(line)].string, line.typeAsString())){
+				// 	console.log("Sending to previewFinished b/c number of wrapped lines for this line changed")
+				// 	fullUpdateInProgress = true
+				// 	return 
+				// }
 			// Third: check if the number of omitted lines or headings changed
 			console.time("checking for headings and hidden lines")
 			if ((previousLineObject.filter(line => ["Heading", "Section"].includes(line.typeAsString)).map(line => line.typeAsString).join(",") != Beat.outline().map(line => line.typeAsString()).join(","))
@@ -672,8 +658,6 @@ function numberOfWrappedLines(str, typeAsString) {
 
 	console.time("calculating number of wrapped lines")
 
-	console.log("goddag: ",typeAsString)
-
 	const pageWidths = {
 		Action: 60,
 		Character: 38,
@@ -684,7 +668,6 @@ function numberOfWrappedLines(str, typeAsString) {
 	}
 
 	const pageWidth = pageWidths[typeAsString]
-	console.log("pageWidth: ", pageWidth)
 
 	let words = str.split(' ');
 	let lineLength = 0;
@@ -742,10 +725,6 @@ Beat.custom.testSendingLineObject = function(){
 	console.time("lineobject")
 
 	const allLines = Array.from(Beat.lines())
-	console.log(allLines)
-	console.log(arrayToJSON(allLines))
-	// const linesAsJSON = JSON.stringify(allLines)
-	// console.log(linesAsJSON)
 
 	console.timeEnd("lineobject")
 
@@ -982,19 +961,42 @@ Beat.custom.deleteSynopsis = function(elementsToDelete, warningsAreOn) {
 	let deleteMessage
 
 	if(elementsToDelete[0].includes("_")){
-		let parentNumber = Number(elementsToDelete[0].toString().replace(/^s/, "").replace(/_.*$/, ""))
-		let synopsisNumber = Number(elementsToDelete[0].toString().replace(/^s.*_/, ""))
+		let parentNumber = Number(elementsToDelete.at(-1).toString().replace(/^s/, "").replace(/_.*$/, ""))
+		let synopsisNumber = Number(elementsToDelete.at(-1).toString().replace(/^s.*_/, ""))
 		deleteMessage = Beat.outline()[parentNumber].synopsis[synopsisNumber].string.toUpperCase().replace(/^=/, "").replace(/\[\[.*\]\]/, "")
 	}else{
-		deleteMessage = outline[elementsToDelete[elementsToDelete.length-1]].string.toUpperCase()
+		deleteMessage = outline[elementsToDelete.at(-1)].string.toUpperCase().replace(/^=/, "").replace(/\[\[.*\]\]/, "")
 	}
 	if (elementsToDelete.length > 1) {deleteMessage += "\nand " + (elementsToDelete.length - 1) + " more synopsis"}
 
 	if(warningsAreOn){
-
-		reallyDelete = Beat.confirm("You are about to delete the synopsis\n" + deleteMessage + "", "No other script text will be deleted\n\nThe action CAN be undone by hitting cmd+z, but beware that once you keep writing the scene may soon become irretrievably lost forever.\n\nAre you entirely sure?")
-
-		if (!reallyDelete){
+		
+		let doDelete = Beat.modal({
+			title: "Confirm Delete",
+			info: "You are about to delete the synopsis\n" + deleteMessage + "\nNo other script text will be deleted\n\nThe action CAN be undone by hitting cmd+z.",
+			items: [
+				{
+					type: "checkbox",
+					name: "turnOffWarnings",
+					label: "Turn off all warnings in the future"
+				},
+			]
+		}, response => {
+			
+			if (response) {
+				// The user clicked OK
+				doDelete = true
+				if (response.turnOffWarnings == true) {
+					Beat.custom.sendToMain("warningsAreOn", false, "userDefault")
+				}
+				return true
+			} else {
+				// The user clicked CANCEL
+				return false
+			}
+		})
+	
+		if (!doDelete){
 			htmlWindow.runJS(`
 				undimAllScenes()
 				`)
@@ -1033,24 +1035,46 @@ Beat.custom.deleteScene = function(elementsToDelete, warningsAreOn) {
 
 	Beat.log('you have sent:' + elementsToDelete + 'elements to delete')
 
-	let deleteMessage = outline[elementsToDelete[elementsToDelete.length-1]].string.toUpperCase()
-	if (elementsToDelete.length > 1) {deleteMessage += "\nand " + (elementsToDelete.length - 1) + " more scenes or sequences"}
+	let deleteMessage = outline[elementsToDelete.at(-1)].string.toUpperCase().replace(/^=/, "").replace(/\[\[.*\]\]/, "")
+	for (let i = 2; i < Math.min(6, elementsToDelete.length); i++){
+		deleteMessage += "\n" + outline[elementsToDelete.at(-i)].string.toUpperCase().replace(/^=/, "").replace(/\[\[.*\]\]/, "")
+	}
+	if (elementsToDelete.length > 5) {deleteMessage += "\nand " + (elementsToDelete.length - 5) + " more"}
 
 	if(warningsAreOn){
+
+		let doDelete = Beat.modal({
+			title: "Confirm Delete",
+			info: "You are about to delete the scene" + (elementsToDelete.length > 1 ? "s" : "") + "\n" + deleteMessage + "\nincluding all contents.\n\nThis can be undone by hitting cmd+z.",
+			items: [
+				{
+					type: "checkbox",
+					name: "turnOffWarnings",
+					label: "Turn off all warnings in the future"
+				},
+			]
+		}, response => {
+			
+			if (response) {
+				// The user clicked OK
+				doDelete = true
+				if (response.turnOffWarnings == true) {
+					Beat.custom.sendToMain("warningsAreOn", false, "userDefault")
+				}
+				return true
+			} else {
+				// The user clicked CANCEL
+				return false
+			}
+		})
 	
-		reallyDelete = Beat.confirm("You are about to delete \n" + deleteMessage + "\nincluding all contents!", "This action CAN be undone by hitting cmd+z, but beware that once you keep writing the scene may soon become irretrievably lost forever.\n\nAre you entirely sure?")
-		
-		if (!reallyDelete){
+		if (!doDelete){
 			htmlWindow.runJS(`
 				undimAllScenes()
 				`)
 			return
 		}
 	}
-
-	// Beat.onTextChangeDisabled = true
-	// Beat.onOutlineChangeDisabled = true
-	// Beat.onSelectionChangeDisabled = true
 
 	//first: un-omit all scenes to delete + the one after.
 	this.unOmitScene(elementsToDelete, true)
@@ -1106,14 +1130,37 @@ Beat.custom.deleteSection = function(elementsToDelete, warningsAreOn) {
 
 	Beat.log('you have sent:' + elementsToDelete + 'elements to delete')
 
-	let deleteMessage = outline[elementsToDelete[elementsToDelete.length-1]].string.toUpperCase()
+	let deleteMessage = outline[elementsToDelete[elementsToDelete.length-1]].string.toUpperCase().replace(/^=/, "").replace(/\[\[.*\]\]/, "")
 	if (elementsToDelete.length > 1) {deleteMessage += "\nand " + (elementsToDelete.length - 1) + " more sequences"}
 
 	if(warningsAreOn){
-	
-		reallyDelete = Beat.confirm("You are about to delete the section\n" + deleteMessage + "\nincluding all synopsis inside!", "Scenes (and nested sections) below deleted sections will stay intact.\n\nThis action CAN be undone by hitting cmd+z, but beware that once you keep writing the scene may soon become irretrievably lost forever.\n\nAre you entirely sure?")
 		
-		if (!reallyDelete){
+		let doDelete = Beat.modal({
+			title: "Confirm Delete",
+			info: "You are about to delete the section\n" + deleteMessage + "\nincluding any potential synopsis directly inside it.\n\nScenes and nested sections inside/below will stay intact.\n\nThis action can be undone by hitting cmd+z.",
+			items: [
+				{
+					type: "checkbox",
+					name: "turnOffWarnings",
+					label: "Turn off all warnings in the future"
+				},
+			]
+		}, response => {
+			
+			if (response) {
+				// The user clicked OK
+				doDelete = true
+				if (response.turnOffWarnings == true) {
+					Beat.custom.sendToMain("warningsAreOn", false, "userDefault")
+				}
+				return true
+			} else {
+				// The user clicked CANCEL
+				return false
+			}
+		})
+	
+		if (!doDelete){
 			htmlWindow.runJS(`
 				undimAllScenes()
 				`)
@@ -1203,6 +1250,51 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		warningsAreOn = false
 	}
 
+	// if(warningsAreOn){
+
+	// 	let rangeOfScenes = ""
+	// 	let numberOfScenesToMove = 0
+	// 	for (scenes = firstScene; scenes<lastScene+1; scenes++){
+	// 		if(outline[scenes].typeAsString() == "Synopse"){continue}
+	// 		rangeOfScenes +=
+	// 		((outline[scenes].sceneNumber != undefined) ? 
+	// 			"(" + outline[scenes].sceneNumber + ") " : 
+	// 			"") +
+	// 			outline[scenes].string.toUpperCase() + "\n" +
+	// 			((outline[scenes].sceneNumber == undefined) ? 
+	// 			"\ncontaining\n\n" : 
+	// 			"")
+	// 			numberOfScenesToMove++
+	// 	}
+
+	// 	let reallyMove = Beat.confirm("Verify Move!",
+	// 		"\nYou are about to move " + 
+	// 		((outline[firstScene].typeAsString() != "Section") ?
+	// 			"the scene" 
+	// 			: "the section") +
+	// 		(((outline[firstScene].typeAsString() != "Section") && numberOfScenesToMove > 1) ? 
+	// 			"s" 
+	// 			: "") +
+	// 		"\n\n" + 
+	// 		(((outline[firstScene].typeAsString() != "Section")) ? 
+	// 			rangeOfScenes 
+	// 			: (outline[firstScene].string.toUpperCase()) + "\n") + 
+	// 		((outline[insertBeforeScene]) ? 
+	// 			("\nto immediately before\n\n" + 
+	// 			(outline[insertBeforeScene].omitted == 1 ? "the omitted scene called \n" 
+	// 			: "") +
+	// 		(((outline[insertBeforeScene] && outline[insertBeforeScene].typeAsString() == "Heading") 
+	// 			? ("(" + outline[insertBeforeScene].sceneNumber + ") ") : "") +
+	// 			outline[insertBeforeScene].string.toUpperCase()))
+	// 			: "\nto immediately after the last scene of your script.")
+	// 		+ 
+	// 		"\n\nDo you want to proceed?\n")
+	// 	if (!reallyMove) {
+	// 		htmlWindow.runJS(`onDragEnd(false, true)`)
+	// 		return
+	// 	}
+	// }
+
 	if(warningsAreOn){
 
 		let rangeOfScenes = ""
@@ -1213,36 +1305,59 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 			((outline[scenes].sceneNumber != undefined) ? 
 				"(" + outline[scenes].sceneNumber + ") " : 
 				"") +
-				outline[scenes].string.toUpperCase() + "\n" +
+				outline[scenes].string.toUpperCase().replace(/\[\[.*\]\]/, "") + "\n" +
 				((outline[scenes].sceneNumber == undefined) ? 
 				"\ncontaining\n\n" : 
 				"")
 				numberOfScenesToMove++
 		}
-
-		let reallyMove = Beat.confirm("Verify Move!",
-			"\nYou are about to move " + 
-			((outline[firstScene].typeAsString() != "Section") ?
-				"the scene" 
-				: "the section") +
-			(((outline[firstScene].typeAsString() != "Section") && numberOfScenesToMove > 1) ? 
-				"s" 
-				: "") +
-			"\n\n" + 
-			(((outline[firstScene].typeAsString() != "Section")) ? 
-				rangeOfScenes 
-				: (outline[firstScene].string.toUpperCase()) + "\n") + 
-			((outline[insertBeforeScene]) ? 
-				("\nto immediately before\n\n" + 
-				(outline[insertBeforeScene].omitted == 1 ? "the omitted scene called \n" 
-				: "") +
-			(((outline[insertBeforeScene] && outline[insertBeforeScene].typeAsString() == "Heading") 
-				? ("(" + outline[insertBeforeScene].sceneNumber + ") ") : "") +
-				outline[insertBeforeScene].string.toUpperCase()))
-				: "\nto immediately after the last scene of your script.")
-			+ 
-			"\n\nDo you want to proceed?\n")
-		if (!reallyMove) {
+		
+		let doMove = Beat.modal({
+			title: "Confirm Move",
+			info: "\nYou are about to move " + 
+					((outline[firstScene].typeAsString() != "Section") ?
+						"the scene" 
+						: "the section") +
+					(((outline[firstScene].typeAsString() != "Section") && numberOfScenesToMove > 1) ? 
+						"s" 
+						: "") +
+					"\n" + 
+					(((outline[firstScene].typeAsString() != "Section")) ? 
+						rangeOfScenes 
+						: (outline[firstScene].string.toUpperCase().replace(/\[\[.*\]\]/, "")) + "\n") + 
+					((outline[insertBeforeScene]) ? 
+						("to immediately before\n" + 
+						(outline[insertBeforeScene].omitted == 1 ? "the omitted scene called \n" 
+						: "") +
+					(((outline[insertBeforeScene] && outline[insertBeforeScene].typeAsString() == "Heading") 
+						? ("(" + outline[insertBeforeScene].sceneNumber + ") ") : "") +
+						outline[insertBeforeScene].string.toUpperCase().replace(/\[\[.*\]\]/, "")))
+						: "\nto immediately after the last scene of your script.")
+					+ 
+					"\n\nDo you want to proceed?\n",
+			items: [
+				{
+					type: "checkbox",
+					name: "turnOffWarnings",
+					label: "Turn off all warnings in the future"
+				},
+			]
+		}, response => {
+			
+			if (response) {
+				// The user clicked OK
+				doMove = true
+				if (response.turnOffWarnings == true) {
+					Beat.custom.sendToMain("warningsAreOn", false, "userDefault")
+				}
+				return true
+			} else {
+				// The user clicked CANCEL
+				return false
+			}
+		})
+	
+		if (!doMove){
 			htmlWindow.runJS(`onDragEnd(false, true)`)
 			return
 		}

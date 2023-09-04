@@ -164,6 +164,10 @@ let shortcutKeys = [
         command: (event) => { togglePrintMode() }
     },
     {
+        key: ["Meta", "Control", "Alt", "p"],
+        command: (event) => { openPrintWindow() }
+    },
+    {
         key: ["p"],
         command: (event) => { toggleShowPageNumbers() }
     },
@@ -222,16 +226,23 @@ let shortcutKeys = [
     
     // 2. NON-LETTERS
     
+    // {
+    //     key: ["Shift", "!"],
+    //     command: (event) => { throwError() }
+    // },
     {
-        key: ["Shift", "!"],
-        command: (event) => { throwError() }
+        key: ["Shift", "%"],
+        command: (event) => { 
+            documentSetting.colorByPercentage = !documentSetting.colorByPercentage
+            firstRun()
+        }
     },
     {
         key: ["Meta", ","],
         command: (event) => { openSettingsWindow() }
     },
     {
-        key: ["'"],
+        key: ["Shift", "*"],
         command: (event) => { toggleShowRevisions() }
     },
     {
@@ -248,6 +259,10 @@ let shortcutKeys = [
     },
     {
         key: ["?"],
+        command: (event) => { toggleHelpContainer() }
+    },
+    {
+        key: ["Shift", "?"],
         command: (event) => { toggleHelpContainer() }
     },
     {

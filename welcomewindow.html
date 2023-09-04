@@ -1,35 +1,22 @@
-<p class="headline">Welcome to FTOutliner!</p>
+
+
 <div id = "main">
-This seems to be your first time opening this version, so here are some quick words before you go ahead.<br/><br/>
-<strong>If you've never used FTOutliner before,</strong><br/>
-first of all: Welcome! This is a plugin for navigating, editing and getting a bird's eye view of your screenplay. Don't be overwhelmed — FToutliner is meant to make your screenwriting life esier. Just keep it open next to your screenplay as you write. Gradually, you'll find your own ways to use it.<br/><br/>
-<strong>This version has been rewritten. A lot.</strong><br/>
-That's a good thing, of course. FTOutliner is written by a screenwriter, not a coder. But over time, it appears old dogs can learn too. <br/>
-This is a version that aims to fix a lot of my newbie mistakes. But in doing so I'm bound to introduce new ones. Because oh well. And on that note:
-<br/><br/>
-<strong>Please report any bugs or quirks you run into.</strong><br/>
-Some stuff is still being worked on. Some is not, but ought to be. And for that to happen I depend on your help.
-<br/><br/>
-<!--li style="padding-right: 40px"-->
-	<i>in the Settings menu, there is now a menu itemo to <strong>&quot;Report an issue&quot;</strong>, which launches a browser window with FTOutliner's GitHub issues page. Please use it, and tell me what you encounter! (You'll need a user account to post, but it's free to sign up)
-	</i><br/><br/>
-<!--/li-->
-<!--strong>What has changed?</strong><br/>
-If you have used FTOutliner before, most will look the same. There are a couple of small, new features, but most changes are internal to make the plugin more stable. If you're curious, check the changelog from the Settings menu.
-<br/>
-If you haven't, then once again welcome. Don't feel overwhelmed — FToutliner is meant to make your screenwriting life esier. Just keep it open next to your screenplay as you write — hopefully, you'll gradually find your own ways to use it.
-<br/><br/-->
-<strong>Finally,</strong><br/>
-That's about it. I've taken enough of your time already. Let's go writing, both of us!<br/><br/>
-	<!--hr-->
-	<ul>
-	<!--strong><br/>Behavior Settings</strong><br/-->
-	<li id="changeThis" style="width: max-content; margin-left: auto; margin-right: auto; padding-right: 40px"> 
-		<input id="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion type="checkbox">
-		<label for="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion>Enough with this dialog already, don't ever show it again!<span class="shortcut" style="float:right"></span></label>
-		<span class="explanation">Unless there's something new to say that's really really important.<br/>In which case sure, fine, go ahead.</span>
-	</li>
-	</ul>
+	<p class="headline">Welcome to FTOutliner!</p>
+	<br<br/>
+	This is a plugin for navigating, editing and getting a bird's eye view of your screenplay. You can move scenes around, filter them by colors or characters and cycle through any notes or markers in your script.<br/><br/>
+	<strong>If you never used it before,</strong> don't feel overwhelmed! FTOutliner is meant to make your screenwriting life esier. Keep it open next to your screenplay as you write, and I'm sure you'll gradually find your own best way to use it.<br/><br/>
+	<strong>If you have been using FTOutliner before</strong> and wonder what's new in this version, here are the latest changes:
+	<div id="changelog"></div>
+	<strong>That's all!</strong> Let's go writing, both of us!<br/><br/><br/>
+		<!--hr-->
+		<ul>
+		<!--strong><br/>Behavior Settings</strong><br/-->
+		<li id="changeThis" style="width: max-content; margin-left: auto; margin-right: auto; padding-right: 40px"> 
+			<input id="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion type="checkbox">
+			<label for="buttonFor-dontShowWelcomeWindowFor" + userDefault.ftoutlinerVersion>Don't show this dialog again for this version<span class="shortcut" style="float:right"></span></label>
+			<!--span class="explanation">Unless there's something new to say that's really important.<br/>In which case sure, fine, go ahead.</span-->
+		</li>
+		</ul>
 
 	<p><br/></p>
 	<div class="dialogBottomButtonRow">
@@ -62,6 +49,21 @@ That's about it. I've taken enough of your time already. Let's go writing, both 
 		},
         	error => { console.log("Error retrieving userDefault") }
     	)
+
+		Beat.callAndWait(() => {
+			let changelog = Beat.assetAsString("changelog")
+			return(changelog)
+		})
+		.then(
+        	response => {
+				
+				changelog = response
+				document.querySelector("#changelog").innerHTML = changelog
+				
+		},
+        	error => { console.log("Error retrieving changelog") }
+    	)
+
 	})
 
 	//STARTUP SEQUENCE:
@@ -159,6 +161,23 @@ That's about it. I've taken enough of your time already. Let's go writing, both 
 
     }
 
+	#changelog{
+
+		white-space: pre-wrap;
+
+		margin: 20px 0px 20px 0px;
+
+		background-color: white;
+		padding: 30px;
+		border-radius: 4px;
+		border: 1px solid var(--menu-border-color);
+
+		height: 200px;
+		overflow-y: scroll;
+
+		box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.15);
+	}
+
 	.headline {
 
 		font-size: 32px;
@@ -166,6 +185,8 @@ That's about it. I've taken enough of your time already. Let's go writing, both 
 		line-height: 38px;
 		margin: 20px 0px 20px 0px;
 		display: block;
+
+		margin-bottom: 20px;
 
 	}
 
@@ -217,7 +238,9 @@ That's about it. I've taken enough of your time already. Let's go writing, both 
 
 	button:hover{
 
-		border: inherit !important;
+		border: initial !important;
+		border-radius: 4px !important; 
+		padding: 2px 8px 3px 8px;
 		border-radius: inherit !important; 
 		background-color: var(--menu-hover-color);
 		color: white;

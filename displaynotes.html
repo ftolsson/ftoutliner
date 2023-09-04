@@ -838,7 +838,6 @@ function collectReviews(){
                 review.position = review.range[0]
             }
                     
-            console.log("🟢reviews:", reviews )
             displayReviews(reviews)
     
         },error => { 
@@ -851,7 +850,6 @@ function collectReviews(){
 function displayNotes(allNotes, typeOfNote){
 
     mylog()
-    console.log("displayNotes", allNotes, typeOfNote)
 
     if(!outline || !allNotes) return
 
@@ -960,7 +958,7 @@ function displayNotes(allNotes, typeOfNote){
 
 function expandNote(tabWasPressed, shiftWasHeld, event){
 
-    console.log("expandNote()")
+    mylog()
 
     if(!$(".note, .review")) return
     if($("#editBox")) return
@@ -1104,7 +1102,6 @@ if (noteToUnselect) {noteToUnselect.classList.remove('selectedNote')}
 function deleteNote(){
 
 theClickedThing = event.target
-console.log(theClickedThing)
 
 let length = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.length) 
 let location = Number(theClickedThing.closest(".expandedNote, .notepanelNote, .note").dataset.line)
@@ -1233,7 +1230,6 @@ function displayReviews(reviewsData){
             }
 
         parentElement.appendChild(revdiv)
-        console.log("added review to " + parentElement.id, revdiv)
     }
 
     mylog("and were done")

@@ -37,7 +37,6 @@ function addElement(theClickedThing, whatToAdd, beforeInsteadOfAfter){
     let sceneLine = outline[theClickedThing.closest(".scene, .section").getAttribute("data-my-id")]
     let locationAfter = sceneLine.sceneEnd + 1
         if(sceneLine.typeAsString == "Section"){
-                    //locationAfter = sceneLine.line.range.location + sceneLine.line.range.length // to put it after section header, not entire section
                     locationAfter = outline[outline.indexOf(sceneLine) + 1]?.sceneStart || sceneLine.sceneEnd // to put it after synopsis if present
                 }
         if(beforeInsteadOfAfter){
@@ -64,25 +63,6 @@ function addElement(theClickedThing, whatToAdd, beforeInsteadOfAfter){
             return
             break;
     }
-
-    console.log(sceneLine, addString)
-        
-        // //Beat.call(`Beat.scrollTo(${locationAfter}), Beat.custom.blinkTheLine(${locationAfter})`)
-        
-        // let numberOfHashtags = outline[outlineElementNumber].line.string.match(/^(#*)/)        
-        //     addString = (theClickedThing.id == "addScene") ? "\\n.NEW SCENE\\n" : `${"#".repeat(Math.max(numberOfHashtags[0].length, 2 ))}NEW SECTION`
-
-        // if(outline[outlineElementNumber].typeAsString == "Section"){
-            
-        //     position = outline[outlineElementNumber + 1]?.sceneStart || outline[outlineElementNumber].sceneEnd // + 1
-        //         //the OR case should only happen if last element in doc, so removing the +1 from above and the -1 from below
-            
-        //         //Hack to avoid adressing index outside of screenplay length:
-        //         //if(outlineElementNumber = outline.length)position -= 1
-                
-        //     if(!position){mylog(`ERROR: sending ${position} as position again`); throwError()}
-        // }
-    
 
     actualChangesToScriptInProgress = true //this is for the errorhandler to know what was happening
     

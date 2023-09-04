@@ -887,6 +887,15 @@ function showStuffMenu(){
     <ul>    
         <p class="name">View Menu</p>
 
+        <strong>Side Panel: </strong><span class="shortcut" style="float:right"></span><br/>
+        <li class="centered" onclick="toggleNotepanel()">
+            <input id="buttonForNotePanel" type="checkbox">
+                <label for="buttonForNotePanel" class="labelBefore">Closed</label>
+                    <div class="switch"></div>
+                <label for="buttonForNotePanel" class="labelAfter">Open<span class="shortcut" style="float:right">§</span></label>
+        </li>
+        <hr>
+
         <strong>Show info:</strong><br/>
         <li  onclick="toggleShowSceneNumbers()">
             <input id="buttonForNumbers" type="checkbox">
@@ -958,14 +967,6 @@ function showStuffMenu(){
                 <div class="switch"></div> 
                     <label for="buttonForGreyOnly">All Colors to Grey<span class="shortcut" style="float:right">^C</span></label>
         </li>
-        <hr>
-        <strong>Side Panel: </strong><span class="shortcut" style="float:right">§</span><br/>
-        <li class="centered" onclick="toggleNotepanel()">
-            <input id="buttonForNotePanel" type="checkbox">
-                <label for="buttonForNotePanel" class="labelBefore">Closed</label>
-                    <div class="switch"></div>
-                <label for="buttonForNotePanel" class="labelAfter">Open</label>
-        </li>
     </ul>
 `
 
@@ -1028,7 +1029,6 @@ function trackingMenu(from){
         $id("menu").innerHTML = "<br/><br/><br/><center>Loading...</center><br/><br/><br/>"
     }
     
-    console.log("trackingmenu from", trackingMenu.caller.name)
     mylog(trackingMenu.caller.name)
     if(trackingMenu.caller.name != "collectCharacters" && trackingMenu.caller.name != "onclick" ){
         // so what we do here is that if the menu just opened, we need to collect the charactes
@@ -1151,6 +1151,10 @@ function openFeedbackWindow(){
     Beat.call("Beat.custom.displaySecondWindow('Feedback', 'feedback.html', width=800, height=800, false)")
 }
 
+function openDocumentationWindow(){
+    Beat.call("Beat.custom.displaySecondWindow('Documentation', 'documentation.html', width=1200, height=800, false)")
+}
+
 function settingsMenu(){
 
     let debugMenuItems = (loggingIsOn || altIsBeingPressed)? 
@@ -1216,9 +1220,12 @@ function settingsMenu(){
         <li onclick="openFeedbackWindow()">
             <p>Report an issue…</p>
                 <span class="shortcut" style="float:right"></span></li>
-        <li onclick="displayAboutBox()">
-            <p>About…
+        <li onclick="openDocumentationWindow()">
+            <p>Open documentation (Beta)…</p>
                 <span class="shortcut" style="float:right"></span></li>
+        <!--li onclick="displayAboutBox()">
+            <p>About…
+                <span class="shortcut" style="float:right"></span></li-->
         <li onclick="toggleHelpContainer()">
             <p>Show all keyboard shortcuts…
                 <span class="shortcut" style="float:right">?</span></li>
@@ -1344,7 +1351,7 @@ function setAllButtons(){
     if($id("buttonForPages")){$id("buttonForPages").checked = (showPageNumbers == 'inline')}
 	if($id("buttonForLength")){$id("buttonForLength").checked = (showSceneLengths == 'inline')}
 
-	if($id("buttonForWarnings")){$id("buttonForWarnings").checked = (!warningsAreOn)}
+	//if($id("buttonForWarnings")){$id("buttonForWarnings").checked = (!userDefault.warningsAreOn)}
     if($id("buttonForColors")){$id("buttonForColors").checked = (userDefault.colorScheme == "Beat")}
     if($id("buttonForInverted")){$id("buttonForInverted").checked = userDefault.invertTextOnDark}
     if($id("buttonForRealTimeUpdates")){$id("buttonForRealTimeUpdates").checked = (realTimeIsOn == 0)}

@@ -10,6 +10,7 @@
 	<div id="helpButton" class="bottomButton" onclick="mylog('clicked settingsButton'); toggleNewMenu('settingsMenu')"></div>
 	<div id="printButton" class="bottomButton" onclick="mylog('clicked exportButton'); toggleNewMenu('exportMenu')"></div>
 	<div id="infoField"></div>
+	<div id="saturationSlider"><input type="range" min="0" max="100" value="50" class="slider" step="10" style="direction: rtl;" id="saturationRange" oninput="changeSaturation()"></div>
 	<div id="indexCardButton" class="bottomButton" onclick="mylog('clicked indexCardButton'); toggleNewMenu('indexCardMenu')"></div>
 	<div id="showStuffButton" class="bottomButton" onclick="mylog('clicked stuffButton'); toggleNewMenu('showStuffMenu')"></div>
 	<div id="notesButton" class="bottomButton" onclick="mylog('clicked notesButton'); toggleNewMenu('notesMenu')"></div>
@@ -90,6 +91,7 @@ document.getElementById("printButton").innerHTML = printerIcon
 document.getElementById("notesButton").innerHTML = noteIcon
 document.getElementById("zoomButton").innerHTML = zoomIcon
 document.getElementById("dialogSearchIcon").innerHTML = searchIcon
+document.getElementById("saturationSlider").innerHTML += paletteIcon
 
 if(!document.createElement('dialog').showModal){
 	alertThis("Please update your Safari browser", "Beat plugins use WebKit to run, and FTOutliner uses features that were introduced with Webkit version 613.1.17 (which corresponds to Safari 15.4). \\n\\nPlease update your Safari to at least that version, or you may experience unexpected behavior from FTOutliner.")
@@ -125,7 +127,6 @@ if(!document.createElement('dialog').showModal){
 // GLOBAL DEFAULT VARIABLES
 
 	var showSceneLengths, showSceneNumbers, showPageNumbers, realTimeIsOn
-	var warningsAreOn		
 
 // GLOBAL DOCUMENT-RELATED VARIABLES
 
@@ -563,12 +564,13 @@ function divMaker(){
 						pagenumberDiv.classList.add("showSectionPageNumber")
 						pagenumberDiv.innerHTML = "Pg " + Math.max(Math.floor(currentItem.startsOnPage), 1) + "."
 
-					let sectionLengthDiv = document.createElement("span")
+					let sectionLengthDiv = document.createElement("div")
 						sectionLengthDiv.classList.add("sectionLengths")
 						sectionLengthDiv.innerHTML = "(--)"
 
 					sectionheaderDiv.appendChild(pagenumberDiv)
-					pagenumberDiv.appendChild(sectionLengthDiv)
+					// pagenumberDiv.appendChild(sectionLengthDiv)
+					sectionheaderDiv.appendChild(sectionLengthDiv)
 					}
 
 					if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.uuid + " -- "}
@@ -882,6 +884,10 @@ function divMaker(){
 				})				
 			}
 		}
+
+	newFlexi.querySelectorAll(".scene").forEach(
+		scene => colorByPercentageInstead(scene)
+	)
 	
 	//=============================================
 	//THE BIG ONE: REPLACE OLD OUTLINE WITH THE NEW
@@ -945,8 +951,30 @@ function updateAllSectionPageCounts(){
 
 function __________OUTLINE_GRAPHICS(){}
 
-function reevaluateColorContrast(){
+function colorByPercentageInstead(element){
+	mylog()
 
+	if(!documentSetting.colorByPercentage) return
+
+	//let percentage = 100 * (scene.dataset.line - 1) / absoluteTextLength
+
+	let scene = outline.find(scene => scene.uuid == element.dataset.uuid)
+	let percentageNote = scene?.notes?.find(note => note.content.includes("%"))
+
+	let color = "white"
+
+	if (percentageNote){
+
+		let percentage = Number(percentageNote.content.match(/(\d+)%/)?.[1]) * 1.2 //because 120° is green on the color wheel 
+
+		color = `hsl(${percentage}, 100%, 50%)`
+	}
+
+	element.style.setProperty("--localColor", color)
+
+}
+
+function reevaluateColorContrast(){
 	mylog()
 
 	if(!userDefault.invertTextOnDark) {
@@ -1045,6 +1073,8 @@ function makeRGB(color){
 function findPageDividers() {
 
 	mylog()
+
+	if(!outline || outline.length == 0) return
 
 	let scenesOnly = outline.filter(scene => {if(scene.typeAsString == "Heading") return scene})
 		pageDividers = []
@@ -1465,6 +1495,7 @@ function applySettings(){
 		beatsAreDisplayed: false,
 		reviewsAreDisplayed: false,
 		allowMarkerTextInAllViews: false,
+		colorByPercentage: false,
 
 	//tracking settings
 		trackingIncludesSynopsis: true,
@@ -1497,6 +1528,9 @@ function applySettings(){
 		boneyardIsClosed: true, 
 		notepanel: false, 
 		notepanelWidth: "200",
+
+		outdoor: 0,
+		saturation: 50,
 
 		windowSize: {	
 			x: 0, 
@@ -1555,13 +1589,16 @@ function applySettings(){
 	$id("flexiContainer").classList.toggle("verticals", documentSetting.showVerticals)
 	$id("flexiContainer").classList.toggle("autoWiden", documentSetting.autoWiden)
 	$id("flexiContainer").classList.toggle("widenedColumnsGetAutoHeight", documentSetting.widenedColumnsGetAutoHeight)
-
-	$id("flexiContainer").classList.toggle("notepanelIsExpanded", documentSetting.notepanel)
-	$id("notepanel").classList.toggle("expanded", documentSetting.notepanel)
-		
-
-	theRoot.style.setProperty('--note-panel-width', documentSetting.notepanelWidth + "px") 
-	document.documentElement.setAttribute('data-outdoors', documentSetting.outdoor)
+	
+	//RESETTING THE NOTE PANEL
+		$id("flexiContainer").classList.toggle("notepanelIsExpanded", documentSetting.notepanel)
+		$id("notepanel").classList.toggle("expanded", documentSetting.notepanel)
+		theRoot.style.setProperty('--note-panel-width', documentSetting.notepanelWidth + "px")
+	
+	//HIGH CONTRAST STUFF
+		document.documentElement.setAttribute('data-outdoors', documentSetting.outdoor)
+		document.documentElement.style.setProperty('--saturation', documentSetting.saturation + "%")
+		$id("saturationRange").value = documentSetting.saturation
 
 	//DOCUMENT SETTINGS
 
@@ -1643,6 +1680,8 @@ function applySettings(){
 		// 	`Beat.custom.setWindowSize(${documentSetting.windowSize.x}, ${documentSetting.windowSize.y}, ${documentSetting.windowSize.width}, ${documentSetting.windowSize.height})`
 		// )
 
+		firstRun()
+
 		setAllButtons()
 		recalculateHeights("from applySettings")
 		mylog("DONE getting defaults")
@@ -1705,9 +1744,7 @@ function saveCurrentState() {
 
 	Object.assign(userDefault, {
 
-		realTimeUpdates: realTimeIsOn,
-		warningsAreOn: warningsAreOn,
-		
+		realTimeUpdates: realTimeIsOn,		
 		loggingIsOn: loggingIsOn,
 		
 		//AGAIN, these are self-referencing and thus not needed to be saved:
@@ -1765,6 +1802,40 @@ function __________LISTENING (){}
 function openSettingsWindow(){
 
 	Beat.call(() => Beat.custom.displaySecondWindow("Advanced Settings", "settingswindow.html", 700, 800))
+
+}
+
+function openPrintWindow(){
+
+  let allCSS = '';
+  
+  // Loop through all stylesheets
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    const styleSheet = document.styleSheets[i];
+    
+    // // Handle CORS issues by skipping external stylesheets
+    // if (styleSheet.href && styleSheet.href.indexOf(window.location.origin) === -1) {
+    //   continue;
+    // }
+    
+    // Loop through all CSS rules
+    try {
+      const cssRules = styleSheet.cssRules || styleSheet.rules; // cssRules for modern browsers, rules for older versions
+      for (let j = 0; j < cssRules.length; j++) {
+        allCSS += cssRules[j].cssText + '\n';
+      }
+    } catch (e) {
+      console.warn('Could not read stylesheet:', e);
+    }
+  }
+
+  	allCSS = "<style>" + allCSS + "</style>"
+
+	let html = JSON.stringify(allCSS + flexiContainer.outerHTML)
+
+	console.log(html)
+
+	Beat.call((html) => Beat.custom.displaySecondWindow("Print Preview", "printWindow.html", 1200, 800, false, html), html)
 
 }
 
@@ -2504,8 +2575,7 @@ function toggleShowSceneLength() {
 function toggleWarnings() {
 	mylog("toggleWarning")
 
-	documentSetting.warningsAreOn = !documentSetting.warningsAreOn
-	warningsAreOn = documentSetting.warningsAreOn
+	userDefault.warningsAreOn = !userDefault.warningsAreOn
 		
 	setAllButtons()
 	saveCurrentState()
@@ -2749,6 +2819,15 @@ function addShowHideBoneyard(){
 
 	flexiContainer.classList.toggle("boneyardIsClosed")
 	setAllButtons()
+
+}
+
+function changeSaturation(){
+
+	documentSetting.saturation = Number($id("saturationRange").value)
+	document.documentElement.style.setProperty('--saturation', documentSetting.saturation + "%")
+
+	saveCurrentState()
 
 }
 

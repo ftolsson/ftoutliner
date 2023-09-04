@@ -190,7 +190,7 @@
             menuItem: "Highlight color",
             menuName: function(item) {
                 let col = availableColors.find(col => item.classList.contains(col.toLowerCase()))
-                if (!col) return "Can Only Highlight Standard Colors"
+                if (!col) return "Can't Highlight Custom Colors"
                 return this.invisiblyChecked(item) ? `Un-highlight ${col} Scenes`: `Highlight ${col} Scenes`},
             shortcut: ["Alt", "LeftClick"],
             icon: funnelIcon,
@@ -761,12 +761,12 @@ function deleteScene(){
         for (e of elementsToDelete) {
             elementsToDelete[elementsToDelete.indexOf(e)] = JSON.stringify(e)
         }
-        let doThis = `Beat.custom.deleteSynopsis([${[...elementsToDelete]}], ${warningsAreOn})`
+        let doThis = `Beat.custom.deleteSynopsis([${[...elementsToDelete]}], ${userDefault.warningsAreOn})`
         Beat.call(doThis)
     }else if (elements[0].classList.contains("section")){
-        Beat.call("Beat.custom.deleteSection([" + [...elementsToDelete] + "], " + warningsAreOn + ")")
+        Beat.call("Beat.custom.deleteSection([" + [...elementsToDelete] + "], " + userDefault.warningsAreOn + ")")
     }else{
-        Beat.call("Beat.custom.deleteScene([" + [...elementsToDelete] + "], " + warningsAreOn + ")")
+        Beat.call("Beat.custom.deleteScene([" + [...elementsToDelete] + "], " + userDefault.warningsAreOn + ")")
     }
     deselectAllElements()
     mylog("exiting")
@@ -777,7 +777,6 @@ function ifYesToDelete(){ //this is visually-related stuff only and does not alt
     mylog("YES TO DELETE: Now shrinking the scenes.")
 
     let selectedScenes = document.querySelectorAll('.toBeDeleted')
-    // console.log(selectedScenes)
 
     mylog("this many: " + selectedScenes.length)
 
@@ -790,13 +789,11 @@ function ifYesToDelete(){ //this is visually-related stuff only and does not alt
         scene.style.opacity = "1"
         scene.style.height = "0px"
         scene.style.minHeight = "0px"
-        // scene.style.margin = "0"
 
         let syncons = scene.querySelectorAll(".synopsis, .synopsiscontainer") || false
 
         if (syncons.length > 0){
             for (syncon of syncons){
-            // syncon.classlist?.add("longerAnimation")
             syncon.style.scale = "0px 0px"
             syncon.style.height = "0px"
             syncon.style.minHeight = "0px"
@@ -808,13 +805,12 @@ function ifYesToDelete(){ //this is visually-related stuff only and does not alt
 function undimAllScenes(){
 
     mylog()
+
     actualChangesToScriptInProgress = false //this is for the errorhandler to know what was happening
+    
+    $$(".toBeDeleted").forEach(element => {element.classList.remove("toBeDeleted")})
+    $$('.dimmedScene').forEach(item => item.classList.remove('dimmedScene'))
 
-    let elements = $$('.dimmedScene')
-
-	for(i = elements.length-1; i > -1; i--){
-		elements[i].classList.remove('dimmedScene')
-	}
 }
 
 function copyContentsToClipboard(){

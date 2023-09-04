@@ -765,8 +765,6 @@ function onDragOverForSections(e, draggedOver){
     //now adjusting everything if draggedOver was level1 (fri 13)
     //but only if we are NOT dragging an entire act! (2023-01-05)
         if(draggedOver.classList.contains("level1") && !$id("ghost").firstChild.classList.contains("level1")){
-
-            console.log("🥸🥸🥸")
                         
             // first correctly store drop index
             //dropDiv.dataset.insertBeforeScene = Number(draggedOver.id) + 1 //changed 2023-01-04
@@ -1066,7 +1064,7 @@ function onDrop(e){
     //even newer, since 1.977: sending explicit drop-position for synopsis 
     //also sending makeCopy, which leaves the original in place!
     let makeCopy = altIsBeingPressed
-    Beat.call("Beat.custom.moveScenes(" + firstScene + ", " + lastScene + ", " + insertBeforeScene + ", " + warningsAreOn + "," + rangeStart + "," + rangeEnd + "," + synopsisMove + "," + makeCopy +")")
+    Beat.call("Beat.custom.moveScenes(" + firstScene + ", " + lastScene + ", " + insertBeforeScene + ", " + userDefault.warningsAreOn + "," + rangeStart + "," + rangeEnd + "," + synopsisMove + "," + makeCopy +")")
     rangeStart = false
     rangeEnd = false
 }

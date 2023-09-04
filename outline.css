@@ -1129,7 +1129,8 @@ p >.clear{
 	overflow: hidden !important;
 }
 
-.showSectionPageNumber{
+.showSectionPageNumber,
+.sectionLengths{
 
 	display: var(--showPageNum);
 	
@@ -1162,7 +1163,7 @@ p >.clear{
 
 	display: none;
 	padding-left: 0 !important;
-	margin-top: -6px !important;
+	padding-right: 0 !important;
 
 	height: auto;
 	overflow: visible;
@@ -2441,7 +2442,7 @@ html[data-outdoors='1'] .isExpanded > .scene{
 
 	border: 0.5px solid black !important;
 	/* background-color: white; */
-	background-color: color-mix(in oklab, var(--localColor), white 60%);
+	background-color: color-mix(in oklab, var(--localColor), white var(--saturation));
 	box-shadow: none !important; 
 
 	box-shadow: 6px 0 0 0px inset var(--localColor),
@@ -2712,7 +2713,7 @@ rgba(221, 221, 221, 1) !important */
 ;
 }
 
-html[data-outdoors='1'] .scene:hover > .sceneheading {
+html[data-outdoors='1'] .scene:not(.sluglineIsHidden):hover > .sceneheading {
 
 	color: black !important;
 	background-color: transparent !important;
@@ -2810,6 +2811,35 @@ html[data-outdoors='1'] #notepanel .chunkHeading:has(:hover) {
 html[data-outdoors='1'] {
 
 	--dragging-cursor-color: blue !important
+
+}
+
+#saturationSlider{
+
+	-webkit-appearance: none; 
+	appearance: none;
+
+	position: absolute;
+	width: 190px;
+	height: 24px;
+	right: 280px;
+	bottom: 14px;
+
+	display: none
+
+}
+
+#saturationSlider:hover{
+
+	box-sizing: content-box;
+	translate: 30px 30px;
+	border: 30px solid transparent !important;
+
+}
+
+html[data-outdoors='1'] #saturationSlider{
+
+	display: block
 
 }
 
@@ -3090,6 +3120,63 @@ MARK: -Buttons
 	opacity: 0% !important
 
 }
+
+#----- SLIDERS ---------------{}
+
+#saturationRange {
+
+	position: absolute;
+	top: 10px;
+	width: 150px;
+
+	display: none
+
+}
+
+#saturationSlider:hover #saturationRange {
+
+	display: block
+
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: grey;
+  border: 1px black solid;
+  border-radius: 2px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1), 
+  			inset 0px 0px 0px 2px black;
+  border: 1px solid black !important;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: silver;
+  margin-top: -9px;
+}
+input[type=range]:focus::-webkit-slider-thumb {
+  border: 1px solid black;
+  box-shadow: 0px 0px 5px black;
+}
+
+.paletteIcon{
+
+	position: absolute;
+	top: 0px;
+	right: 0px;
+
+	width: 24px;
+	height: 24px;
+
+
+}
+
 
 
 </style>

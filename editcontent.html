@@ -170,7 +170,6 @@ scroll-margin: 0px;
 function editContent(ev, elementToEdit) {   
 
     mylog("doubleclicked " + ev?.target?.classList || elementToEdit?.classList)
-    console.log("editContent", elementToEdit)
     
     if(weAreCurrentlyEditingText || document.getElementById('outOfSyncDiv').style.display == 'block'){return}
     //the OutOfSync check above disallows editing if outline is updating. So as not to edit out-of-date data.
@@ -296,12 +295,10 @@ function editContent(ev, elementToEdit) {
             }
         
     mylog("the result is" + kindOf)
-    console.log(theElement)
 
     // creating the editbox
     // NEW: after 220704, the rest is in a setTimeOut, and delayed if widen happens
     mylog("about to create the editBox")
-    console.log("about to create the editBox")
 
     setTimeout(function(){
 
@@ -342,7 +339,6 @@ function editContent(ev, elementToEdit) {
         let elementCSS = window.getComputedStyle(theElement)
 
             editBox.style.color = elementCSS.color
-            console.log(elementCSS.color, theElement)
                 if (theElement.classList.contains("sceneheading")){
                     editBox.style.color = "black"
                 }
@@ -517,7 +513,6 @@ function exitEdit(theElement, changesWereConfirmed) {
 function editBoxListen(someoneJustPressed){
 
     mylog()
-    console.log("editBoxListen", someoneJustPressed)
     
     if (someoneJustPressed.key == "Enter" && (event.shiftKey || event.altKey)){
         if ([...theElement.classList].includes("synopsis")){
