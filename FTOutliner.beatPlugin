@@ -1547,13 +1547,6 @@ Beat.custom.exportThis = function (content, classListOfFlexiContainer, documentN
 
 Beat.custom.printThis = function (content, classListOfFlexiContainer, documentName, documentSubName, documentAuthor) {
 
-	// documentName = Beat.getDocumentSetting("documentName") || false
-	// if(documentName == "false")documentName = false
-	// documentSubName = Beat.getDocumentSetting("documentSubName") || false
-	// if(documentSubName == "false")documentSubName = false
-	// documentAuthor = Beat.getDocumentSetting("documentAuthor") || false
-	// if(documentAuthor == "false")documentAuthor = false
-
 	let css = Beat.assetAsString("outline.css")
 	let printCSS = Beat.assetAsString("printOutlineCSS.css")
 	let notepanel = Beat.assetAsString("notepanel.html")

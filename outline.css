@@ -375,23 +375,6 @@ __________BASIC ELEMENTS{}
 
 }
 
-/* #flexiContainer:not(.indexcards, .nonProportionalMode) :is(.scene, .orphanText){
-
-	container-name: scene;
-	container-type: size;
-
-}
-
-@container scene (max-height: 14px){
-
-	#flexiContainer:not(.nonProportionalMode, .indexcards) .sceneheading{
-
-		opacity: 0;
-
-	}
-
-} */
-
 #flexiContainer.nonProportionalMode .isExpanded > .scene{
 
 	height: calc(var(--fixedHeight) * var(--fontSizeFactor) + 1px) !important;
@@ -599,12 +582,6 @@ ______SCROLLBAR FIX FOR ALWAYS OS SETTING {}
 MARK: -Dual Lines
 */
 __________ DUAL LINES{}
-
-#flexiContainer.focused{
-
-	/* box-shadow: inset 0 0 0 2px rgba(128, 255, 0, 0.4); */
-
-}
 
 #flexiContainer:not(.indexcards) .isExpanded > .scene:has(.isBeingEdited),
 #flexiContainer.nonProportionalMode:not(.indexcards).dualSceneLines .isExpanded > .scene{
@@ -1129,6 +1106,20 @@ p >.clear{
 	overflow: hidden !important;
 }
 
+.sectionInfoDiv {
+
+	float: right;
+	white-space: nowrap;
+}
+
+/* #flexiContainer.dualSectionLines .sectionInfoDiv{
+
+	white-space: normal !important;
+	height: inherit !important;
+	outline: 1px dotted red
+
+} */
+
 .showSectionPageNumber,
 .sectionLengths{
 
@@ -1140,14 +1131,14 @@ p >.clear{
 
 	text-transform: none !important;
 	
-	float: right !important;
+	/* float: right !important; */
 	text-align: right !important;
 	right: 0px !important;
 	
 	opacity: 45% !important; 
 	border-radius: 6px;
-	margin-top: calc(1px * var(--fontSizeFactor)) !important;
-	padding: 0px 4px 4px 4px;
+	margin-top: calc(1px * var(--fontSizeFactor) - 1) !important;
+	padding: 0px 0px 0px 4px;
 
 	height: auto; 
 	margin-bottom: calc(-5px * var(--fontSizeFactor));
@@ -1170,7 +1161,7 @@ p >.clear{
 
 }
 
-#flexiContainer:not(.dualSectionLines) .sectionLengths br {
+/*#flexiContainer:not(.dualSectionLines)*/ .sectionLengths br {
 	display: none;
 }
 

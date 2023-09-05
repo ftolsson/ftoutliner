@@ -41,14 +41,11 @@ function togglePrintMode(exportInstead){
 	let documentAuthor = documentSetting.documentAuthor || ""
 
 	if(!exportInstead){
+
 		callString = "Beat.custom.printThis(`" + (content) + "` , `" + (classListOfFlexiContainer) + "`, `" + documentName + "` , `" + documentSubName + "` , `" + documentAuthor + "`)"
 	}else{
 		callString = "Beat.custom.exportThis(`" + (content) + "` , `" + (classListOfFlexiContainer) + "`, `" + documentName + "` , `" + documentSubName + "` , `" + documentAuthor + "`)"
 	}
-
-	alertThis(callString)
-
-	//content, classListOfFlexiContainer, documentName + ,"" + documentSubName + "," + documentAuthor + "," +
 	
 	Beat.call(callString)
 }

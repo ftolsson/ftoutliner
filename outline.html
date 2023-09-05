@@ -559,6 +559,10 @@ function divMaker(){
 						let sectionarrowDiv = document.createElement("div")
 							sectionarrowDiv.classList.add("sectionArrow")
 							sectionheaderDiv.appendChild(sectionarrowDiv) 
+
+					let infoDiv = document.createElement("div")
+						infoDiv.classList.add("sectionInfoDiv")
+						sectionheaderDiv.appendChild(infoDiv)
 					
 					let pagenumberDiv = document.createElement("div")
 						pagenumberDiv.classList.add("showSectionPageNumber")
@@ -568,9 +572,9 @@ function divMaker(){
 						sectionLengthDiv.classList.add("sectionLengths")
 						sectionLengthDiv.innerHTML = "(--)"
 
-					sectionheaderDiv.appendChild(pagenumberDiv)
+					infoDiv.appendChild(pagenumberDiv)
 					// pagenumberDiv.appendChild(sectionLengthDiv)
-					sectionheaderDiv.appendChild(sectionLengthDiv)
+					infoDiv.appendChild(sectionLengthDiv)
 					}
 
 					if(loggingIsOn){sectionheaderDiv.innerHTML += currentItem.uuid + " -- "}
@@ -2175,8 +2179,6 @@ function updateSelectionInfo(){
 
 	})
 
-	console.log("measurableStuff: ", measurableStuff)
-
 	$id("infoField").innerHTML = measurableStuff.length > 0 ?
 		`${selectionInfo.numberOfScenes || measurableStuff.length} ${actionWord}<br/>
 		${numberIntoEights(selectionInfo.length).replace(/pg(s*)/, "")} pages total`
@@ -2461,9 +2463,11 @@ function toggleIndexCardMode(firstrun){
 
 			mylog("indexCards ON")
 
-			$$(".sluglineIsHidden").forEach(element => {
-				element.classList.remove("sluglineIsHidden")
-			})
+			if(!firstrun){ // or else sluglines will blink when changing values in settings dialog.
+				$$(".sluglineIsHidden").forEach(element => {
+					element.classList.remove("sluglineIsHidden")
+				})
+			}
 
 			scenesWereProportionalBeforeIndexMode = (documentSetting.scenesAreProportional)
 			documentSetting.scenesAreProportional = false
@@ -3139,7 +3143,7 @@ function mylog(abstext, isError){
 
 
 		console.log("🔴🔴🔴 FTOutliner had an error. Below is the stack trace:")
-		console.log(JSON.parse(JSON.stringify(logArray)))
+			(JSON.parse(JSON.stringify(logArray)))
 		Beat.log("🔴🔴🔴 FTOutliner had an error. Below is the stack trace:")
 		Beat.log(logArray.join("\n"))
 
