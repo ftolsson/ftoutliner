@@ -877,7 +877,6 @@ function divMaker(){
 					section.classList.toggle(className, oldSection.classList.contains(className))
 				})
 			}else{ //this should only happen on first draw
-				// console.log(cardState)
 				savedValue = cardState.find(card => card.uuid == uuid) || {isExpanded: true, collapsedSection: false, wider: false};
 				["isExpanded", "collapsedSection"].forEach(className => { //removed ".wider" bc no reason to widen anything on first draw
 					section.classList.toggle(className, savedValue[className])
@@ -895,8 +894,6 @@ function divMaker(){
 	let classesBefore = JSON.stringify(Array.from(flexiContainer.classList))
 	$id("flexiContainer").innerHTML = newFlexi.innerHTML
 	let classesAfter = JSON.stringify(Array.from(flexiContainer.classList))
-	console.log(classesBefore)
-	console.log(classesAfter)
 
 	//post-adding fixes:
 
@@ -1440,7 +1437,7 @@ function __________UI_RELATED_STUFF (){}
 
 function getSettings(){
 
-	console.log("🫒🫒🫒 READING SETTINGS!")
+	mylog()
 
 	//TODO: The problem here is that values that are note stored already will be undefined.
 	// We need to check for that and set defaults instead.
@@ -1553,30 +1550,28 @@ function applySettings(){
 	Object.keys(knownDocumentSettingDefaults)
 		.filter(key => !(key in documentSetting))
   		.forEach(key => {
-    		console.log("🟡 Didn't find " + key + " in documentSetting, so setting it to default value '" + knownDocumentSettingDefaults[key] + "'.");
+    		console.log("Didn't find " + key + " in documentSetting, so setting it to default value '" + knownDocumentSettingDefaults[key] + "'.");
     		documentSetting[key] = knownDocumentSettingDefaults[key];
   		});
 
 	Object.keys(knownUserDefaults)
 		.filter(key => !(key in userDefault))
   		.forEach(key => {
-			console.log("🟡 Didn't find " + key + " in userDefault, so setting it to default value '" + knownUserDefaults[key] + "'.");
+			console.log("Didn't find " + key + " in userDefault, so setting it to default value '" + knownUserDefaults[key] + "'.");
 			userDefault[key] = knownUserDefaults[key];
   		});
 
 	Object.keys(documentSetting)
 		.filter(key => !(key in knownDocumentSettingDefaults))
   		.forEach(key => {
-			console.log("⭕️⭕️⭕️ Found " + key + " in documentSetting, but it is not a known default. FIX THIS!")
+			console.log("Found " + key + " in documentSetting, but it is not a known default. FIX THIS!")
   		});
 
 	Object.keys(userDefault)
 		.filter(key => !(key in knownUserDefaults))
   		.forEach(key => {
-			console.log("⭕️⭕️⭕️ Found " + key + " in userDefault, but it is not a known default. FIX THIS!")
+			console.log("Found " + key + " in userDefault, but it is not a known default. FIX THIS!")
   		});
-
-	console.log("🍋🍋🍋 APPLYING SETTINGS after getting them.")
 
 	$id("flexiContainer").classList.toggle("dualSceneLines", documentSetting.showMultipleSceneLines)
 	$id("flexiContainer").classList.toggle("dualSectionLines", documentSetting.showMultipleSectionLines)
@@ -1686,12 +1681,10 @@ function applySettings(){
 		recalculateHeights("from applySettings")
 		mylog("DONE getting defaults")
 
-		console.log("end of apply")
 }
 
 function saveCurrentState() {
 	mylog()
-	console.log("Saving current state...")
 
 	rememberCardState()
 
@@ -1761,8 +1754,6 @@ function saveCurrentState() {
 		documentSettingString = JSON.stringify(documentSetting)
 		Beat.call((documentSettingString) => {Beat.setDocumentSetting("ftoutlinerObject", documentSettingString)}, documentSettingString)
 
-		console.log("just wrote:" + documentSetting.notepanelWidth)
-
 		// if($id("dumpDiv")) $id("dumpDiv").innerHTML = JSON.stringify(documentSetting, null, 2)
 	
 	if(!isFullScreen)Beat.call("Beat.custom.saveWindowSize()")
@@ -1775,8 +1766,6 @@ function saveCurrentState() {
 }
 
 function toggleDocumentSetting(settingKey){
-
-	console.log("TOGGLING DOCUMENT SETTING: ", settingKey)
 
 	let settingValue = documentSetting[settingKey]
 		if (typeof settingValue === "boolean") documentSetting[settingKey] = !settingValue
@@ -1833,8 +1822,6 @@ function openPrintWindow(){
 
 	let html = JSON.stringify(allCSS + flexiContainer.outerHTML)
 
-	console.log(html)
-
 	Beat.call((html) => Beat.custom.displaySecondWindow("Print Preview", "printWindow.html", 1200, 800, false, html), html)
 
 }
@@ -1842,8 +1829,6 @@ function openPrintWindow(){
 function escapeWasPressed(){
 
 	if(errorHasFired){return}
-
-	console.log("escape")
 
 		if ($id("advancedSettings".open)) {$id("advancedSettings").close(); return}
 		if ($id("menu")){closeNewMenu(); return false}
@@ -1885,11 +1870,9 @@ function somethingWasClicked() {
 	let theButton = event.button
 	let rightClick = (event.ctrlKey && !event.metaKey && !event.altKey) || theButton == 2
 		if(rightClick || event.target.closest(".contextMenu")){
-			console.log("exiting somethingWasClicked. Selected items are now: ", $$(".isSelected"))
 			return
 		}
 
-	console.log("somethingWasClicked: " + event.target.classList + event.target.id + event.target)
 	mylog("flexiContainer now has...:" + $id("flexiContainer").classList)
 
 	if(event.target.closest(".bottomButton") 
@@ -1900,9 +1883,6 @@ function somethingWasClicked() {
 
 	let theClickedThing = event.target
 	let length
-
-	// console.log(theClickedThing)
-	// console.log(theClickedThing.closest(".scene, .section")?.id, outline[theClickedThing.closest(".scene, .section")?.id])
 
 	let a = [...theClickedThing.classList]
 
@@ -2050,8 +2030,6 @@ function somethingWasClicked() {
 			let firstSynopsis = allSynopsis.indexOf(alreadySelectedElements[0])
 			let lastSynopsis = allSynopsis.indexOf(alreadySelectedElements[alreadySelectedElements.length - 1])
 			
-			console.log(justSelectedSynopsis, firstSynopsis, lastSynopsis)
-
 			if (justSelectedSynopsis < firstSynopsis){
 				for (let selectThis = justSelectedSynopsis; selectThis < firstSynopsis; selectThis++ ){
 					allSynopsis[selectThis]?.classList.add("isSelected")
@@ -2065,7 +2043,6 @@ function somethingWasClicked() {
 			if (firstSynopsis < justSelectedSynopsis && justSelectedSynopsis < lastSynopsis){
 				let selectThis = justSelectedSynopsis
 				do {
-					console.log(selectThis, allSynopsis[selectThis - 1].classList, allSynopsis[selectThis - 1].classList.contains("isSelected"))
 					allSynopsis[selectThis]?.classList.add("isSelected")
 					selectThis --
 				} while(!allSynopsis[selectThis]?.classList.contains("isSelected"))
@@ -2182,15 +2159,12 @@ function updateSelectionInfo(){
 	let actionWord = "selected scene" + (measurableStuff.length > 1 ? "s" : "")
 
 	if (measurableStuff.length == 0 && $(".dimmedScene, .dimmedSection")) {
-		console.log("no selected scenes, but dimmed scenes")
 		measurableStuff = $$(".scene:not(.dimmedScene), .section:not(.dimmedSection)")
 		actionWord = "scene" + (measurableStuff.length > 1 ? "s" : "") + " with " + $id("characterMenuList")?.selectedOptions[0]?.value
 	}else if (measurableStuff.length == 0 && flexiContainer.classList.contains("uncolorAllScenesBut")) {
 		let color = colorsArray.find(color => flexiContainer.classList.contains(color.toLowerCase()))?.toLowerCase()
-		console.log("no selected scenes, but uncolorAllScenesBut && " + color)
 		measurableStuff = $$(".scene." + color)
 		actionWord = color + " scene" + (measurableStuff.length > 1 ? "s" : "")
-		// $id("infoField").style.backgroundColor = "var(--" + actionWord + ")"
 		$id("infoField").style.backgroundColor = "color-mix(in oklab, hsl(var(--" + color + ")), white 20%)"
 		$id("infoField").style.opacity = "0.8"
 	}
@@ -2837,8 +2811,6 @@ function goto(gotoIndex, theClickedThing, length = theClickedThing?.dataset.leng
 
 	mylog("goto " + gotoIndex)
 
-	console.log(theClickedThing, gotoIndex, length)
-
 	let classes = [...theClickedThing.classList]
 	if (classes.includes("sceneheading") || classes.includes("scene") || classes.includes("section") || classes.includes("synopsis")){
 		Beat.call("Beat.scrollToScene(Beat.currentParser.sceneAtIndex(" + gotoIndex + "))")
@@ -2881,7 +2853,6 @@ function goto(gotoIndex, theClickedThing, length = theClickedThing?.dataset.leng
 	//Select the clicked thing in the editor
 		if(documentSetting.clickingSelectsInEditor || (event.metaKey && event.ctrlKey && event.altKey)){		
 			if (theClickedThing.closest(".scene, .section")){
-				console.log(event)
 				let lineOfScene = outline[theClickedThing.closest(".scene, .section, .synopsis").dataset.myId]
 				Beat.call("Beat.setSelectedRange(" + lineOfScene.sceneStart + "," + (lineOfScene.sceneEnd - lineOfScene.sceneStart) + ")")
 			}
@@ -3007,11 +2978,7 @@ function zoomSizes(key){
 
 function isThisOffScreen(element){
 
-	mylog("=====================")
 	mylog("======== determining off/onscreen for..." + element?.classList)
-	mylog("=====================")
-
-	//console.log("offscreen: ", element)
 
 	if(!element) return
 
@@ -3034,14 +3001,12 @@ function isThisOffScreen(element){
 		rect.y + rect.height > (window.innerHeight - 70))
 	)
 
-	console.log(result)
 	return result
 }
 
 function scrollNicelyIntoView(element, whichContainer){
 
 	mylog("scrollNicely")
-	console.log("scrollNicely: ", element, whichContainer)
 
 	if(weAreCurrentlyEditingText) return
 	if(!element) return

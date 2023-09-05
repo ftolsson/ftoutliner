@@ -15,8 +15,6 @@ function updateScenePanel(){
     let parsedSlugs = Array.from(allSceneHeadings)
     parsedSlugs.forEach(scene => {
 
-        console.log(scene.stringForDisplay)
-
         intext = scene.stringForDisplay?.toUpperCase().match(/^\.*((int\.?)*[/]*(ext\.?)*(([/]*(int(\.+|\s+))*)))\s+/i) || [""]
         timeofday = scene.stringForDisplay?.match(/-+\s*(.+)$/) || [""]
 

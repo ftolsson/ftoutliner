@@ -680,10 +680,6 @@ function cycleTabs(clickedElement){
     }
     if( $(".selectedtab").classList.contains("scenestab") ) { updateScenePanel() } 
 
-    console.trace()
-    console.log(document.activeElement)
-    console.log("🐱🐱")
-
 }
 
 function notePanelColorButtons(){
@@ -785,7 +781,6 @@ function finalizeResizingNotepanel(){
 function updateNotepanel(){
 
     mylog("updateNotepanel, which has... " + $id("notepanel").classList || "nothing")
-    console.log(globalAllNotes)
 
     let allNotes = globalAllNotes.flat()
 

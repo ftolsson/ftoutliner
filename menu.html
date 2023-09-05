@@ -1233,7 +1233,8 @@ function settingsMenu(){
             <p style="color: red!important">Support…
                 <span class="shortcut" style="float:right"></span></li-->
         <hr>
-        <li onclick="Beat.call('Beat.custom.sendChangelogToDialog()')">
+        <!--li onclick="Beat.call('Beat.custom.sendChangelogToDialog()')"-->
+        <li onclick="Beat.call(() => {Beat.custom.displaySecondWindow('Welcome', 'welcomewindow.html', 800, 650, true)})">
                 Version History...
                 <span class="shortcut" style="float:right"></span></li>
         <li onclick="forceRestart()">

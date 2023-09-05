@@ -1,13 +1,14 @@
 
 
 <div id = "main">
-	<p class="headline">Welcome to FTOutliner!</p>
+	<p class="headline">Welcome to FTOutliner!<span class="versionnumber"></span></p>
 	<br<br/>
-	This is a plugin for navigating, editing and getting a bird's eye view of your screenplay. You can move scenes around, filter them by colors or characters and cycle through any notes or markers in your script.<br/><br/>
-	<strong>If you never used it before,</strong> don't feel overwhelmed! FTOutliner is meant to make your screenwriting life esier. Keep it open next to your screenplay as you write, and I'm sure you'll gradually find your own best way to use it.<br/><br/>
-	<strong>If you have been using FTOutliner before</strong> and wonder what's new in this version, here are the latest changes:
-	<div id="changelog"></div>
-	<strong>That's all!</strong> Let's go writing, both of us!<br/><br/><br/>
+	FTOutliner is a plugin for navigating, editing and getting a bird's eye view of your screenplay. If this is your first time here, don't be too confused. FTOutliner is meant to make your screenwriting life esier, so just keep it open next to your screenplay as you write and I'm sure you'll gradually find your own best way to use it.<br/><br/>
+	<strong>Here's what's new in this version:</strong>
+	<div id="changelog-wrapper">
+		<div id="changelog"></div>
+	</div>
+	<!-- <strong>That's all!</strong> Let's go writing, both of us!<br/><br/><br/> -->
 		<!--hr-->
 		<ul>
 		<!--strong><br/>Behavior Settings</strong><br/-->
@@ -33,12 +34,18 @@
 
 		Beat.callAndWait(() => {
 			let ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion")
-			return(ftoutlinerVersion)
+			let userDefault = Beat.getUserDefault("ftoutlinerObject")
+			return(JSON.stringify([ftoutlinerVersion, userDefault]))
 		})
 		.then(
         	response => {
 				
-				ftoutlinerVersion = response.replace(/\./g, "")
+				response = JSON.parse(response)
+				userDefault = JSON.parse(response[1])
+
+				document.querySelector(".versionnumber").innerHTML = "v" + response[0]
+
+				ftoutlinerVersion = response[0].replace(/\./g, "")
 				
 				let listItem = document.getElementById("changeThis")
 					listItem.onclick = function(){
@@ -46,6 +53,7 @@
 					}
 					listItem.querySelector("input").id = "buttonFor-dontShowWelcomeWindowFor" + ftoutlinerVersion
 					listItem.querySelector("label").setAttribute("for", "buttonFor-dontShowWelcomeWindowFor" + ftoutlinerVersion)
+					listItem.querySelector("input").checked = userDefault['dontShowWelcomeWindowFor' + ftoutlinerVersion]
 		},
         	error => { console.log("Error retrieving userDefault") }
     	)
@@ -58,7 +66,7 @@
         	response => {
 				
 				changelog = response
-				document.querySelector("#changelog").innerHTML = changelog
+				document.querySelector("#changelog").innerHTML = markupToHTML(changelog)
 				
 		},
         	error => { console.log("Error retrieving changelog") }
@@ -119,6 +127,51 @@
 
 	}
 
+	function markupToHTML(text){
+
+		let html = document.createElement("div")
+
+		text.split("\n").forEach(line => {
+
+			line = line.replaceAll(/\*(\S.+?)\*/g, "<strong>$1</strong>")
+			line = line.replaceAll(/\_(.+?)\_/g, "<i>$1</i>")
+
+			if(line.startsWith("#")){
+
+				let headline = document.createElement("p")
+					headline.classList.add("headline")
+					headline.innerHTML = line.replace("#", "")
+					html.appendChild(headline)
+
+			}else if(line.startsWith("* ")){
+
+				let listItem = document.createElement("li")
+					listItem.classList.add("changelogList")
+					listItem.innerHTML = line.replace("* ", "")
+					html.appendChild(listItem)
+
+			}else if(line.startsWith("  -")){
+
+				let listItem = document.createElement("li")
+					listItem.classList.add("changelogList")
+					listItem.classList.add("level2")
+					listItem.innerHTML = line.replace("  -", "")
+					html.appendChild(listItem)
+
+			}else{
+
+				let paragraph = document.createElement("p")
+					paragraph.innerHTML = line
+					html.appendChild(paragraph)
+
+			}
+
+		})
+
+		return(html.innerHTML)
+
+	}
+
 
 </script>
 
@@ -159,23 +212,53 @@
 
 		padding: 20px 40px 20px 40px;
 
+		overflow: hidden;
+
     }
+
+	#changelog-wrapper{
+
+		position: relative;
+		overflow: hidden;
+		width: auto;
+		height: auto;
+		margin: 20px 0px 20px 0px;
+		border-radius: 4px;
+		border: 1px solid transparent;
+
+	}
 
 	#changelog{
 
+		position: relative;
 		white-space: pre-wrap;
 
-		margin: 20px 0px 20px 0px;
-
 		background-color: white;
-		padding: 30px;
+		padding: 0px 30px 2px 30px;
 		border-radius: 4px;
 		border: 1px solid var(--menu-border-color);
 
-		height: 200px;
+		height: 300px;
 		overflow-y: scroll;
 
-		box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.15);
+	}
+	
+	#changelog-wrapper::after{
+
+		box-shadow: inset 3px 3px 3px rgba(0, 0, 0, 0.15);
+		content: "";
+		background-color: transparent;
+	
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		z-index: 999;
+		
+		pointer-events: none;
+
 	}
 
 	.headline {
@@ -188,6 +271,47 @@
 
 		margin-bottom: 20px;
 
+		
+	}
+
+	.versionnumber {
+
+		font-size: 10px;
+		font-weight: 300;
+		line-height: 14px;
+
+		opacity: 60%;
+		
+		vertical-align:top;
+
+		border-top: 5px solid transparent;
+		box-sizing: border-box;
+
+		padding-left: 8px;
+		display: inline-block;
+	}
+	
+	#changelog .headline {
+
+		border-top: 16px solid white;
+
+		font-size: 18px;
+		line-height: 22px;
+		margin: 0px 0 8px 0; 
+
+		display: block;
+		background-color: color-mix(in oklab, var(--menu-background), white 20%) ;
+
+		
+		position: sticky;
+		top: 0;
+
+	}
+
+	#changelog p:has(+ li) {
+
+		margin-bottom: 2px;
+
 	}
 
     li {
@@ -196,6 +320,24 @@
         padding-top: 3px;
 		padding-left: 20px;
     }
+
+	li.changelogList{
+
+		list-style-type: disc;
+		padding-top: 0;
+		text-indent: -15px;
+		padding-left: 40px
+
+	}
+
+	li.changelogList.level2{
+
+		list-style-type: circle;
+		text-indent: -18px;
+		padding-left: 58px;
+		padding-top: 0;
+
+	}
 
 	.shortcut {
 

@@ -163,8 +163,6 @@
         colorMenuItems.find(item => item.menuItem === "Special").icon = ""
         colorMenuItems.find(item => item.menuItem === "Special").showFor = ["section"]
 
-        console.log("contextmenu.js loaded")
-
     //then add all the other menuitems
     let contextMenuContents = colorMenuItems.concat([
         {   
@@ -355,8 +353,6 @@
 
 function displayContextMenu(event, element){
 
-    console.log("CONTEXT MENU FOR ", event.target)
-
     event.preventDefault()
     event.stopPropagation()
     closeNewMenu()
@@ -478,9 +474,6 @@ function displayContextMenu(event, element){
 
 function setItemColor(item, color){
 
-    console.log("entering setitemcolor", item, color)
-    console.log("all selected: ", $$(".isSelected"))
-
     toggleWaitState(true)
     $$(".contextMenu").forEach(menu => {menu.remove()})
 
@@ -489,18 +482,13 @@ function setItemColor(item, color){
     // if (!item.classList.contains("isSelected") && $$("isSelected").length) {deselectAllElements()} //deselect all other elements if a new one is selected
     if (item && !$$("isSelected").length) {item.classList.add("isSelected")} //select the item if it is not selected yet
 
-    // elements = $$('.isSelected:not(:not(.nonProportionalMode) .scene.isOmitted)')||[item]
-    console.log($$(".isSelected"), item)
     let elements = $$('.isSelected') ||[item]
-        console.log("elements", elements)
 
     for (element of elements) {
 
-        console.log("NOW CLICKED: ", element)
         let elementId = element.id
 
         if (element.classList.contains("synopsis")){
-            console.log("ici, in the loop", elementId)
 			let parentId = element.closest(".scene, .section").id
 			let synopsisNumber = Number(elementId.toString().replace(/^s.*_/, ""))
 
@@ -516,9 +504,6 @@ function setItemColor(item, color){
         
         } 
     }
-
-    console.log("end of setitemcolor")
-    //deselectAllElements()
 }   
 
 function deselectAllElements(){
