@@ -3,7 +3,7 @@
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2023
-Version: 1.71
+Version: 1.72
 Compatibility: 1.996.0
 Type: Tool
 Image: screenshot.jpg
@@ -36,7 +36,7 @@ a {
 function __________VARIABLES(){}
 
 //VERSION NUMBER checking -- also change in the download description above!
-var ftoutlinerVersion = "1.71"
+var ftoutlinerVersion = "1.72"
 Beat.setUserDefault("ftoutlinerVersion", ftoutlinerVersion) 
 
 if (!Beat.compatibleWith(1.996)){
@@ -538,15 +538,19 @@ const paginationManager = Beat.currentPagination()
 
 function outlineWithoutPagination() {
 
+	// This name is a bit misleading: The data returned does contain pagination -- but it is the old one.
+	// So "without" refers to no pagination being performed, just copied from last round.
+
 	console.log("outlineWithoutPagination")	
 
 	let altSceneData = []
+	const outlineCopy = Beat.outline()
 
 	try{
-		for (const scene of Beat.outline()) {
+		for (const scene of outlineCopy) {
 			let data = scene.json()
 	
-			let previousData = sceneData[Beat.outline().indexOf(scene)]
+			let previousData = sceneData[outlineCopy.indexOf(scene)]
 	
 				data.numberOfPages = previousData.numberOfPages
 				data.startsOnPage = previousData.startsOnPage
@@ -556,7 +560,7 @@ function outlineWithoutPagination() {
 			altSceneData.push(data)
 		}
 	}catch{
-	
+
 		return false
 
 	}
@@ -572,8 +576,9 @@ function outlineWithPagination() {
 	let zeroHeight = []
 		pagination = paginationManager.finishedPagination
 		sceneData = []
+	const outlineCopy = Beat.outline()
 	
-	for (const scene of Beat.outline()) {
+	for (const scene of outlineCopy) {
 
 		if(emergencyExit) break
 
