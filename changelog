@@ -1,3 +1,9 @@
+#v 1.72 (xxx)
+
+
+ADDITIONS
+* In addition to hovering a beat to show its description (text after colon), clicking a beat now shows descriptions for all beats of that name. 
+
 #v 1.71 (September 7, 2023)
 
 *Post-realease hotfixes:*
