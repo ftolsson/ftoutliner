@@ -9,9 +9,11 @@ let settingsMenu = [
                 icon: svgCircle,
                 iconColor: "red",
                 iconSpecialColor: function(item) {return "red"},
+                input: "checkbox", //note: input is not implemented in the context menu shower function, can be "radio", "switch", etc.
                 hoverColor: "blue",
                 showFor: ["nothing"],
                 butNotFor: ["omitted"],
+                showIf: () => { return true }, //note: showIf is not implemented in the context menu shower function
                 greyOutIf: () => { return !document.querySelector(".selected") }, 
                 checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { zoomTo("all", item) },
@@ -22,16 +24,7 @@ let settingsMenu = [
             },
             {
                 menuItem: "Advanced Settings",
-                //menuName: function(item) {return "Menu Name"},
                 shortcut: ["Meta", ","],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                //hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { openSettingsWindow() },
             },
             {   
@@ -43,44 +36,15 @@ let settingsMenu = [
             },
             {
                 menuItem: "Report an issue…",
-                //menuName: function(item) {return "Menu Name"},
-                //shortcut: ["Meta", "Control", "Alt", "t"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                //hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { openFeedbackWindow() },
             },
             {
                 menuItem: "Open Documentation (Beta)…",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Meta", "Control", "Alt", "t"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { openDocumentationWindow() },
             },
             {
                 menuItem: "Show all keyboard shortcuts…",
-                //menuName: function(item) {return "Menu Name"},
                 shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { toggleHelpContainer() },
             },
             {
@@ -88,30 +52,10 @@ let settingsMenu = [
             },
             {
                 menuItem: "Version History…",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { Beat.call(() => {Beat.custom.displaySecondWindow('Welcome', 'welcomewindow.html', 800, 650, true)}) },
             },
             {
                 menuItem: "Force Restart",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { forceRestart() },
             },
             {   menuItem: "divider",
@@ -124,47 +68,17 @@ let settingsMenu = [
             },
             {
                 menuItem: "Outline As JSON to New Doc",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
                 showIf: () => { return altIsBeingPressed },
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { Beat.call("Beat.custom.outlineToJSON()") },
             },
             {
                 menuItem: "Lines As JSON to New Doc",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
-                showIf: () => { return altIsBeingPressed },
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
+                showIf: () => { return altIsBeingPressed }, //note: showIf is not implemented in the context menu shower function
                 command: (item) => { Beat.call("Beat.custom.linesToJSON()") },
             },
             {
                 menuItem: "Toggle Console",
-                //menuName: function(item) {return "Menu Name"},
-                // shortcut: ["Shift", "?"],
-                //icon: svgCircle,
-                //iconColor: "red",
-                //iconSpecialColor: function(item) {return "red"},
-                // hoverColor: "blue",
-                //showFor: ["nothing"],
                 showIf: () => { return altIsBeingPressed },
-                //butNotFor: ["omitted"],
-                //greyOutIf: () => { return !document.querySelector(".selected") }, 
-                //checkedIf: (item) => { return item.classList.contains("checked") },
                 command: (item) => { toggleConsole() },
             },
             
@@ -172,5 +86,121 @@ let settingsMenu = [
  
         ]
 
+
+let outlineMenu = [
+    {       
+        //NOTE: this entry is a template for the available/used keys in the menu object
+        menuItem: "template",
+        menuName: function(item) {return "Menu Name"}, //probably not implemented yet, check!
+        shortcut: ["Meta", "Control", "Alt", "t"],
+        icon: svgCircle,
+        iconColor: "red",
+        iconSpecialColor: function(item) {return "red"},
+        input: "checkbox", //note: input is not implemented in the context menu shower function, can be "radio", "switch", etc.
+        hoverColor: "blue",
+        showFor: ["nothing"],
+        butNotFor: ["omitted"],
+        showIf: () => { return true }, //note: showIf is not implemented in the context menu shower function
+        greyOutIf: () => { return !document.querySelector(".selected") }, 
+        checkedIf: (item) => { return item.classList.contains("checked") },
+        command: (item) => { zoomTo("all", item) },
+    },
+    {   
+        menuItem: "headline",
+        menuName: function(){ return "Outline Mode:"}
+    },
+    {
+        menuItem: "Flexible Timeline",
+        shortcut: ["F"],
+        input: "radio",
+        checkedIf: () => { return documentSetting.scenesAreProportional && !documentSetting.indexCardMode },
+        command: () => { toggleProportional(true) },
+    },
+    {
+        menuItem: "Fixed Hegihts",
+        shortcut: ["F"],
+        input: "radio",
+        checkedIf: () => { return !documentSetting.scenesAreProportional && !documentSetting.indexCardMode },
+        command: () => { toggleProportional(false) },
+    },
+    {
+        menuItem: "Index Cards",
+        shortcut: ["X"],
+        input: "radio",
+        checkedIf: () => { return !documentSetting.scenesAreProportional && !documentSetting.indexCardMode },
+        command: () => { toggleIndexCardMode(true) },
+    },
+    {   
+        menuItem: "divider",
+    },
+    {   
+        menuItem: "headline",
+        shortcut: ["O"],
+        menuName: function(){ return "Columns:"}
+    },
+    {
+        menuItem: "Single",
+        menuItemAfter: "Multiple",
+        input: "switch",
+        checkedIf: () => { return !documentSetting.oneColumnOutline },
+        command: () => { toggleOneColumnOutline() },
+        description: "When multiple, every # starts a new column."
+    },
+    {   
+        menuItem: "divider",
+    },
+    {   
+        menuItem: "headline",
+        shortcut: ["E"],
+        menuName: function(){ return "Expand Scenes:"}
+    },
+    {
+        menuItem: "None",
+        menuItemAfter: "All",
+        input: "switch",
+        checkedIf: () => { return $$(".section:not(.level1)").every(item => item.classList.contains("isExpanded")) },
+        undecidedIf: () => { return $$(".section:not(.level1)").any(item => item.classList.contains("isExpanded")) && $$(".section:not(.level1)").any(item => !item.classList.contains("isExpanded")) },
+        greyOutIf: () => { return documentSetting.scenesAreProportional && !documentSetting.indexCardMode },
+        command: () => { anArrowWasClicked($('.arrowForIndexCards'), true) },
+    },
+    {   
+        menuItem: "divider",
+    },
+    {   
+        menuItem: "headline",
+        shortcut: ["E"],
+        menuName: function(){ return "Expand Sections:"}
+    },
+    {
+        menuItem: "None",
+        menuItemAfter: "All",
+        input: "switch",
+        checkedIf: () => { return !$$(".section:not(.level1)").every(item => item.classList.contains("collapsedSection")) },
+        undecidedIf: () => { return $$(".section:not(.level1)").any(item => item.classList.contains("collapsedSection")) && $$(".section:not(.level1)").any(item => !item.classList.contains("collapsedSection")) },
+        greyOutIf: () => { return !documentSetting.indexCardMode },
+        command: () => { expandOrCollapseSections() },
+    },
+    {   
+        menuItem: "divider",
+    },
+    {   
+        menuItem: "headline",
+        shortcut: ["cmd", "B"],
+        menuName: function(){ return "Boneyard:"}
+    },
+    {
+        menuItem: "Hide",
+        menuItemAfter: "Show",
+        input: "switch",
+        checkedIf: () => { return !$("#flexiContainer.boneyardIsClosed") },
+        greyOutIf: () => { return !$(".level1.boneyard") },
+        command: () => { addShowHideBoneyard($('.sectionArrow'), true) },
+    },
+    {
+        menuItem: "Add Boneyard Act",
+        greyOutIf: () => { return $(".level1.boneyard") },
+        command: () => { addShowHideBoneyard() },
+    },
+]
 
 </script>

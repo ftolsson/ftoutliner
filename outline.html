@@ -24,8 +24,8 @@
 		</div>
 		<div class="tab dialogtab" onclick="cycleTabs(event.target)">Dialogue
 		</div>
-		<!--div class="tab scenestab" onclick="cycleTabs(event.target)">Scenes
-		</div-->
+		<div class="tab scenestab" onclick="cycleTabs(event.target)">Scenes
+		</div>
 		<div class="closetab" onclick="toggleNotepanel()">×
 		</div>
 	</div>
@@ -41,6 +41,8 @@
 		<div id="dialogSearchIcon" class="dialogSearchIcon"></div>
 		<input id="dialogsearch" class="dialogsearch" type="text" spellcheck="false" placeholder="search for..." oninput="onlyShowMatchingDialogs()" onfocus="toggleCaptureKeypresses(false)" onblur="toggleCaptureKeypresses(true)" onkeydown="searchboxlisten(event)">
 		<div id="clearSearchButton" onclick="clearSearchBox()">×</div>
+	</div>
+	<div id="scenespanelbuttons">
 	</div>
 	<div id="notepanelcontent">
 	</div>
@@ -1452,8 +1454,8 @@ function getSettings(){
 
 	//Step 1: getting User Defaults
 	Beat.callAndWait(() => {
-        let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject")
-        	return(ftoutlinerObject)
+        let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject") || {}
+        	return ftoutlinerObject
     	})
     	.then(
 			response => { 
@@ -1468,7 +1470,7 @@ function getSettings(){
 	//Step 2: getting Document Settings
 		function getDocumentSettings(){	
 			Beat.callAndWait(() => {
-				let ftoutlinerObject = Beat.getDocumentSetting("ftoutlinerObject")
+				let ftoutlinerObject = Beat.getDocumentSetting("ftoutlinerObject") || {}
 				return ftoutlinerObject
 				})
 				.then(
