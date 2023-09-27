@@ -14,7 +14,7 @@
 	padding: 5px 10px 0px 10px  !important;
 	margin: 0px !important; 
 
-    height: calc(100% - 65px) !important;
+    height: calc(100% - 65px) /*!important*/;
     width: var(--note-panel-width);
 	
 	font-size: calc(11px * var(--fontSizeFactor)); 
@@ -185,6 +185,7 @@
 }
 
 #notepanel #notepanelbuttons,
+#notepanel #scenespanelbuttons,
 #notepanel #dialogpanelbuttons{
 
     display: none;
@@ -199,6 +200,7 @@
 }
 
 #notepanel:has(.notetab.selectedtab) #notepanelbuttons,
+#notepanel:has(.scenestab.selectedtab) #scenespanelbuttons,
 #notepanel:has(.dialogtab.selectedtab) #dialogpanelbuttons{
 
     display: unset;
@@ -659,14 +661,15 @@ body.notepanelIsBeingResized > * {
 </style>
 <script>
 
-function cycleTabs(clickedElement){
+function cycleTabs(clickedElement, unconditional){
 
     if(!$("#notepanel.expanded")) { 
         toggleNotepanel()
         if(!clickedElement) return 
     }
     
-    if(clickedElement?.classList.contains("selectedtab")) return
+    if(clickedElement?.classList.contains("selectedtab") && !unconditional) return
+
     clickedTab = clickedElement || ($("#notepanel.expanded .selectedtab + .tab") || $("#notepanel .tab")) //|| event.target
 
     $$(".selectedtab").forEach(tab => {tab.classList.remove("selectedtab")})
@@ -678,7 +681,19 @@ function cycleTabs(clickedElement){
         unShowCharacterBubbles()
         reevaluateColorContrast()
     }
-    if( $(".selectedtab").classList.contains("scenestab") ) { updateScenePanel() } 
+
+    if( $(".selectedtab").classList.contains("scenestab") ) { 
+        populateScenesPanelButtons()
+        updateScenePanel() 
+    } 
+
+    if( $(".selectedtab").classList.contains("notetab") ) { 
+        if(!globalAllNotes || globalAllNotes.length == 0) collectNotes()
+    } 
+
+
+    documentSetting.selectedPanelTab = ["dialogtab", "scenestab", "notetab"].find(tabname => $(".selectedtab").classList.contains(tabname))
+    saveCurrentState()
 
 }
 
@@ -877,11 +892,15 @@ function toggleNotepanel() {
     $id("notepanel").classList.toggle("expanded")
     $id("flexiContainer").classList.toggle("notepanelIsExpanded", $id("notepanel").classList.contains("expanded"))
 
-    collectNotes()
+    // collectNotes()
+
 
     if(!$id("notepanel").classList.contains("expanded")){
         unShowCharacterBubbles()   
+    }else{
+        cycleTabs($(".selectedtab"), true) //true is needed to unconditionally run the function even if the tab is already selected
     }
+
 
     clearSearchBox()
     saveCurrentState()

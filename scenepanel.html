@@ -1,79 +1,670 @@
 <script>
 
+timeOfDayStrings = [
+    "DAY",
+    "NIGHT",
+    "DAWN",
+    "DUSK",
+    "MORNING",
+    "EARLY MORNING",
+    "EVENING",
+    "LATE EVENING",
+    "SUNRISE",
+    "SUNSET",
+    "AFTERNOON",
+    "LATE",
+    "EARLY",
+    "LATER",
+    "MOMENTS LATER",
+    "CONTINUOUS",
+    "SAME",
+    "SIMULTANEOUSLY",
+
+    "DAG",
+    "NATT",
+    "GRYNING",
+    "SKYMNING",
+    "MORGON",
+    "TIDIG MORGON",
+    "KVÄLL",
+    "SEN KVÄLL",
+    "SOLUPPGÅNG",
+    "SOLNEDGÅNG",
+    "EFTERMIDDAG",
+    "SENT",
+    "TIDIGT",
+    "SENARE",
+    "ÖGONBLICKET SENARE",
+    "FORTSÄTTNING",
+    "DIREKT FORTSÄTTNING",
+    "SAMMA",
+    "SAMTIDIGT",
+]
+
+timeOfDayObject = {
+
+    day: [
+
+        "DAY", "DAWN", "MORNING", "EARLY MORNING", "SUNRISE", "EARLY", "AFTERNOON", 
+        "DAG", "GRYNING", "MORGON", "TIDIG MORGON", "SOLUPPGÅNG", "TIDIGT", "EFTERMIDDAG",
+
+    ],
+    night: [
+
+        "NIGHT", "DUSK", "EVENING", "LATE EVENING", "SUNSET", "LATE", "MIDNIGHT", 
+        "NATT", "SKYMNING", "KVÄLL", "SEN KVÄLL", "SOLNEDGÅNG", "SENT", "MIDNATT",  
+
+    ],
+    same: [
+
+        "LATER", "MOMENTS LATER", "CONTINUOUS", "SAME", "SIMULTANEOUSLY",
+        "SENARE", "ÖGONBLICKET SENARE", "FORTSÄTTNING", "DIREKT FORTSÄTTNING", "SAMMA", "SAMTIDIGT",
+
+    ]
+
+}
+
+function populateScenesPanelButtons(){
+
+    document.getElementById("scenespanelbuttons").innerHTML = "<div style='display: inline-block; vertical-align: middle;'>Sort by:</div>"
+
+    let dropDownSpan = document.createElement("div")
+        dropDownSpan.classList = "dropDownSpan hasSelect"
+        dropDownSpan.style.display = "inline-block"
+        dropDownSpan.style.position = "relative"
+        dropDownSpan.style.verticalAlign = "middle"
+        dropDownSpan.style.marginLeft = "3px"
+        dropDownSpan.style.marginRight = "4px"
+        dropDownSpan.innerHTML = ""
+        document.getElementById("scenespanelbuttons").appendChild(dropDownSpan)
+
+    let sortDropDown = document.createElement("select")
+        sortDropDown.id = "sortDropDown"
+        sortDropDown.classList.add("colorDropdown")
+        sortDropDown.style.width = "auto"
+        sortDropDown.innerHTML = `
+            <option value="scriptOrder">SCRIPT ORDER&nbsp;</option>
+            <option value="location">LOCATION&nbsp;</option>
+            <option value="prefixTimeOfDay">SCHEDULE GROUP&nbsp;</option>
+            <option value="timeOfDayOption">TIME OF DAY&nbsp;</option>
+            <option value="prefixOption">PREFIX&nbsp;</option>
+        `
+        sortDropDown.value = "scriptOrder"
+        if (Array.from(sortDropDown.options).some(option => option.value == documentSetting.sortDropDown)) sortDropDown.value = documentSetting.sortDropDown
+        // sortDropDown.value = documentSetting.sortDropDown || "scriptOrder"
+        sortDropDown.classList.toggle(sortDropDown.value, true) 
+
+        sortDropDown.onchange = () => {
+            documentSetting.sortDropDown = sortDropDown.value
+            for (option of sortDropDown.options){
+                sortDropDown.classList.toggle(option.value, option.value == sortDropDown.value)
+            }
+            updateScenePanel()
+            saveCurrentState()
+        }
+
+    dropDownSpan.appendChild(sortDropDown)
+    // document.getElementById("scenespanelbuttons").appendChild(sortDropDown)
+
+    let mergeSimilarLocations = document.createElement("input")
+        mergeSimilarLocations.type = "checkbox"
+        mergeSimilarLocations.id = "mergeSimilarLocations"
+        mergeSimilarLocations.checked = documentSetting.mergeSimilarLocations || false
+        document.getElementById("scenespanelbuttons").appendChild(mergeSimilarLocations)
+        mergeSimilarLocations.onchange = () => {
+            documentSetting.mergeSimilarLocations = mergeSimilarLocations.checked;
+            [".sceneNum", ".duplicateSceneNum", ".timeOfDay", ".prefix"].forEach(selector => {
+                setMutualSize($$(selector))
+            })
+            saveCurrentState()
+        }
+
+    let mergeSimilarLocationsLabel = document.createElement("label")
+        mergeSimilarLocationsLabel.setAttribute("for", "mergeSimilarLocations")
+        mergeSimilarLocationsLabel.textContent = "Collate identical"
+    document.getElementById("scenespanelbuttons").appendChild(mergeSimilarLocationsLabel)
+
+    let onlyShowTypos = document.createElement("input")
+        onlyShowTypos.type = "checkbox"
+        onlyShowTypos.id = "onlyShowTypos"
+        onlyShowTypos.checked = documentSetting.onlyShowTypos || false
+        onlyShowTypos.onchange = () => {
+            documentSetting.onlyShowTypos = onlyShowTypos.checked
+            saveCurrentState()
+        }
+    document.getElementById("scenespanelbuttons").appendChild(onlyShowTypos)
+
+    let onlyShowTyposLabel = document.createElement("label")
+        onlyShowTyposLabel.setAttribute("for", "onlyShowTypos")
+        onlyShowTyposLabel.textContent = "Only show suspected typos"
+    document.getElementById("scenespanelbuttons").appendChild(onlyShowTyposLabel)
+
+
+}
+
+
+function parseSceneHeadings(){
+
+    mylog()
+
+    if(!outline) return
+    if(!$id("sortDropDown")) populateScenesPanelButtons()
+
+    let scenes = outline.filter(scene => {return scene.typeAsString == "Heading"})
+    let parsedScene = []
+    let prefix = ""
+
+    for (scene of scenes){
+
+        let string = scene.stringForDisplay.toUpperCase()
+
+        let intextString = /^((INT(\.)*\/EXT)|(EXT(\.)*\/INT)|(INT)|(EXT)|(I(\.)*\/E)|)\.*/
+
+        if (intextString.test(string)) {
+
+            prefix = string.match(intextString)[0] || ""
+            string = string.substring(prefix.length).trim()
+            if (prefix == "") prefix = "???"
+
+        }
+        
+        let addOns = string.match(/\(.*\)/g)
+        if (addOns !== null){
+            for (addOn of addOns){
+                string = string.replace(addOn, "").trim()
+            }
+        }
+
+        let parts = string.replaceAll(/\(.*\)/g, "").toUpperCase().split(/[\s/]+-+[\s/]+|\s*\/\s*/)
+        let partsIndex = []
+            for (part of parts){
+
+                indexAtStart = scene.range.location + scene.string.toUpperCase().indexOf(part)
+                indexAtEnd = indexAtStart + part.length
+
+                partsIndex.push({
+                    part: part,
+                    indexAtStart: indexAtStart,
+                    indexAtEnd: indexAtEnd
+                })
+
+            }
+
+        let schedulingColors = {
+            INTDAY:     "hsla(210, 100%, 100%, 1.00)",
+            EXTDAY:     "hsla(47, 60%, 80%, 1.00)",
+            INTNIGHT:   "hsla(210, 60%, 80%, 1.00)",
+            EXTNIGHT:   "hsla(150, 60%, 80%, 1.00)",
+            RED:        "lightcoral" //"hsla(2, 20%, 50%, 1.00)"
+        }
+
+        documentSetting.noneMeansSame = true
+
+        // let timeOfDay = timeOfDayStrings[timeOfDayStrings.indexOf(parts.at(-1).toUpperCase())] || "---"
+        let timeOfDay = "NONE"
+        let dayOrNight
+            for (key in timeOfDayObject){
+                // mylog(key)
+                // mylog(timeOfDayObject[key])
+
+                if (timeOfDayObject[key].indexOf(parts.at(-1).toUpperCase()) > -1){
+                    timeOfDay = timeOfDayObject[key][timeOfDayObject[key]?.indexOf(parts.at(-1)?.toUpperCase())] || "NONE"
+                    dayOrNight = key.toUpperCase()
+                    break
+                }
+            }
+            if (timeOfDayObject.same.includes(parts.at(-1).toUpperCase()) || (documentSetting.noneMeansSame && timeOfDay == "NONE")){
+                dayOrNight = parsedScene.at(-1)?.dayOrNight
+            }
+
+        while (addOns?.includes(parts.at(-1))){
+            parts.pop()
+        }
+
+        if (timeOfDay == parts.at(-1)){
+            parts.pop()
+        }
+        
+        parsedScene.push({
+
+            sceneNumber: scene.sceneNumber || scenes.indexOf(scene) + 1,
+            UUID: scene.UUID,
+            prefix: prefix,
+            sublocations: parts, //parts.slice(["INT", "EXT"].includes(parts[0].substring(3)) ? 1 : 0),
+            startIndices: partsIndex.map(part => part.indexAtStart),
+            endIndices: partsIndex.map(part => part.indexAtEnd),
+            timeOfDay: timeOfDay,
+            dayOrNight: dayOrNight,
+            other: addOns || "",
+            index: scene.range.location,
+            color: schedulingColors[prefix?.substring(0 , 3).replace(".", "").toUpperCase().trim() + dayOrNight?.toUpperCase().trim()] || schedulingColors["RED"],
+            colorKey: prefix?.substring(0 , 3).replace(".", "").toUpperCase().trim() + " & " + dayOrNight?.toUpperCase().trim(),
+            lengthInPages: scene.numberOfPages
+        })
+    }
+    
+    $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 300) + "px")
+    $id("scenespanelcontent").innerHTML = "<div id='dividerline' draggable='true'></div>"
+        // $id("dividerline").ondrag = (e) => {
+        //     e.preventDefault()
+        //     // e.dataTransfer.setDragImage(this, this.offsetWidth/2, this.offsetHeight/2);
+        //     let newWidth = e.clientX - $id("scenespanelcontent").getBoundingClientRect().left
+        //     $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", newWidth + "px")
+        //     documentSetting.scenesPanelLeftColumnWidth = newWidth
+        //     saveCurrentState()
+        // }
+    
+        $id("dividerline").ondragstart = (e) => {
+            // e.preventDefault();
+            // e.dataTransfer.setDragImage(null, 0, 0);
+            $id("scenespanelcontent").addEventListener("dragover", onDragOverLocal);
+            $id("scenespanelcontent").classList.add("dragging")
+        }
+
+        function onDragOverLocal(e) {
+            e.preventDefault();
+            let newWidth = e.clientX - $id("scenespanelcontent").getBoundingClientRect().left;
+            $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", newWidth + "px");
+            documentSetting.scenesPanelLeftColumnWidth = newWidth;
+        }
+        
+        $id("dividerline").ondragend = (e) => {
+            $id("scenespanelcontent").removeEventListener("dragover", onDragOverLocal);
+            $id("scenespanelcontent").classList.remove("dragging")
+            saveCurrentState();
+        }
+
+    let sortedScenes = parsedScene.sort(sortBy[$id("sortDropDown").value])
+
+    if($id("sortDropDown").value == "location"){
+        sortedScenes = sortByFrequency(sortedScenes)
+    }
+
+    //first group 
+        let evenOrOdd = "odd"
+        let groupDiv = document.createElement("div")
+            groupDiv.classList.add("scenepanelgroup")
+            groupDiv.id = "scenepanelgroup_0"
+            $id("scenespanelcontent").appendChild(groupDiv)
+
+    for (scene of sortedScenes){
+
+        // mark double locations etc
+        let thisIsADoubleLocation = false
+            if($id("sortDropDown").value == "location"){
+                thisIsADoubleLocation = (scene.sublocations.join(",") == sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.join(",")) 
+            }
+        
+        //1. the line
+        let lineDiv = document.createElement("div")
+            lineDiv.classList.add("line")
+            lineDiv.classList.add(evenOrOdd)
+            lineDiv.classList.toggle("hideWhenMergeIsChecked", thisIsADoubleLocation)
+            lineDiv.dataset.line = scene.index
+            
+            //GROUPING
+                if($id("sortDropDown").value == "location"){
+                    if (scene.sublocations.join(",") !== sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.join(",")) { 
+                        
+                        lineDiv.classList.remove(evenOrOdd)
+                        evenOrOdd = (evenOrOdd === "odd" ? "even" : "odd")
+                        lineDiv.classList.add(evenOrOdd)
+
+                    }
+
+                    if (scene.sublocations[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations[0]) { 
+                        lineDiv.classList.add("newgroup")
+                        lineDiv.classList.remove(evenOrOdd)
+                        evenOrOdd = "odd"
+                        lineDiv.classList.add(evenOrOdd)
+
+                        groupDiv = document.createElement("div")
+                        groupDiv.classList.add("scenepanelgroup")
+                        groupDiv.id = "scenepanelgroup_" + $$(".scenepanelgroup").length
+                        $id("scenespanelcontent").appendChild(groupDiv)
+
+                    }
+                }
+                if($id("sortDropDown").value == "timeOfDayOption"){
+                    if (scene.dayOrNight != sortedScenes[sortedScenes.indexOf(scene) - 1]?.dayOrNight) { 
+                        lineDiv.classList.add("newgroup")
+
+
+
+                        groupDiv = document.createElement("div")
+                        groupDiv.classList.add("scenepanelgroup")
+                        groupDiv.id = "scenepanelgroup_" + $$(".scenepanelgroup").length
+                        $id("scenespanelcontent").appendChild(groupDiv)
+                    }
+                }
+                if($id("sortDropDown").value == "prefixTimeOfDay"){
+                    if (scene.color != sortedScenes[sortedScenes.indexOf(scene) - 1]?.color) { 
+                        lineDiv.classList.add("newgroup")
+
+                        groupDiv = document.createElement("div")
+                        groupDiv.classList.add("scenepanelgroup")
+                        groupDiv.id = "scenepanelgroup_" + $$(".scenepanelgroup").length
+                        $id("scenespanelcontent").appendChild(groupDiv)
+                    }
+                }
+
+        let leftColumn = document.createElement("div")
+            leftColumn.classList.add("leftColumn")
+            leftColumn.dataset.line = scene.index
+
+        //fill the line with...
+        //0. scene number
+        let sceneNumDiv = document.createElement("div")
+            sceneNumDiv.innerText = scene.sceneNumber //+ scene.lengthInPages
+            sceneNumDiv.classList.add("item")
+            sceneNumDiv.classList.add("leftItem")
+            sceneNumDiv.classList.add("sceneNum")
+            sceneNumDiv.dataset.line = scene.index
+            sceneNumDiv.style.background = scene.color
+            sceneNumDiv.dataset.lengthInPages = scene.lengthInPages
+            sceneNumDiv.dataset.colorKey = scene.colorKey
+        leftColumn.appendChild(sceneNumDiv)
+
+
+        //1. prefix
+        let prefix = document.createElement("div")
+            prefix.innerText = scene.prefix.includes("/") ? "I/E" : scene.prefix.replaceAll(".", "")
+            prefix.classList.add("item")
+            prefix.classList.add("leftItem")
+            prefix.classList.add("prefix")
+            prefix.dataset.line = scene.index
+            prefix.style.background = scene.color
+
+        leftColumn.appendChild(prefix)
+
+        //2. time of day
+        let timeOfDay = document.createElement("div")
+            timeOfDay.innerText = scene.timeOfDay
+            timeOfDay.classList.add("item")
+            timeOfDay.classList.add("leftItem")
+            timeOfDay.classList.add("timeOfDay")
+            timeOfDay.dataset.line = scene.index
+            timeOfDay.style.background = scene.color
+
+
+        leftColumn.appendChild(timeOfDay)
+        lineDiv.appendChild(leftColumn)
+
+        //2. locations
+        sublocations = scene.sublocations
+        for (loc of sublocations){
+
+            if (scene.other.includes(loc)) continue
+            if (loc == scene.timeOfDay) continue
+
+            let subloc = document.createElement("div")
+                subloc.dataset.line = scene.index
+                subloc.dataset.startIndex = scene.startIndices[sublocations.indexOf(loc)]
+                subloc.dataset.endIndex = scene.endIndices[sublocations.indexOf(loc)]
+                subloc.classList.add("item")
+                subloc.classList.add("rightItem")
+                subloc.classList.add("location")
+                subloc.innerText = loc
+
+            lineDiv.appendChild(subloc)
+
+        }
+
+        Array.from($$(".scenepanelgroup")).at(-1).appendChild(lineDiv)
+        if(thisIsADoubleLocation) {
+            $(".scenepanelgroup:last-child").lastChild.classList.add("isDouble")
+            let copyOfSceneNumDiv = sceneNumDiv.cloneNode(true)
+                copyOfSceneNumDiv.classList.add("duplicateSceneNum")
+            let lastOriginalLine = Array.from($$(".scenepanelgroup > :not(.isDouble)")).at(-1)
+                lastOriginalLine.querySelector(".leftColumn").appendChild(copyOfSceneNumDiv)
+        }
+    }
+
+    //size all items equally
+        [".duplicateSceneNum, .sceneNum", ".timeOfDay", ".prefix"].forEach(selector => {
+                setMutualSize($$(selector))
+        })
+
+    $$(".scenepanelgroup").forEach(group => {
+
+        let headlineDiv = document.createElement("div")
+            headlineDiv.classList.add("groupHeadline")
+        
+        let mainLocation = group.querySelector(".location")?.textContent
+        let todHeadline = group.querySelector(".timeOfDay")?.textContent
+        let prefixHeadline = group.querySelector(".prefix")?.textContent
+        let scheduleHeadline = group.querySelector(".prefix")?.textContent + " " + group.querySelector(".timeOfDay")?.textContent
+            if(mainLocation){
+                let scenesInGroup = group.querySelectorAll(".sceneNum:not(.isDouble .sceneNum)")
+                let numberOfScenes = scenesInGroup.length
+                let lengthOfScenes = numberIntoEights(Array.from(scenesInGroup).reduce((acc, val) => acc + Number(val.dataset.lengthInPages), 0))
+
+                switch ($id("sortDropDown").value) {
+                    case "location":
+                        
+                        headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> at main location <strong>${mainLocation}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
+                        break;
+                
+                    case "prefixTimeOfDay":
+                        
+                        headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> during <strong>${group.querySelector(".sceneNum").dataset.colorKey}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
+                        break;
+                }
+            }
+            
+            // group.parentNode.insertBefore(headlineDiv, group)
+            group.insertBefore(headlineDiv, group.firstChild)
+
+    })
+
+    compareAllLocations()
+
+}
+
+function setMutualSize(items){
+
+            let highestWidth = 0
+                for (item of items){
+                    item.style.width = "auto"
+                    item.getBoundingClientRect()
+                    highestWidth = Math.max(highestWidth, item.clientWidth)
+                }
+                for (item of items){
+                    item.style.width = highestWidth + "px"
+                }
+}
+
+function compareAllLocations() {
+    const allLocations = $id("scenespanelcontent").querySelectorAll(".location");
+    const comparedPairs = new Set(); // To keep track of already compared pairs
+
+    allLocations.forEach((location1, index1) => {
+        const locationString1 = location1.textContent;
+        if (locationString1.length < 3) return;
+
+        allLocations.forEach((location2, index2) => {
+            if (index1 === index2) return; // Skip comparing the same element with itself
+
+            const locationString2 = location2.textContent
+            if (locationString2.length < 3) return
+
+            const articleArray = ["THE", "LE", "LA", "EL", "IL"]
+            const articleString = articleArray.join("|")
+            const articleRegex = new RegExp(`\\b(${articleString})\\b\\s+`, "gi");
+
+
+            const strippedString1 = locationString1.replace(articleRegex, '')
+            const strippedString2 = locationString2.replace(articleRegex, '')
+            let similarExceptArticle = strippedString1 == strippedString2 && locationString1 != locationString2
+
+            const pairKey = [index1, index2].sort().join('|');
+            if (comparedPairs.has(pairKey)) return; // Skip already compared pairs
+
+            comparedPairs.add(pairKey);
+
+            const distance = damerauLevenshtein(locationString1, locationString2);
+            // const distance = levenshteinDistance(locationString1, locationString2);
+
+            if (distance > 0 && distance < Math.min(((Math.max(locationString2.length, locationString1.length)) * 1/3), 4) || similarExceptArticle){
+                    location1.classList.add("similarLocation");
+                    location2.classList.add("similarLocation");
+
+                    // Store all similar locations in an array
+                    location1.dataset.similarTo = (location1.dataset.similarTo || "").split(',').concat(locationString2).join(',');
+                    location2.dataset.similarTo = (location2.dataset.similarTo || "").split(',').concat(locationString1).join(',');
+
+                    location1.dataset.representation = Array.from(allLocations).filter(loc => loc.textContent == locationString1).length
+                    location2.dataset.representation = Array.from(allLocations).filter(loc => loc.textContent == locationString2).length
+                    location1.classList.toggle("majority", location1.dataset.representation > location2.dataset.representation)
+                    location2.classList.toggle("majority", location2.dataset.representation > location1.dataset.representation)
+
+            }
+        });
+    });
+}
+
+
+function levenshteinDistance(str1 = '', str2 = '') {
+
+    const track = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+        
+        for (let i = 0; i <= str1.length; i += 1) {
+            track[0][i] = i;
+        }
+        for (let j = 0; j <= str2.length; j += 1) {
+            track[j][0] = j;
+        }
+        for (let j = 1; j <= str2.length; j += 1) {
+            for (let i = 1; i <= str1.length; i += 1) {
+                const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                track[j][i] = Math.min(
+                track[j][i - 1] + 1, // deletion
+                track[j - 1][i] + 1, // insertion
+                track[j - 1][i - 1] + indicator, // substitution
+                );
+            }
+        }
+
+        return track[str2.length][str1.length];
+
+}
+
+function damerauLevenshtein(str1, str2) {
+  const len1 = str1.length;
+  const len2 = str2.length;
+  const matrix = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
+
+  // Initialize the matrix
+  for (let i = 0; i <= len1; i++) {
+    matrix[i][0] = i;
+  }
+  for (let j = 0; j <= len2; j++) {
+    matrix[0][j] = j;
+  }
+
+  // Compute distances
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1, // Deletion
+        matrix[i][j - 1] + 1, // Insertion
+        matrix[i - 1][j - 1] + cost // Substitution
+      );
+
+      // Transposition
+      if (i > 1 && j > 1 && str1[i - 1] === str2[j - 2] && str1[i - 2] === str2[j - 1]) {
+        matrix[i][j] = Math.min(
+          matrix[i][j],
+          matrix[i - 2][j - 2] + cost
+        );
+      }
+    }
+  }
+
+  return matrix[len1][len2];
+}
+
+function sortByFrequency(arr, position = 0) {
+  // Count the frequency of each value in the specified position of the sublocations arrays
+  const freqMap = new Map();
+  for (const obj of arr) {
+    const sublocs = obj.sublocations;
+    if (sublocs.length > position) {
+      const val = sublocs[position].trim();
+      freqMap.set(val, (freqMap.get(val) || 0) + 1);
+    }
+  }
+
+  // Sort the objects based on the frequency of the specified position
+  arr.sort((a, b) => {
+    const sublocsA = a.sublocations;
+    const sublocsB = b.sublocations;
+    if (sublocsA.length <= position || sublocsB.length <= position) {
+      return 0; // Objects don't have a value in the specified position, so no need to sort further
+    }
+    const freqA = freqMap.get(sublocsA[position].trim());
+    const freqB = freqMap.get(sublocsB[position].trim());
+    return freqB - freqA; // Sort in descending order of frequency
+
+    while(arr.some(obj => obj.sublocations.length > position + 1)){
+      nextPosition = position + 1
+      sortByFrequency(arr, nextPosition)
+    }
+  });
+
+  return arr;
+}
+
+sortBy = {
+    "timeOfDayOption": (a,b) => {
+
+        let timeOfDayArray = Object.values(timeOfDayObject).reduce((acc, val) => acc.concat(val), []);
+        keyA = timeOfDayArray.indexOf(a.timeOfDay)
+        keyB = timeOfDayArray.indexOf(b.timeOfDay)
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0
+    },
+    "location": (a,b) => {
+        keyA = a.sublocations.join(',')
+        keyB = b.sublocations.join(',')
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0
+    },
+    "prefixOption": (a,b) => {
+        keyA = a.prefix.trim()
+        keyB = b.prefix.trim()
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0
+    },
+    "prefixTimeOfDay":
+    (a,b) => {
+        keyA = a.color
+        keyB = b.color
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0
+    },
+}
+
+
 function updateScenePanel(){
 
     if (!$(".scenestab.selectedtab")) return
 
-    let allSceneHeadings = outline.filter(element => { return element.typeAsString == "Heading" })
-    
-    // allSceneHeadings.forEach(scene => {
-        
-    //     $id("scenespanelcontent").innerText += scene.string + "\n"
+    parseSceneHeadings()
+    return
 
-    // });
+}
 
-    let parsedSlugs = Array.from(allSceneHeadings)
-    parsedSlugs.forEach(scene => {
+function swapLocationParts(startIndex, endIndex, newText, oldText){
 
-        intext = scene.stringForDisplay?.toUpperCase().match(/^\.*((int\.?)*[/]*(ext\.?)*(([/]*(int(\.+|\s+))*)))\s+/i) || [""]
-        timeofday = scene.stringForDisplay?.match(/-+\s*(.+)$/) || [""]
-
-        scene.intext = intext[0].trim()
-        scene.timeofday = timeofday[0].trim()
-        scene.location = scene.stringForDisplay?.substr(intext[0].length, (scene.stringForDisplay.length - ((timeofday[0].length + intext[0].length) || 0)))
-    })
-
-
-    let sceneHeadingsAlphabetically = Array.from(parsedSlugs)
-    sceneHeadingsAlphabetically.sort((a,b) => {
-        keyA = a.location
-        keyB = b.location
-        if (keyA < keyB) return -1;
-        if (keyA > keyB) return 1;
-        return 0
-    })
-
-    let numberOfUniqueLocations = []
-    let lastScene = ""
-    for (scene of sceneHeadingsAlphabetically){
-
-        if (scene.location != lastScene.location) {
-            numberOfUniqueLocations.push(scene)
-            numberOfUniqueLocations.at(-1).scenes = [scene.id]
-        }else{
-            numberOfUniqueLocations.at(-1).scenes.push(scene.id)
-        }
-        lastScene = scene
-    }
-
-    let table = document.createElement("table")
-    // let row = document.createElement("tr")
-    //         // row.style.setProperty("--localColor", `var(--${scene.color?.toLowerCase()})`)
-    //         row.dataset.line = scene.sceneStart
-    //         row.innerHTML = `
-    //                 <th class="field">I/E</th>
-    //                 <th class="field">LOCATION</th>
-    //                 <th class="field">TIME</th>
-    //                 `
-    //     table.appendChild(row)
-
-    numberOfUniqueLocations.forEach(scene => {
-        
-        let row = document.createElement("tr")
-            // row.style.setProperty("--localColor", `var(--${scene.color?.toLowerCase()})`)
-            row.dataset.line = scene.sceneStart
-            row.innerHTML = `
-                    <!--td class="field"> ${scene.scenes.length} </td-->
-                    <td class="field"> ${scene.intext} </td>
-                    <td class="field"> ${scene.location} </td>
-                    <td class="field"> ${scene.timeofday} </td>
-                    `
-        table.appendChild(row)
-                
-    });
-    
-    $id("scenespanelcontent").innerHTML = ""
-    $id("scenespanelcontent").appendChild(table)
+    Beat.call(`
+        Beat.replaceRange(${startIndex}, ${endIndex - startIndex}, "${newText}")`
+    )
 
 }
 
@@ -81,66 +672,426 @@ function updateScenePanel(){
 
 <style>
 
+#scenespanelbuttons{
+
+    display: flex;
+    align-items: center;
+
+    font-weight: bold;
+    color: hsla(var(--paperBehindInk), 1);
+
+    padding-top: 1px;
+    
+}
+
+#scenespanelbuttons > *{
+    vertical-align: middle;
+}
+
+#sortDropDown{
+    /* width: 200px !important; */
+    color: black !important;
+}
+
+#mergeSimilarLocations, #mergeSimilarLocations + label{
+    margin-left: 2px;
+    margin-right: 0px;
+    display: none;
+    font-weight: normal;
+    
+    &:is(:has(#sortDropDown.location) #mergeSimilarLocations),
+    &:is(:has(#sortDropDown.location) #mergeSimilarLocations + label){
+        display: inline-block;
+    }
+}
+
+#onlyShowTypos, #onlyShowTypos + label{
+    margin-left: 2px;
+    margin-right: 0px;
+    display: none;
+    font-weight: normal;
+
+    &:is(:has(#sortDropDown.location) #onlyShowTypos),
+    &:is(:has(#sortDropDown.location) #onlyShowTypos + label){
+        display: inline-block;
+    }
+}
+
+#onlyShowTypos{
+    margin-left: 10px;
+    margin-right: 0px;
+}
+
 #scenespanelcontent{
 
-    border: 1px solid hotpink;
+    --scenesPanelLeftColumnWidth: 300px;
+
+    background: #555 !important;
+
     position: absolute;
-    width: calc(100% - 8px);
+    width: calc(100% + 4px);
+    margin-left: -8px;
+    margin-right: -4px;
     padding: 8px !important;
     overflow-x: hidden;
+    overflow-y: visible;
     text-overflow: ellipsis;
 
+    white-space: pre !important;
+    font-size: calc(11px * var(--fontSizeFactor));
+    font-weight: bold;
+    color: white;
+
+    & #dividerline{        
+        
+        position: fixed;
+        top: 0;
+        left: calc(var(--scenesPanelLeftColumnWidth) + 12px);
+        height: 500%;
+        width: 3px;
+
+        opacity: 0;
+        border-right: 2px solid black;
+
+        z-index: 999999;
+        
+        &:hover{
+            opacity: 1;
+            cursor: col-resize;
+            
+            transition: opacity 1s 0.5s;
+        }
+    }
+
+    &.dragging *{
+
+        cursor: col-resize !important;
+    }
+
+    & .scenepanelgroup{
+
+        position: relative;
+
+        border: 3px solid rgba(255, 255, 255, 0.6);
+        border-radius: 12px;
+        /* margin-top: 2px;
+        margin-bottom: 33px; */
+
+        margin-top: 2px;
+        margin-bottom: 10px;
+
+        overflow: hidden;
+
+        &:empty, &:has(.groupHeadline:empty){
+            display: none;
+        }
+
+        padding-top: 26px;
+        box-shadow: inset 0 26px 0 0px rgba(255, 255, 255, 0.6);
+
+    }
+
+    & .groupHeadline{
+
+        text-align: center;
+        width: 100%;
+        /* outline: 1px solid orange; */
+
+        position: absolute;
+        /* left: 15px !important; */
+        top: 5px !important;
+        font-weight: normal;
+        color: black;
+
+        & strong{
+            font-weight: bold;
+        }
+
+    }
+
+    & .leftColumn{
+
+        width: var(--scenesPanelLeftColumnWidth);
+        display: inline-block;
+        vertical-align: top;
+        overflow: hidden;
+        white-space: normal;
+        height: auto !important;
+
+        padding: 0 4px 0 0;
+        margin: none;
+
+        border-right: 0.5px solid rgba(0, 0, 0, 0.4);
+
+        overflow: hidden;
+        white-space: nowrap;
+
+        &:is(:has(.isDouble) .leftColumn){
+            text-align: right;
+        }
+
+        &:is(:has(#mergeSimilarLocations:checked) .leftColumn){
+            white-space: normal;
+        }
+
+    }
+    
+    & .item{
+
+        width: auto;
+        height: calc(11px * var(--fontSizeFactor) + 4px);
+        line-height: calc(12px * var(--fontSizeFactor));
+            
+        display: inline-block;
+        padding: 2px 6px 2px 6px;
+        
+        box-shadow: inset 0.5px 0.5px 0px 0.5px rgba(255, 255, 255, 0.4),
+                    inset -0.5px -0.5px 0px 0.5px rgba(0, 0, 0, 0.4);
+
+        border-radius: none;
+        border: none;
+        vertical-align: middle;
+
+        overflow: hidden;
+        opacity: 1;
+
+        transition: width 0s, height 0.5s, opacity 0.5s;
+        
+    }
+
+    & .item.isSelected:not(.highlighted), & .item:hover{
+        background-image: linear-gradient(rgba(0,0,0, 0.7), rgba(0,0,0,0.7)) !important;
+        color: white !important;
+    }
+
+
+    & .leftItem,
+    & .rightItem {
+
+        margin-left: 0px;
+        margin-right: 0px;
+
+    }
+
+    & .leftItem:not(.leftItem:not(.isDouble) + .leftItem),
+    & .rightItem:not(.rightItem:not(.isDouble) + .rightItem) { /* first item */
+
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+
+    }
+
+    & .leftItem:not(:has( + .leftItem:not(.duplicateSceneNum))),
+    & .rightItem:not(:has( + .rightItem:not(.duplicateSceneNum))) { /* last item */
+
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+
+    }
+
+    & .sceneNum{
+
+        color: black;
+        background-color: lightcoral;
+
+        text-align: right;
+        padding-left: 8px;
+
+        &:is(:has(.isDouble):has(#mergeSimilarLocations:checked) .sceneNum){
+            padding-right: 8px;
+            border-radius: 10px;
+        }
+
+    }
+
+    & .prefix{
+
+        color: black;
+        background-color: lightcoral;
+
+        text-align: center;
+
+        /* transition: height 0.5s, width 0.5s, margin 0.5s, padding 0.5s, opacity 0.5s, color 0s; */
+
+    }
+
+    & .timeOfDay{
+
+        color: black;
+        background-color: lightcoral;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        text-align: left;
+
+        /* transition: height 0.5s, width 0.5s, margin 0.5s, padding 0.5s, opacity 0.5s, color 0s; */
+
+    }
+
+    & .location{
+
+        background-color: #024;
+        
+        &:not(.location + .location){ /* first item of class location */
+
+            margin-left: 4px;
+
+        }
+
+        &.similarLocation{
+
+            background-color: rgba(128, 0 , 32, 1);
+            color: white;
+            font-weight: bold;
+
+            &.majority{
+                background-color: rgba(32, 128, 64, 1);
+                color: white;
+                font-weight: bold;
+            }
+        }
+
+        &.highlighted{
+            background-color: rgba(192, 128, 64, 1) !important;
+        }
+
+    }    
 }
 
-
-
-#scenespanelcontent table{
-
-    /* background-color: hsl(var(--localColor)); */
+.line{
 
     position: relative;
-    
-    min-width: none;
-    width: inherit;
-    table-layout: auto;
+    display: block;   
+    height: auto !important;
 
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    
+    line-height: 0;
+
+    border-radius: 0;
+    padding: 2px 6px;
+    margin: 0px !important;
+
+    border-top: 0.5px solid rgba(0, 0, 0, 0.6);
+
+
+    /* &:not(:has(#mergeSimilarLocations:checked) .hideWhenMergeIsChecked):nth-of-type(even){ */
+    /* &:not(.hideWhenMergeIsChecked):nth-of-type(even of :not(.hideWhenMergeIsChecked)){ */
+    &.even{
+        background: rgba(255, 255, 255, 0.45);
+        
+        &:not(.even + .even){
+            border-top: 0.5px solid black;
+        }
+    }
+    /* &:not(:has(#mergeSimilarLocations:checked) .hideWhenMergeIsChecked):nth-of-type(odd){ */
+    /* &:not(.hideWhenMergeIsChecked):nth-of-type(odd of :not(.hideWhenMargeIsChecked)){ */
+    &.odd{
+        background: rgba(255, 255, 255, 0.35);
+
+        &:not(.odd + .odd){
+            border-top: 0.5px solid black;
+        }
+    }
+
+    &.newgroup,
+    &:first-child{
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    &:has(+ .newgroup),
+    &:last-child{
+        /* border-bottom: 1px solid rgba(0, 0, 0, 0.6); */
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
 }
 
-#scenespanelcontent tr{
+.duplicateSceneNum{
 
-    /* width: 100%; */
+    display: inline-block;
+    opacity: 1 !important;
 
-    background-color: hsl(var(--localColor)) !important;
-    border: 1px outset #555 !important;
-    border-radius: 4px;
-    overflow-x: hidden;
+    transition: width 0.0s 0.5s, height 0.5s 0s, opacity 0.2s 0.3s !important;
+    /* transition-delay: height 0s, opacity 1s !important; */
 
-}
+    &:not(:has(#mergeSimilarLocations:checked):has(#sortDropDown.location) .duplicateSceneNum){
+        
+        height: 0px !important;
+        width: 0px !important;
+        max-width: 0px !important;
+        margin: 0px !important;
+        padding: 0px !important;
+        opacity: 0 !important;
+        color: transparent;
 
-#scenespanelcontent td{
+        transition: width 0s, height 0.5s 0s, opacity 0.2s 0.3s !important;
+        /* transition-delay: height 0s, opacity 1s !important; */
 
-    background-color: hsl(var(--localColor)) !important;
-    border: 1px black inset !important;
-    padding: 2px;
-    margin: 0px 3px;
+        /* transition: none; */
 
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    width: auto;
-    max-width: 0;
-
-    /* table-layout: fixed; */
-    /* width: 1%; */
+    }
 
 }
 
+:has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .hideWhenMergeIsChecked .item, 
+:has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .hideWhenMergeIsChecked .leftColumn, 
+:has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .timeOfDay, 
+:has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .prefix{
+
+        min-height: 0px !important; 
+        min-width: 0px !important;
+        height: 0px !important; 
+        width: 0px !important;
+        margin: -2px 0 !important;
+        padding: 0px !important;
+        border: none !important;
+        border-width: 0px !important;
+        overflow: hidden;
+        opacity: 0 !important;
+        
+        transition: height 0.5s, opacity 0.5s;    
+
+}
+
+:has(#mergeSimilarLocations:checked):has(#sortDropDown.location) .hideWhenMergeIsChecked.line{
+        
+        min-height: 0px !important; 
+        min-width: 0px !important;
+        height: auto !important;
+        padding: 0px !important;
+        border: none !important;
+        border-width: 0px !important;
+        margin: 0px !important;
+    }
+
+/* :has(#sortDropDown.location):not(:has(#mergeSimilarLocations:checked)){
+
+        & #scenespanelcontent .duplicateSceneNum{
+            height: 0px !important; 
+            width: 0px !important;
+            margin: 0px !important;
+            padding: 0px !important;
+            border: 0px !important;
+            opacity: 0;
+
+            transition: opacity 0.5s;
+            transition-delay: height 0.5s, width 0.5s, margin 0.5s, padding 0.5s;
+        }
+ 
+} */
 
 
+:has(#onlyShowTypos:checked) :is(.line, .scenepanelgroup):not(:has(.similarLocation)){
+
+    display: none;
+
+}
+
+:has(#onlyShowTypos:checked) .groupHeadline:is(){
+
+    display: none;
+
+}
 
 
 </style>

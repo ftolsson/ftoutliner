@@ -296,6 +296,8 @@ function collectCharacters() {
     mylog()
     console.time("collectCharacters2023")
 
+    if(!outline) return
+
     let removal = userDefault.excludeVoiceOvers ? /(\(.+\))$/ : ""
     let allCharacters2023 = lines.filter(line => line.typeAsString == "Character" && !line.omitted).map(line => 
         line.string.replace(/^\^*@*/, "")   /* removes dual dialog ^ or forced dialog @ */
@@ -799,7 +801,7 @@ function selectThisDialog(dlgId){
 
 function updateDialogPanel(scenesWithDialog){
 
-    if (!($id("notepanel").classList.contains("expanded") && $(".selectedtab").classList.contains("dialogtab"))){ return }
+    if (!($id("notepanel").classList.contains("expanded") && $(".selectedtab")?.classList.contains("dialogtab"))){ return }
 
     let alreadySelected = $id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL"
 

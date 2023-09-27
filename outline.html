@@ -33,7 +33,6 @@
 	</div>
 	<div id="dialogpanelbuttons">
 		<div class="hasSelect dropDownSpan">
-			<!-- <select id="allDialogFor" class="colorDropdown" onchange="initiateCharacterBubbles()"> -->
 			<select id="allDialogFor" class="colorDropdown" onchange="showCharacterBubbles()">
 				<option>None</option>
 			</select>
@@ -49,6 +48,7 @@
 	<div id="dialogpanelcontent">
 	</div>
 	<div id="scenespanelcontent">
+		<div id="dividerline"></div>
 	</div>
 	<div id="drag-bar" onmousedown="resizeNotepanel()"></div>
 </div>
@@ -69,6 +69,13 @@ document.addEventListener("dblclick", function(event){
 })
 
 $id("flexiContainer").addEventListener("contextmenu", function(event){
+	if(event.metaKey && event.altKey) return // so as not to get contextmenu when ctrl+alt+cmd is pressed
+	event.preventDefault()
+	event.stopPropagation()
+	mylog(event)			
+	displayContextMenu(event)
+})
+$id("notepanel").addEventListener("contextmenu", function(event){
 	if(event.metaKey && event.altKey) return // so as not to get contextmenu when ctrl+alt+cmd is pressed
 	event.preventDefault()
 	event.stopPropagation()
@@ -1599,6 +1606,11 @@ function applySettings(){
 		$id("flexiContainer").classList.toggle("notepanelIsExpanded", documentSetting.notepanel)
 		$id("notepanel").classList.toggle("expanded", documentSetting.notepanel)
 		theRoot.style.setProperty('--note-panel-width', documentSetting.notepanelWidth + "px")
+			$$("#notepanel .tab").forEach(tab => {
+				// tab.classList.remove("selectedtab")
+				tab.classList.toggle("selectedtab", tab.classList.contains(documentSetting.selectedPanelTab))
+			})
+		if(documentSetting.notepanel) cycleTabs($(`.${documentSetting.selectedPanelTab}`) || false)
 	
 	//HIGH CONTRAST STUFF
 		document.documentElement.setAttribute('data-outdoors', documentSetting.outdoor)
@@ -1628,11 +1640,14 @@ function applySettings(){
 
 			toggleShowRevisions(documentSetting.showRevisions)
 
+		//Zoom
+			zoomSizes(null, documentSetting.currentZoomLevel || 1)
+
 		//TODO: this one is currently unclear -- aren't they set with defaults above?
 			showSceneLengths = documentSetting.showSceneLengths || "inline"
 			showSceneNumbers = documentSetting.showSceneNumbers || "inline"
 			showPageNumbers = documentSetting.showPageNumbers || "inline"
-			currentZoomLevel = documentSetting.currentZoomLevel || 1
+			// currentZoomLevel = documentSetting.currentZoomLevel || 1
 			indexCardHeight = documentSetting.indexCardHeight || 5
 		
 		
@@ -1679,7 +1694,7 @@ function applySettings(){
 		theRoot.style.setProperty('--showSceneLength', showSceneLengths);
 		theRoot.style.setProperty('--showSceneNum', showSceneNumbers);
 		theRoot.style.setProperty('--showPageNum', showPageNumbers);
-		theRoot.style.setProperty('--fontSizeFactor', currentZoomLevel)
+		// theRoot.style.setProperty('--fontSizeFactor', currentZoomLevel)
 
 		// Beat.call(
 		// 	`Beat.custom.setWindowSize(${documentSetting.windowSize.x}, ${documentSetting.windowSize.y}, ${documentSetting.windowSize.width}, ${documentSetting.windowSize.height})`
@@ -2969,7 +2984,7 @@ function changeIndexCardHeight(key){
 	if (notesAreDisplayed){displayNotes()}
 }
 
-function zoomSizes(key){
+function zoomSizes(key, explicitLevel){
 
 	currentZoomLevel = getComputedStyle(theRoot).getPropertyValue('--fontSizeFactor')
 
@@ -2983,9 +2998,12 @@ function zoomSizes(key){
 		break;
 		case "0":
 			newZoomLevel = 1
+		break;
+		default:
+			newZoomLevel = explicitLevel || 1
 	}
 
-	if(!newZoomLevel) return //this can happen if we press a legal shortcut but with an extra modifier key. 
+	// if(!newZoomLevel) return //this can happen if we press a legal shortcut but with an extra modifier key. 
 
 	theRoot.style.setProperty('--fontSizeFactor', newZoomLevel)
 	currentZoomLevel = newZoomLevel
