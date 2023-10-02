@@ -47,7 +47,7 @@
 	</div>
 	<div id="dialogpanelcontent">
 	</div>
-	<div id="scenespanelcontent">
+	<div id="scenespanelcontent" class="scenespanelcontent">
 		<div id="dividerline"></div>
 	</div>
 	<div id="drag-bar" onmousedown="resizeNotepanel()"></div>
@@ -2861,6 +2861,10 @@ function goto(gotoIndex, theClickedThing, length = theClickedThing?.dataset.leng
 	Beat.call("Beat.scrollTo(" + gotoIndex + ")") 
 
 	if (classes.includes("pageDivider")) return
+	if (classes.includes("location")) {
+		gotoIndex = theClickedThing.dataset.startIndex
+		length = theClickedThing.dataset.endIndex - theClickedThing.dataset.startIndex
+	}
 
 	let elementColor = window.getComputedStyle(theClickedThing).backgroundColor
 	let textColor

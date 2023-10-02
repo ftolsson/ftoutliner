@@ -352,13 +352,20 @@
         //------------------------------SCENE PANEL
         {
             menuItem: "Change THIS occurrence to:",
-            menuName: (item) => {let singleText = (Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2) ? "LONE " : "";
-                return "Change THIS " + singleText + "occurrence to:"},
+            menuName: (item) => {let singleText = "THIS occurence "; //default, when not merged lines
+                if (Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2) singleText = "THIS LONE occurence "; //when only occurence, regardless of merged or not
+                if ($id("mergeSimilarLocations").checked && item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0) singleText = "occurence IN SCENE " + item.closest('.line').querySelector('.sceneNum')?.textContent + " "; //when merged lines and hidden locations on line
+                return "Change " + singleText + "to:"},
+            spanText: (item) => {
+                let hiddenOnLine = item.closest(".line").querySelectorAll(".duplicateSceneNum").length
+                return ($id("mergeSimilarLocations").checked && hiddenOnLine > 0) ? hiddenOnLine + " hidden on line will not change" : ""
+                },
             nonSelectable: true,
             icon: "",
             iconColor: "",
             showFor: ["similarLocation"],
-            greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            butNotFor: ["excludedLocation"],
+            // greyOutIf: (item) => { return $id("mergeSimilarLocations").checked && item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
             command: (item) => { alertThis("not implemented") },
         },
         {
@@ -366,8 +373,32 @@
             showFor: ["special case for similarLocation"],
         },
         {
+            menuItem: "New name for THIS occurence...",
+            menuName: (item) => {
+                if (item.classList.contains("similarLocation") && !item.classList.contains("excludedLocation")) { return "Custom..." }
+                let singleText = "THIS occurence of " + item.textContent; //default, when not merged lines
+                if (Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2) singleText = "THIS LONE occurence"; //when only occurence, regardless of merged or not
+                if ($id("mergeSimilarLocations").checked && item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0) singleText = "occurence IN SCENE " + item.closest('.line').querySelector('.sceneNum')?.textContent + ""; //when merged lines and hidden locations on line
+                return "Change " + singleText + " to custom..."},
+            spanText: (item) => {                
+                let hiddenOnLine = item.closest(".line").querySelectorAll(".duplicateSceneNum").length
+                return ($id("mergeSimilarLocations").checked && hiddenOnLine > 0) ? hiddenOnLine + " hidden on line will not change" : ""
+                },
+            indent: (item) => { return item.classList.contains("similarLocation") && !item.classList.contains("excludedLocation") }, // returns true or false
+            whenHovering: (item) => { item.classList.toggle("highlighted", true) },
+            whenUnHovering: (item) => { 
+                if($id("contextMenu")) {$$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) }
+                },
+            icon: "",
+            iconColor: "",
+            showFor: ["location", "similarLocation"],
+            // greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            command: (item) => { newNameDialog(Array.of(item)) },
+        },
+        {
             menuItem: "divider",
             showFor: ["similarLocation"],
+            butNotFor: ["excludedLocation"],
         },
         {
             menuItem: "Change ALL occurrences to:",
@@ -378,12 +409,13 @@
                 },
             spanText: (item) => {
                 let hiddenItems = Array.from($$(":has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .hideWhenMergeIsChecked .location")).filter(location => location.textContent == item.textContent)
-                return hiddenItems.length ? "(incl. " + hiddenItems.length + " currently hidden)" : ""
+                return hiddenItems.length ? "including " + hiddenItems.length + " currently hidden)" : ""
                 },
             nonSelectable: true,
             icon: "",
             iconColor: "",
             showFor: ["similarLocation"],
+            butNotFor: ["excludedLocation"],
             butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
             command: (item) => { },
         },
@@ -391,136 +423,244 @@
             menuItem: "replaceAllLocations",
             showFor: ["special case for similarLocation"],
         },
-        // {
-        //     menuItem: "see below",
-        //     menuName: (item) => {
-        //         let substitutes = item.dataset.similarTo.split(",") || []
-        //             substitutes = substitutes.filter((entry, index) => {
-        //                 // Remove empty entries
-        //                 if (entry === "") {
-        //                     return false;
-        //                 }
-        //                 // Remove duplicates
-        //                 return substitutes.indexOf(entry) === index;
-        //             });
-        //         return "&nbsp;&nbsp;&nbsp;" + substitutes[0]
-        //         },
-        //     // shortcut: ["!"],
-        //     whenHovering: (item) => { 
-        //         itemsToColor = Array.from($$(".location")).filter(location => location.textContent == item.textContent) 
-        //         itemsToColor.forEach(item => item.classList.toggle("highlighted", true))
-        //         },
-        //     whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
-        //     fontWeight: "bold",
-        //     icon: "",
-        //     iconColor: "",
-        //     showFor: ["similarLocation"],
-        //     butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
-        //     command: (item) => { $$(".highlighted").forEach(highlighted => swapLocationParts(highlighted.dataset.startIndex, highlighted.dataset.endIndex, menuName(item)) )},
-        // },
-        {
-            menuItem: "divider",
-            showFor: ["similarLocation"],
-            butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
-        },
-        {
-            menuItem: "New name for THIS occurence...",
-            // shortcut: ["!"],
-            whenHovering: (item) => { item.classList.toggle("highlighted", true) },
-            whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
-            icon: "",
-            iconColor: "",
-            showFor: ["location", "similarLocation"],
-            greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
-            command: (item) => { alertThis("not implemented") },
-        },
         {
             menuItem: "New name for all occurences...",
             menuName: (item) => {
-                return "New name for ALL " +
+                if (item.classList.contains("similarLocation") && !item.classList.contains("excludedLocation")) { return "Custom..." }
+                return "Change ALL " +
                 Array.from($$(".location")).filter(location => location.textContent == item.textContent).length
-                + " occurrences..."
+                + " occurrences of " + item.textContent + " to custom..."
                 },
             spanText: (item) => {
                 let hiddenItems = Array.from($$(":has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .hideWhenMergeIsChecked .location")).filter(location => location.textContent == item.textContent)
-                return hiddenItems.length ? "(incl. " + hiddenItems.length + " currently hidden)" : ""
+                return hiddenItems.length ? "including " + hiddenItems.length + " currently hidden" : ""
                 },
+            indent: (item) => { return item.classList.contains("similarLocation") && !item.classList.contains("excludedLocation") }, // returns true or false
             whenHovering: (item) => { 
                 itemsToColor = Array.from($$(".location")).filter(location => location.textContent == item.textContent) 
                 itemsToColor.forEach(item => item.classList.toggle("highlighted", true))
                 },
-            whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
+            whenUnHovering: (item) => { 
+                if($id("contextMenu")) {$$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) }
+                },
             icon: "",
             iconColor: "",
             showFor: ["location", "similarLocation"],
             butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
             //greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
-            command: (item) => { alertThis("not implemented") },
+            command: (item) => { newNameDialog(Array.from($$(".highlighted"))) },
         },
+        // {
+        //     menuItem: "divider",
+        //     showFor: ["similarLocation"],
+        //     butNotFor: ["excludedLocation"],
+        //     butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
+        // },
         {
             menuItem: "divider",
-            showFor: ["similarLocation"],
+            showFor: ["location"],
         },
         {
-            menuItem: "Exclude this occurence from being checked",
-            // shortcut: ["!"],
-            whenHovering: (item) => { item.classList.toggle("highlighted", true) },
-            whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
-            icon: "",
-            iconColor: "",
-            showFor: ["similarLocation"],
-            greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
-            command: (item) => { alertThis("not implemented") },
-        },
-        {
-            menuItem: "Stop flagging ALL occurences as typo",
+            menuItem: "Exclude this location name from being checked",
             menuName: (item) => {
-                return "Exclude ALL " +
-                Array.from($$(".location")).filter(location => location.textContent == item.textContent).length
-                + " occurrences from being checked"
+                return "Exclude " + item.textContent + " from spellcheck"
                 },
-            spanText: (item) => {
-                let hiddenItems = Array.from($$(":has(#mergeSimilarLocations:checked):has(#sortDropDown.location)  .hideWhenMergeIsChecked .location")).filter(location => location.textContent == item.textContent)
-                return hiddenItems.length ? "(incl. " + hiddenItems.length + " currently hidden)" : ""
-                },
-            whenHovering: (item) => { 
-                itemsToColor = Array.from($$(".location")).filter(location => location.textContent == item.textContent) 
-                itemsToColor.forEach(item => item.classList.toggle("highlighted", true))
-                },
-            whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
+            // shortcut: ["!"],
+            // whenHovering: (item) => { item.classList.toggle("highlighted", true) },
+            // whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
             icon: "",
             iconColor: "",
             showFor: ["similarLocation"],
-            butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
-            command: (item) => { alertThis("not implemented") },
+            butNotFor: ["excludedLocation"],
+            // greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            command: (item) => { 
+
+                if(!documentSetting.excludedLocations) documentSetting.excludedLocations = []
+                documentSetting.excludedLocations.push(item.textContent)
+                saveCurrentState()
+                $$(".location").forEach(element => {if (element.textContent == item.textContent) element.classList.add("excludedLocation")})             
+            },
+        },
+        {
+            menuItem: "Remove from excluded location names",
+            menuName: (item) => {
+                return "Stop excluding " + item.textContent + " from spellcheck"
+                },
+            // shortcut: ["!"],
+            // whenHovering: (item) => { item.classList.toggle("highlighted", true) },
+            // whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
+            icon: "",
+            iconColor: "",
+            showFor: ["excludedLocation"],
+            // greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            command: (item) => { 
+
+                if(!documentSetting.excludedLocations) documentSetting.excludedLocations = []
+                documentSetting.excludedLocations.splice(documentSetting.excludedLocations.indexOf(item.textContent), 1)
+                saveCurrentState()
+                $$(".location").forEach(element => {if (element.textContent == item.textContent) element.classList.remove("excludedLocation")})
+            },
+        },
+        {
+            menuItem: "Empty list of locations exluded from spellcheck",
+            icon: "",
+            iconColor: "",
+            showFor: ["location", "line", "scenespanelgroup", "scenespanelcontent"],
+            greyOutIf: (item) => { return documentSetting.excludedLocations?.length < 1 },  
+            command: (item) => { 
+
+                documentSetting.excludedLocations = []
+                saveCurrentState()
+                $$(".excludedLocation").forEach(element => element.classList.remove("excludedLocation"))
+            },
         },
         {
             menuItem: "divider",
-            showFor: ["location", "similarLocation"],
+            showFor: ["location"],
         },
         {
-            menuItem: "Scroll to & SELECT this occurence in screenplay",
-            whenHovering: (item) => { item.classList.toggle("highlighted", true) },
-            whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
+            menuItem: "Disregard when sorting",
+            menuName: (item) => {
+                return "Disregard " + item.textContent + " when sorting/grouping"
+                },
+            // shortcut: ["!"],
+            // whenHovering: (item) => { item.classList.toggle("highlighted", true) },
+            // whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
             icon: "",
             iconColor: "",
-            showFor: ["location", "similarLocation"],
-            command: (item) => { Beat.call(`Beat.scrollTo(${item.dataset.line});
-                Beat.setSelectedRange(${item.dataset.startIndex}, ${item.dataset.endIndex - item.dataset.startIndex})`) },
+            showFor: ["location"],
+            butNotFor: ["dontCompare"],
+            // greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            command: (item) => { 
+
+                if(!documentSetting.groupExclusions) documentSetting.groupExclusions = []
+                documentSetting.groupExclusions.push(item.textContent)
+                saveCurrentState()
+                parseSceneHeadings()
+            },
         },
+        {
+            menuItem: "Stop disregarding when sorting",
+            menuName: (item) => {
+                return "Stop disregarding " + item.textContent + " when sorting/grouping"
+                },
+            // shortcut: ["!"],
+            // whenHovering: (item) => { item.classList.toggle("highlighted", true) },
+            // whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
+            icon: "",
+            iconColor: "",
+            showFor: ["dontCompare"],
+            // greyOutIf: (item) => { return item.closest(".line").querySelectorAll(".duplicateSceneNum").length > 0 },  
+            command: (item) => { 
+
+                if(!documentSetting.groupExclusions) documentSetting.groupExclusions = []
+                documentSetting.groupExclusions.splice(documentSetting.groupExclusions.indexOf(item.textContent), 1)
+                saveCurrentState()
+                parseSceneHeadings()
+            },
+        },
+        {
+            menuItem: "Empty list of locations disregarded when sorting",
+            icon: "",
+            iconColor: "",
+            showFor: ["location", "line", "scenespanelgroup", "scenespanelcontent"],
+            greyOutIf: (item) => { return documentSetting.groupExclusions?.length < 1 },  
+            command: (item) => { 
+
+                documentSetting.groupExclusions = []
+                saveCurrentState()
+                parseSceneHeadings()
+            },
+        },
+    //scenepanelSettingsButton
+        {
+            menuItem: "Color left column items by...",
+            icon: "",
+            iconColor: "",
+            nonSelectable: true,
+            showFor: ["scenepanelSettingsButton"],
+        },
+        {
+            menuItem: "Scheduling colors",
+            icon: "",
+            iconColor: "",
+            indent: () => {return true},
+            checkedIf: () => { return documentSetting.schedulingColors },
+            showFor: ["scenepanelSettingsButton"],
+            command: () => { documentSetting.schedulingColors = true; saveCurrentState(); parseSceneHeadings() },
+        },
+        {
+            menuItem: "Outline scene colors",
+            icon: "",
+            iconColor: "",
+            indent: () => {return true},
+            checkedIf: () => { return !documentSetting.schedulingColors },
+            showFor: ["scenepanelSettingsButton"],
+            command: () => { documentSetting.schedulingColors = false; saveCurrentState(); parseSceneHeadings() },
+        },
+        {
+            menuItem: "divider",
+            showFor: ["scenepanelSettingsButton"],
+        },
+        {
+            menuItem: "UNKNOWN sorts/groups as SAME",
+            icon: "",
+            iconColor: "",
+            checkedIf: () => { return documentSetting.sortNoneAsSame },
+            showFor: ["scenepanelSettingsButton"],
+            command: () => { documentSetting.sortNoneAsSame = !documentSetting.sortNoneAsSame; saveCurrentState(); parseSceneHeadings() },
+        }
     ])
+
+function __________END_OF_MENU_OBJECT(){}
+
+function newNameDialog(itemArray){
+
+    itemArray.forEach(item => item.classList.add("highlighted"))
+
+    let oldName = itemArray[0].textContent
+    let newName = ""
+
+	Beat.callAndWait((oldName, itemArray) => {
+        result = Beat.prompt(
+            `Location Name Change for ${itemArray.length} scene(s)`,
+            `Change the current location name ${oldName} into:`, 
+            `${oldName}`
+        )    	
+        return result
+    }, oldName, itemArray)
+    .then(
+        response => { 
+            newName = response
+            if (newName == "") return
+            if (newName == oldName) return
+            if (newName == false) return
+
+            itemArray.forEach(item => item.classList.remove("highlighted"))
+            itemArray.sort((a,b) => b.dataset.startIndex - a.dataset.startIndex).forEach(highlighted => swapLocationParts(highlighted.dataset.startIndex, highlighted.dataset.endIndex, `${newName}`))
+            return 
+        },
+        error => { 
+            itemArray.forEach(item => item.classList.remove("highlighted"))
+            console.log("Error waiting for new name dialog") 
+        }
+    )
+}
 
 function displayContextMenu(event, element){
 
-    event.preventDefault()
-    event.stopPropagation()
+    event?.preventDefault()
+    event?.stopPropagation()
     closeNewMenu()
 
-    element = element || event.target //the element is sent when triggering menu with keys
-    let item = element.closest(".synopsis, .scene, .section, .flexiContainer, .location, #notepanel")
-        if (!item) return
+    console.log("conconcon")
 
-    if (!event.shiftKey && !event.metaKey && !item.classList.contains('isSelected')) {deselectAllElements()}
+    element = element || event.target //the element is sent when triggering menu with keys
+    let item = element.closest(".synopsis, .scene, .section, .flexiContainer, .location, #scenespanelcontent, #scenepanelSettingsButton, #notepanel")
+        if (!item) return
+        console.log("right clicked " + item.id + ": " + item.classList)
+
+    if (!event?.shiftKey && !event?.metaKey && !item.classList.contains('isSelected')) {deselectAllElements()}
         item.classList.add("isSelected")
 
     document.querySelectorAll(".contextMenu").forEach( menu => {menu.remove()})
@@ -541,8 +681,8 @@ function displayContextMenu(event, element){
         contextMenu.tabIndex = "1"
         contextMenu.classList.add("contextMenu")
         contextMenu.style.position = "absolute"
-        let ypos = (event.clientY || element.getBoundingClientRect().top) + 20
-        let xpos = (event.clientX || element.getBoundingClientRect().left) + 20
+        let ypos = (event?.clientY || element.getBoundingClientRect().top) + 10
+        let xpos = (event?.clientX || element.getBoundingClientRect().left) + 10
         contextMenu.style.top = ypos + "px"
         contextMenu.style.left = xpos + "px"
         contextMenu.onmouseenter = function(){ $$(".keySelected").forEach(item => item.classList.remove("keySelected")) }
@@ -650,7 +790,7 @@ function displayContextMenu(event, element){
                 if (contentLine.menuName) menuName = contentLine.menuName(item)
                 if (contentLine.spanText) menuName += `<span style='float: right; font-size: 10px; opacity: 0.6; padding-left: 10px;'>${contentLine.spanText(item)}</span>`
             listItem.innerHTML = `<span class='contextmenuicon ${iconChecked ? "checkedIcon" : ""}' style='--mycolor: var(--${iconColor})'>${contentLine.icon || ""}</span>${menuName}<span class='shortcut'>${shortcutKeys.join("")}</span>`;
-                if (contentLine.indent) listItem.style.borderLeft = "15px solid transparent"
+                if (contentLine.indent && contentLine.indent(item)) listItem.style.borderLeft = "15px solid transparent"
 
             if (contentLine.iconOutline) listItem.querySelector(".contextmenuicon").style.stroke = contentLine.iconOutline(item)
 
@@ -736,15 +876,16 @@ function createReplacementMenuItems(item, all = false){
         arrayToReturn.push(
             {
                 menuItem: `${substitute}`,
-                indent: true,
+                indent: () => {return true},
                 whenHovering: hoverString,
                 whenUnHovering: (item) => { $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) },
                 fontWeight: "bold",
                 icon: "",
                 iconColor: "",
                 showFor: ["similarLocation"],
+                butNotFor: ["excludedLocation"],
                 butDontShowIf: butDontShowIfString,
-                greyOutIf: greyOutIfString,  
+                // greyOutIf: greyOutIfString,  
                 command: commandString,
 
                 removeAfterUse: true,
