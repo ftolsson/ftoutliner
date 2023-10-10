@@ -1,0 +1,380 @@
+
+
+<div id = "main">
+	<p class="headline">But why!<span class="versionnumber"></span></p>
+	<br/>
+	declaration.<br/><br/>
+	<strong>Use cases:</strong>
+	<ul>
+		<li>Quickly find location you've spelled differently in different places.</li>
+		The scenepanel will help you find those based on fuzzy logic: If you have a location called <code>CHURCH</code> and another called <code>CHUNCH</code>, chances are one of them was misspelled. The scenepanel will highlight both, and if you right-click a highlighted location you can eaily change it to the other spelling.
+	</ul>
+	<strong>Best(-ish) practises</strong>
+	<br/>
+	Take care to write your sceneheadings going from the "largest" location to the smallest, like this:<br/>
+	<code>INT/EXT. PARIS/HOTEL/RESTAURANT/KITCHEN AREA -- DAY</code><br/>
+	Your use of dashes or slashes may vary, but first and foremost: By 
+
+
+
+
+	<p><br/></p>
+	<div class="dialogBottomButtonRow">
+		<!-- <button class="generalButtonStyle" onclick="for (butn of $$('#advancedSettings input')){if(butn.checked){butn.click()}}">Revert to defaults</button> -->
+		<button class="generalButtonStyle" onclick="Beat.call('Beat.custom.closeSecondWindow()')">Close</button>
+	</div>
+</div>
+
+<script>
+
+	//STARTUP SEQUENCE:
+
+	var userDefault = {}
+	var documentSetting = {}
+    
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject")
+        return(ftoutlinerObject)
+    })
+    .then(
+        response => { userDefault = JSON.parse(response)
+			
+			//Apply the correct checkbox states on open:
+			for ([key, value] of Object.entries(userDefault)){					
+					let button = document.getElementById("buttonFor-" + key)
+						if(button){ 
+							if(value == true) button.setAttribute("checked", true) 
+						}
+				}
+		},
+        error => { console.log("Error retrieving userDefault") }
+    )
+
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getDocumentSetting("ftoutlinerObject")
+        return ftoutlinerObject
+    	})
+		.then(
+			response => { documentSetting = JSON.parse(response)
+		
+				//Apply the correct checkbox states on open:
+					for ([key, value] of Object.entries(documentSetting)){					
+						let button = document.getElementById("buttonFor-" + key)
+							if(button){ 
+								if(value == true) button.setAttribute("checked", true) 
+							}
+					}
+			},
+			error => { console.log("Error retrieving documentSetting") }
+		)
+
+
+	//FUNCTIONS:
+
+	function toggleThis(settingName, settingButton, invertSelection){
+
+		userDefault[settingName] = document.getElementById("buttonFor-" + settingName).checked
+		
+		let valueAsJSON = JSON.stringify(userDefault[settingName])
+			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "userDefault") `)
+
+	}
+
+	function markupToHTML(text){
+
+		let html = document.createElement("div")
+
+		text.split("\n").forEach(line => {
+
+			line = line.replaceAll(/\*(\S.+?)\*/g, "<strong>$1</strong>")
+			line = line.replaceAll(/\_(.+?)\_/g, "<i>$1</i>")
+			// line = line.replaceAll(/\`(.+?)\`/g, "<code>$1</code>")
+			line = line.replaceAll(/(?<!\\)\`(.+?)(?<!\\)\`/g, "<code>$1</code>").replaceAll(/\\`/g, "`")
+
+			if(line.startsWith("#")){
+
+				let headline = document.createElement("p")
+					headline.classList.add("headline")
+					headline.innerHTML = line.replace("#", "")
+					html.appendChild(headline)
+
+			}else if(line.startsWith("* ")){
+
+				let listItem = document.createElement("li")
+					listItem.classList.add("changelogList")
+					listItem.innerHTML = line.replace("* ", "")
+					html.appendChild(listItem)
+
+			}else if(line.startsWith("  -")){
+
+				let listItem = document.createElement("li")
+					listItem.classList.add("changelogList")
+					listItem.classList.add("level2")
+					listItem.innerHTML = line.replace("  -", "")
+					html.appendChild(listItem)
+
+			}else{
+
+				let paragraph = document.createElement("p")
+					paragraph.innerHTML = line
+					html.appendChild(paragraph)
+
+			}
+
+		})
+
+		return(html.innerHTML)
+
+	}
+
+
+</script>
+
+<style>
+
+    :root{
+
+        --menu-background: hsla(25, 64%, 96%, 1.00);/* rgb(240, 240, 240); /*was 232*/
+	    --menu-border-color: #c1c1c1;
+	    --menu-color: black; /*rgb(233,233,233);*/
+	    --menu-hover-color: #027aff;
+
+		--changelog-background: white
+
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        :root{
+
+            --menu-background: hsla(25, 10%, 24%, 1.00);
+            --menu-border-color: rgb(81,81,81);
+            --menu-color: rgb(233,233,233);
+
+            --inkOnPaper: 0, 0%, 100%;
+            --paperBehindInk: 0, 0%, 0%;
+
+			--changelog-background: #222;
+
+        }
+    }
+
+    body{
+
+        background-color: var(--menu-background);
+		color: var(--menu-color);
+
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 20px;
+
+		padding: 20px 40px 20px 40px;
+
+		overflow: hidden;
+
+    }
+
+	#changelog-wrapper{
+
+		position: relative;
+		overflow: hidden;
+		width: auto;
+		height: auto;
+		margin: 20px 0px 20px 0px;
+		border-radius: 4px;
+		border: 1px solid transparent;
+
+	}
+
+	#changelog{
+
+		position: relative;
+		white-space: pre-wrap;
+
+		background-color: var(--changelog-background);
+		padding: 0px 30px 2px 30px;
+		border-radius: 4px;
+		border: 1px solid var(--menu-border-color);
+
+		height: 300px;
+		overflow-y: scroll;
+
+	}
+	
+	#changelog-wrapper::after{
+
+		box-shadow: inset 3px 3px 3px rgba(0, 0, 0, 0.15);
+		content: "";
+		background-color: transparent;
+	
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		z-index: 999;
+		
+		pointer-events: none;
+
+	}
+
+	.headline {
+
+		font-size: 32px;
+		font-weight: 800;
+		line-height: 38px;
+		margin: 20px 0px 20px 0px;
+		display: block;
+
+		margin-bottom: 20px;
+
+		
+	}
+
+	.versionnumber {
+
+		font-size: 10px;
+		font-weight: 300;
+		line-height: 14px;
+
+		opacity: 60%;
+		
+		vertical-align:top;
+
+		border-top: 5px solid transparent;
+		box-sizing: border-box;
+
+		padding-left: 8px;
+		display: inline-block;
+	}
+	
+	#changelog .headline {
+
+		border-top: 16px solid var(--changelog-background);
+
+		font-size: 18px;
+		line-height: 22px;
+		margin: 0px 0 8px 0; 
+
+		display: block;
+		background-color: color-mix(in oklab, var(--menu-background), white 20%) ;
+
+		
+		position: sticky;
+		top: 0;
+
+	}
+
+	#changelog p:has(+ li) {
+
+		margin-bottom: 2px;
+
+	}
+
+    li {
+
+        list-style-type: none;
+        padding-top: 3px;
+		padding-left: 20px;
+    }
+
+	li.changelogList{
+
+		list-style-type: disc;
+		padding-top: 0;
+		text-indent: -15px;
+		padding-left: 40px
+
+	}
+
+	li.changelogList.level2{
+
+		list-style-type: circle;
+		text-indent: -18px;
+		padding-left: 58px;
+		padding-top: 0;
+
+	}
+
+	.shortcut {
+
+		display: none;
+
+	}
+
+	.explanation {
+
+		font-size: 11px;
+		line-height: 14px;
+		margin-left: 21px;
+		margin-top: -2px;
+		display: block;
+
+		font-style: italic;
+		opacity: 60%;
+
+	}
+
+	label:hover .shortcut {
+
+		display: inline;
+
+	}
+
+	.dialogBottomButtonRow {
+
+		position: absolute;
+		bottom: 20px;
+		right: 20px;
+
+	}
+
+	button{
+
+		font-size: 13px;
+
+	}
+
+	button:hover{
+
+		border: initial !important;
+		border-radius: 4px !important; 
+		padding: 2px 8px 3px 8px;
+		border-radius: inherit !important; 
+		background-color: var(--menu-hover-color);
+		color: white;
+		/* pointer-events: none; */
+
+	}
+
+	hr {
+
+		opacity: 50%;
+		margin: 0 40px;
+		mix-blend-mode: multiply;
+
+	}
+
+	ul {
+
+		margin-top: 0px;
+		margin-bottom: 0px;
+
+	}
+
+	code {
+
+		font-family: monospace;
+
+		background-color: color-mix(in oklab, var(--menu-background), black 5%) ;
+		/* border: 1px solid color-mix(in oklab, var(--menu-background), black 10%) ; */
+		/* color: white; */
+		padding: 0px 4px 1px 4px;
+		border-radius: 3px;
+
+	}
+
+
+</style>

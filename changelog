@@ -1,3 +1,13 @@
+#v 1.8 (xxx)
+
+The NOTEPANEL has been somewhat hidden away -- here's hoping more will find it now: Put your mouse at the far left of the plugin, and an area will appear. Double click that area to open the notepanel.
+
+An all new *SCENE MANAGER* has been added -- this is the preflight 
+
+* Reconnected broken app menu commands
+* Minor rearrangements of the app menu 
+
+
 #v 1.72 (September 10, 2023)
 
 *IMPORTANT HOTFIX* to a serious synchronization issue where quickly decreasing the document's total number of lines caused FTOutliner to crash the main app.

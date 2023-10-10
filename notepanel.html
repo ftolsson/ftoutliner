@@ -5,6 +5,79 @@
     --note-panel-width: 200px /*25%; /*was 30*/
 }
 
+#notepanelOpener{
+
+    position: absolute;
+    top: 15px;
+    left: 0px;
+    height: calc(100vh - 65px);
+
+    width: 10px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+
+    background: transparent;
+
+    cursor: ew-resize !important ;
+
+    z-index: 100;
+
+    &::after{
+
+        position: absolute;
+        top: 50%;
+        left: 2px;
+        width: 100%;
+        font-size: 8px;
+        color: white;
+        content: "\25B6";
+        opacity: 0;
+
+    }
+
+    &:hover{
+
+        border-radius: 0px 6px 6px 0px;
+        background-color: rgba(255,255,255,0.3); /* #999; */
+        
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+	
+        transition: background-color 0.2s;
+
+        &::after{
+
+            opacity: 1;
+            transition: opacity 0.2s;
+
+        }
+
+    }
+
+}
+
+:has(#notepanel.expanded) #notepanelOpener{
+
+    opacity: 0;
+    z-index: 999999;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    &::after{
+        content: "\25C2";
+    }
+
+    &:hover{
+        background-color: transparent;
+        opacity: 1;
+    }
+
+
+}
+
 #notepanel{
 
     position: absolute !important;
@@ -189,6 +262,9 @@
 #notepanel #dialogpanelbuttons{
 
     display: none;
+
+    font-size: 11px !important;
+    line-height: 13px !important;
 
     position: absolute;
     width: calc(100% - 10px);
@@ -688,7 +764,9 @@ function cycleTabs(clickedElement, unconditional){
     } 
 
     if( $(".selectedtab").classList.contains("notetab") ) { 
-        if(!globalAllNotes || globalAllNotes.length == 0) collectNotes()
+
+        if(!globalAllNotes) collectNotes()
+        updateNotepanel()
     } 
 
 
@@ -802,10 +880,6 @@ function updateNotepanel(){
     $$(".notepanelNote").forEach(note => {note.remove()})
     $$(".notepanelReview").forEach(note => {note.remove()})
 
-    //if((!globalNotesData && !globalReviewsData) || (globalNotesData?.length == 0 && globalReviewsData?.length == 0)) return
-    
-    // if(globalNotesData?.length > 0){
-        mylog("looping notes in panel")
         for(let i = 0; i < allNotes.length; i++){
 
             let elementType = outline[allNotes[i].outlineElementNumber]?.typeAsString
@@ -889,17 +963,21 @@ function toggleNotepanel() {
 
     mylog("toggleNotepanel")
 
-    $id("notepanel").classList.toggle("expanded")
-    $id("flexiContainer").classList.toggle("notepanelIsExpanded", $id("notepanel").classList.contains("expanded"))
+    let isExpanded = !$id("notepanel").classList.contains("expanded")
 
-    // collectNotes()
+    
+    $id("notepanel").classList.toggle("expanded", isExpanded)
+    $id("flexiContainer").classList.toggle("notepanelIsExpanded", isExpanded)
+    
+    unShowCharacterBubbles()
 
+    if(isExpanded){
 
-    if(!$id("notepanel").classList.contains("expanded")){
-        unShowCharacterBubbles()   
-    }else{
-        cycleTabs($(".selectedtab"), true) //true is needed to unconditionally run the function even if the tab is already selected
+        setTimeout(() => {
+            cycleTabs($(".selectedtab"), true) //true will unconditionally run the function even if the tab is already selected, essentially updating it
+        }, 600)
     }
+
 
 
     clearSearchBox()

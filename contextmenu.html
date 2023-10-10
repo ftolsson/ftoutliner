@@ -609,7 +609,34 @@
             checkedIf: () => { return documentSetting.sortNoneAsSame },
             showFor: ["scenepanelSettingsButton"],
             command: () => { documentSetting.sortNoneAsSame = !documentSetting.sortNoneAsSame; saveCurrentState(); parseSceneHeadings() },
-        }
+        },
+        {
+            menuItem: "divider",
+            showFor: ["scenepanelSettingsButton"],
+        },
+        {
+            menuItem: "Group single locations at the top",
+            icon: "",
+            iconColor: "",
+            checkedIf: () => { return documentSetting.singleAtTop },
+            showFor: ["scenepanelSettingsButton"],
+            command: () => { documentSetting.singleAtTop = !documentSetting.singleAtTop; saveCurrentState(); parseSceneHeadings() },
+        },
+        {
+            menuItem: "and highlight in red",
+            icon: "",
+            indent: () => {return true},
+            iconColor: "",
+            checkedIf: () => { return documentSetting.singleGroupAsRed && documentSetting.singleAtTop },
+            greyOutIf: () => { return !documentSetting.singleAtTop },
+            showFor: ["scenepanelSettingsButton"],
+            command: () => { 
+                documentSetting.singleGroupAsRed = !documentSetting.singleGroupAsRed
+                    // $$("singlegroup").forEach(group => group.classList.toggle("singlegroupAsRed", documentSetting.singleGroupAsRed))
+                    $("#scenespanelcontent").style.setProperty("--singlegroupColor", documentSetting.singleGroupAsRed ? "rgba(220, 100, 100, 0.6)" : "rgba(255, 255, 255, 0.6)")
+                    saveCurrentState()
+                },
+        },
     ])
 
 function __________END_OF_MENU_OBJECT(){}

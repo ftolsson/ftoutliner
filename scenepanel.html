@@ -1,69 +1,5 @@
 <script>
 
-let timeOfDayStrings = [
-    "DAY",
-    "NIGHT",
-    "DAWN",
-    "DUSK",
-    "MORNING",
-    "EARLY MORNING",
-    "EVENING",
-    "LATE EVENING",
-    "SUNRISE",
-    "SUNSET",
-    "AFTERNOON",
-    "LATE",
-    "EARLY",
-    "LATER",
-    "MOMENTS LATER",
-    "CONTINUOUS",
-    "SAME",
-    "SIMULTANEOUSLY",
-
-    "DAG",
-    "NATT",
-    "GRYNING",
-    "SKYMNING",
-    "MORGON",
-    "TIDIG MORGON",
-    "KVÄLL",
-    "SEN KVÄLL",
-    "SOLUPPGÅNG",
-    "SOLNEDGÅNG",
-    "EFTERMIDDAG",
-    "SENT",
-    "TIDIGT",
-    "SENARE",
-    "ÖGONBLICKET SENARE",
-    "FORTSÄTTNING",
-    "DIREKT FORTSÄTTNING",
-    "SAMMA",
-    "SAMTIDIGT",
-]
-
-let timeOfDayObject = {
-
-    day: [
-
-        "DAY", "DAWN", "MORNING", "EARLY MORNING", "SUNRISE", "EARLY", "AFTERNOON", 
-        "DAG", "GRYNING", "MORGON", "TIDIG MORGON", "SOLUPPGÅNG", "TIDIGT", "EFTERMIDDAG",
-
-    ],
-    night: [
-
-        "NIGHT", "DUSK", "EVENING", "LATE EVENING", "SUNSET", "LATE", "MIDNIGHT", 
-        "NATT", "SKYMNING", "KVÄLL", "SEN KVÄLL", "SOLNEDGÅNG", "SENT", "MIDNATT",  
-
-    ],
-    same: [
-
-        "LATER", "MOMENTS LATER", "CONTINUOUS", "SAME", "SIMULTANEOUSLY",
-        "SENARE", "ÖGONBLICKET SENARE", "FORTSÄTTNING", "DIREKT FORTSÄTTNING", "SAMMA", "SAMTIDIGT",
-
-    ]
-
-}
-
 function populateScenesPanelButtons(){
 
     document.getElementById("scenespanelbuttons").innerHTML = "<div style='display: inline-block; vertical-align: middle;'>Sort by:</div>"
@@ -131,7 +67,7 @@ function populateScenesPanelButtons(){
 
     let mergeSimilarLocationsLabel = document.createElement("label")
         mergeSimilarLocationsLabel.setAttribute("for", "mergeSimilarLocations")
-        mergeSimilarLocationsLabel.textContent = "Collate identical"
+        mergeSimilarLocationsLabel.textContent = "Collate twins"
     // document.getElementById("scenespanelbuttons").appendChild(mergeSimilarLocationsLabel)
     checkboxSpan.appendChild(mergeSimilarLocationsLabel)
 
@@ -148,16 +84,28 @@ function populateScenesPanelButtons(){
 
     let onlyShowTyposLabel = document.createElement("label")
         onlyShowTyposLabel.setAttribute("for", "onlyShowTypos")
-        onlyShowTyposLabel.textContent = "Only show suspected typos"
+        onlyShowTyposLabel.textContent = "Only show typos"
     // document.getElementById("scenespanelbuttons").appendChild(onlyShowTyposLabel)
     checkboxSpan.appendChild(onlyShowTyposLabel)
 
+    let scenepanelHelpButton = document.createElement("div")
+        scenepanelHelpButton.id = "scenepanelHelpButton"
+        scenepanelHelpButton.classList.add("scenepanelHelpButton")
+        scenepanelHelpButton.innerHTML = "?"
+        scenepanelHelpButton.onclick = () => {
+            // Beat.call(() => Beat.custom.displaySecondWindow("Scene Panel Help", "scenepanelhelpwindow.html", 700, 800))
+            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Help", "scenepanelhelpwindow.html", 700, 800)`)
+        }
+    document.getElementById("scenespanelbuttons").appendChild(scenepanelHelpButton)
+    
     let scenepanelSettingsButton = document.createElement("div")
         scenepanelSettingsButton.id = "scenepanelSettingsButton"
         scenepanelSettingsButton.classList.add("scenepanelSettingsButton")
         scenepanelSettingsButton.innerHTML = gearIcon
         scenepanelSettingsButton.onclick = () => {
-            displayContextMenu(null, scenepanelSettingsButton)
+            // displayContextMenu(null, scenepanelSettingsButton)
+            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Settings", "scenepanelsettingswindow.html", 800, 800)`)
+
         }
     document.getElementById("scenespanelbuttons").appendChild(scenepanelSettingsButton)
     // checkboxSpan.appendChild(scenepanelSettingsButton)
@@ -169,7 +117,17 @@ function parseSceneHeadings(){
     mylog()
 
     if(!outline) return
+    
+    if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) applySettings()
     if(!$id("sortDropDown")) populateScenesPanelButtons()
+
+    let schedulingColors = {
+            INTDAY:     "hsla(210, 100%, 100%, 1.00)",
+            EXTDAY:     "hsla(47, 60%, 80%, 1.00)",
+            INTNIGHT:   "hsla(210, 60%, 80%, 1.00)",
+            EXTNIGHT:   "hsla(150, 60%, 80%, 1.00)",
+            RED:        "lightcoral" //"hsla(2, 20%, 50%, 1.00)"
+        }
 
     let scenes = outline.filter(scene => {return scene.typeAsString == "Heading"})
     let parsedScene = []
@@ -192,11 +150,13 @@ function parseSceneHeadings(){
         let addOns = string.match(/\(.*\)/g)
         if (addOns !== null){
             for (addOn of addOns){
-                string = string.replace(addOn, "/").trim() //because I now want to split the string where there used to be a parenthesis
+                // string = string.replace(addOn, "/").trim() //because I now want to split the string where there used to be a parenthesis
+                // string = string.replace(addOn, addOn.replace("(", "/").replace(")", "/")).trim() //because I now want to split the string where there used to be a parenthesis
+                string = string.replace(addOn, "/" + addOn).trim() //because I want to split the string at a parenthesis, BUT KEEP IT IN.
             }
         }
 
-        let parts = string.replaceAll(/\(.*\)/g, "").toUpperCase().split(/[\s/]+-+[\s/]+|\s*\/\s*/).filter(part => part.length > 0);
+        let parts = string/*.replaceAll(/\(.*\)/g, "")*/.toUpperCase().split(/[\s/]+-+[\s/]+|\s*\/\s*/).filter(part => part.length > 0);
         let partsIndex = []
             for (part of parts){
 
@@ -211,43 +171,56 @@ function parseSceneHeadings(){
 
             }
 
-        let schedulingColors = {
-            INTDAY:     "hsla(210, 100%, 100%, 1.00)",
-            EXTDAY:     "hsla(47, 60%, 80%, 1.00)",
-            INTNIGHT:   "hsla(210, 60%, 80%, 1.00)",
-            EXTNIGHT:   "hsla(150, 60%, 80%, 1.00)",
-            RED:        "lightcoral" //"hsla(2, 20%, 50%, 1.00)"
-        }
+        //remove addons from the end of the array
+            let removedAddons = []
+            let removedIndex = []
+            while (addOns?.includes(parts.at(-1))){
+                removedAddons.push(parts.at(-1))
+                removedIndex.push(partsIndex.at(-1))
+                parts.pop()
+                partsIndex.pop()
+            }
 
-        // documentSetting.noneMeansSame = true
+        console.log("🟡", removedAddons, removedIndex)
 
-        // let timeOfDay = timeOfDayStrings[timeOfDayStrings.indexOf(parts.at(-1).toUpperCase())] || "---"
-        let timeOfDay = "UNKNOWN"
-        let dayOrNight
-            for (key in timeOfDayObject){
-                // mylog(key)
-                // mylog(timeOfDayObject[key])
+        //check for time of day at the end of the array
+            let timeOfDay = "UNKNOWN"
+            let dayOrNight
+                for (key in userDefault.timeOfDayObject){
 
-                if (timeOfDayObject[key].indexOf(parts.at(-1).toUpperCase()) > -1){
-                    timeOfDay = timeOfDayObject[key][timeOfDayObject[key]?.indexOf(parts.at(-1)?.toUpperCase())] || "UNKNOWN"
-                    dayOrNight = key.toUpperCase()
-                    break
+                    if (userDefault.timeOfDayObject[key].indexOf(parts.at(-1).toUpperCase()) > -1){
+                        timeOfDay = userDefault.timeOfDayObject[key][userDefault.timeOfDayObject[key]?.indexOf(parts.at(-1)?.toUpperCase())] || "UNKNOWN"
+                        dayOrNight = key.toUpperCase()
+
+                        if (key == "same") { dayOrNight = parsedScene.at(-1)?.dayOrNight }
+
+                        parts.pop()
+                        partsIndex.pop()
+                        break
+                    }
                 }
-            }
-            if (timeOfDayObject.same.includes(parts.at(-1).toUpperCase()) || (documentSetting.sortNoneAsSame && timeOfDay == "UNKNOWN")){
-                dayOrNight = parsedScene.at(-1)?.dayOrNight
-            }
+                if (documentSetting.sortNoneAsSame && timeOfDay == "UNKNOWN"){ dayOrNight = parsedScene.at(-1)?.dayOrNight }
+                // if (userDefault.timeOfDayObject.same.includes(parts.at(-1).toUpperCase()) || (documentSetting.sortNoneAsSame && timeOfDay == "UNKNOWN")){
+                //     dayOrNight = parsedScene.at(-1)?.dayOrNight
+                // }
 
-        while (addOns?.includes(parts.at(-1))){
-            parts.pop()
-            partsIndex.pop()
-        }
 
-        if (timeOfDay == parts.at(-1)){
-            parts.pop()
-            partsIndex.pop()
+            // if (timeOfDay == parts.at(-1)){
+            //     parts.pop()
+            //     partsIndex.pop()
+            // }
+        //THIS is where I should reverse concatenation if sorting by parenthesis!
+        if (documentSetting.ShowParenthesis && documentSetting.groupByParenthesis) {
+            parts = removedAddons.concat(parts)
+            partsIndex = removedIndex.concat(partsIndex)
+        }else{
+            parts = parts.concat(removedAddons)
+            partsIndex = partsIndex.concat(removedIndex)
         }
-        
+            // console.log("REMOVED:", removedAddons, removedIndex)
+            // console.log("RESULT:", parts, partsIndex)
+
+    //adding the result to the array
         parsedScene.push({
 
             sceneNumber: scene.sceneNumber || scenes.indexOf(scene) + 1,
@@ -288,7 +261,7 @@ function parseSceneHeadings(){
         let thisIsADoubleLocation = false
             if($id("sortDropDown").value == "location"){
                 // thisIsADoubleLocation = (scene.sublocations.join(",") == sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.join(",")) 
-                thisIsADoubleLocation = (scene.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc)).join(",")) == (sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc)).join(","))
+                thisIsADoubleLocation = (scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc)).join(",")) == (sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc)).join(","))
             }
         
         //1. the line
@@ -301,16 +274,22 @@ function parseSceneHeadings(){
             //GROUPING
             //1. location
                 if($id("sortDropDown").value == "location"){
-                    // if (scene.sublocations.join(",") !== sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.join(",")) { 
-                    if (scene.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc)).join(",") !== sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc)).join(",")) { 
-                        
+
+                    
+
+                    if (scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc)).join(",") !== sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc)).join(",")) { 
                         lineDiv.classList.remove(evenOrOdd)
                         evenOrOdd = (evenOrOdd === "odd" ? "even" : "odd")
                         lineDiv.classList.add(evenOrOdd)
-
                     }
 
-                    if (scene.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc))[0]) { 
+                    // let startNewGroup = (documentSetting.groupByParenthesis && scene.other) ?
+                    //     scene.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] :
+                    //     scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
+                    let startNewGroup = scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
+                    
+                    // if (scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]) { 
+                    if (startNewGroup) { 
                         lineDiv.classList.add("newgroup")
                         lineDiv.classList.remove(evenOrOdd)
                         evenOrOdd = "odd"
@@ -377,7 +356,7 @@ function parseSceneHeadings(){
                 flexdiv.style.height = "100%"
                 flexdiv.style.display = "flex"
 
-        //fill the line with...
+    //fill the line with...
         //0. scene number
         let sceneNumDiv = document.createElement("div")
             sceneNumDiv.innerText = scene.sceneNumber //+ scene.lengthInPages
@@ -424,7 +403,7 @@ function parseSceneHeadings(){
         sublocations = scene.sublocations
         for (loc of sublocations){
 
-            if (scene.other.includes(loc)) continue
+            if (scene.other.includes(loc) && !documentSetting.ShowParenthesis) continue
             if (loc == scene.timeOfDay) continue
 
             let subloc = document.createElement("div")
@@ -436,6 +415,10 @@ function parseSceneHeadings(){
                 subloc.classList.add("rightItem")
                 subloc.classList.add("location")
                 subloc.innerText = loc
+                
+                if (scene.other.includes(loc)) {
+                    subloc.classList.add("addon")
+                }
 
                 if(documentSetting.excludedLocations?.includes(loc)){
                     subloc.classList.add("excludedLocation")
@@ -459,6 +442,8 @@ function parseSceneHeadings(){
         }
     }
 
+    flagLinesWithSingleLocation()
+
     $$(".scenepanelgroup").forEach(group => {
 
         let headlineDiv = document.createElement("div")
@@ -477,6 +462,7 @@ function parseSceneHeadings(){
                     case "location":
                         
                         headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> at main location <strong>${mainLocation}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
+                        if (group.classList.contains("singlegroup")) headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> at <strong>NON-RECURRING LOCATIONS</strong>, in total <strong>${lengthOfScenes} pages</strong> `
                         break;
                 
                     case "prefixTimeOfDay":
@@ -507,24 +493,92 @@ function parseSceneHeadings(){
     })
     
     compareAllLocations()
+    addNumberOfPagesToLines()
 
-    $$(".scenespanelcontent .line").forEach(line => {
+    //set color of single groups
+        $("#scenespanelcontent").style.setProperty("--singlegroupColor", documentSetting.singleGroupAsRed ? "rgba(220, 100, 100, 0.6)" : "rgba(255, 255, 255, 0.6)")
 
-        let whatToAddSingle = line.querySelectorAll(".sceneNum:not(.duplicateSceneNum)") 
-        let whatToAddMultiple = line.querySelectorAll(".sceneNum")
-        let pagesForLineSingle = numberIntoEights(Array.from(whatToAddSingle).reduce((acc, val) => acc + Number(val.dataset.lengthInPages), 0))
-        let pagesForLineMultiple = numberIntoEights(Array.from(whatToAddMultiple).reduce((acc, val) => acc + Number(val.dataset.lengthInPages), 0))    
-            
-        line.innerHTML += `<div class="pagesForLine">
-            <span class="multiplePageCount">${pagesForLineMultiple} pgs</span>
-            <span class="singlePageCount">${pagesForLineSingle} pgs</span>
-            </div>`
+    //add eventhandlers
+    Array.from($$(".location")).forEach(subloc => {
+
+        subloc.ondblclick = (event) => {
+                // newNameDialog(Array.from($$(".isSelected")).push(event.target))
+                let selectedItems = Array.from($$(".isSelected"))
+                    selectedItems.forEach(item => { item.classList.remove("isSelected") })
+                newNameDialog(selectedItems.length > 0 ? selectedItems : Array.of(event.target))
+            }
+        subloc.onmouseover = (event) => {
+                if ($("#contextMenu")) return //so as not to un-highlight items when moving to the menu 
+                $$(".isSelected").forEach(element => {
+                    element.classList.remove("isSelected")
+                })
+                if (!event.shiftKey) return
+                $$(".location").forEach(element => {
+                    if(element.textContent == event.target.textContent){
+                        element.classList.add("isSelected")
+                    }
+                })
+            }
+        subloc.onmouseout = (event) => {
+                // if ($("#contextMenu")) return //so as not to un-highlight items when moving to the menu 
+                // if (!event.shiftKey) return
+                $$(".isSelected").forEach(element => {
+                    element.classList.remove("isSelected")
+                })
+            }
 
     })
+    
     
     //size all items equally
         selectors = [".sceneNum", ".prefix"]
         selectors.forEach(selector => setMutualSize(selector))
+
+}
+
+function addNumberOfPagesToLines(){ 
+
+    $$(".scenespanelcontent .line").forEach(line => {
+
+    let whatToAddSingle = line.querySelectorAll(".sceneNum:not(.duplicateSceneNum)") 
+    let whatToAddMultiple = line.querySelectorAll(".sceneNum")
+    let pagesForLineSingle = numberIntoEights(Array.from(whatToAddSingle).reduce((acc, val) => acc + Number(val.dataset.lengthInPages), 0))
+    let pagesForLineMultiple = numberIntoEights(Array.from(whatToAddMultiple).reduce((acc, val) => acc + Number(val.dataset.lengthInPages), 0))    
+        
+    line.innerHTML += `<div class="pagesForLine">
+        <span class="multiplePageCount">${pagesForLineMultiple} pgs</span>
+        <span class="singlePageCount">${pagesForLineSingle} pgs</span>
+        </div>`
+
+    })
+}
+
+function flagLinesWithSingleLocation(){
+
+    if($id("sortDropDown").value !== "location") return
+    if(!documentSetting.singleAtTop) return
+    
+    let allGroups = Array.from($$(".scenepanelgroup"))
+    allGroups.forEach(group => {
+
+        let onlyOneLine = group.querySelectorAll(".line").length == 1
+        
+        group.classList.toggle("singlegroup", onlyOneLine)
+        
+        if(!onlyOneLine) return
+
+        let linecopy = group.querySelector(".line").cloneNode(true)
+            // linecopy.classList.add("linecopy")
+            linecopy.classList.toggle("odd", allGroups.indexOf(group) % 2 == 0)
+            linecopy.classList.toggle("even", allGroups.indexOf(group) % 2 == 1)
+            linecopy.classList.toggle("newgroup", allGroups.indexOf(group) == 0)
+            allGroups[0].appendChild(linecopy)
+            allGroups[0].classList.add("singlegroup")
+
+            group.remove()
+    })
+
+    allGroups[0].querySelector(".line").classList.add("newgroup")
 
 }
 
@@ -693,13 +747,14 @@ function damerauLevenshtein(str1, str2) {
 }
 
 function sortByFrequency(arr, position = 0) {
+
   // Count the frequency of each value in the specified position of the sublocations arrays
   const freqMap = new Map();
   for (const obj of arr) {
-    const sublocs = obj.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc));
+    const sublocs = obj.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
     if (sublocs.length > position) {
       const val = sublocs[position].trim();
-      if (!documentSetting.groupExclusions.includes(val)) { // Exclude groupExclusions here
+      if (!documentSetting.groupExclusions?.includes(val)) { // Exclude groupExclusions here
         freqMap.set(val, (freqMap.get(val) || 0) + 1);
       }
     }
@@ -709,14 +764,26 @@ function sortByFrequency(arr, position = 0) {
 
   // Sort the objects based on the frequency of the specified position
   arr.sort((a, b) => {
-    const sublocsA = a.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc));
-    const sublocsB = b.sublocations.filter(loc => !documentSetting.groupExclusions.includes(loc));
+    let sublocsA = a.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
+    let sublocsB = b.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
+
+    //This code is now redundant bc if groupBy is on, parenthesis is moved to front
+        //if grouping by parenthesis is turned on, add the other array to the sublocations array
+        // if (documentSetting.groupByParenthesis) {
+        //     // sublocsA.push(...a.other);
+        //     // sublocsB.push(...b.other);
+        //     let otherA = a.other || [];
+        //     let otherB = b.other || [];
+        //     sublocsA = otherA.concat(sublocsA);
+        //     sublocsB = otherB.concat(sublocsB);
+        // }
+
     if (sublocsA.length <= position || sublocsB.length <= position) {
       return 0; // Objects don't have a value in the specified position, so no need to sort further
     }
     const valA = sublocsA[position].trim();
     const valB = sublocsB[position].trim();
-    if (documentSetting.groupExclusions.includes(valA) || documentSetting.groupExclusions.includes(valB)) { // Exclude groupExclusions here
+    if (documentSetting.groupExclusions?.includes(valA) || documentSetting.groupExclusions?.includes(valB)) { // Exclude groupExclusions here
       return 0;
     }
     // const freqA = freqMap.get(sublocsA[position].trim());
@@ -739,7 +806,7 @@ function sortByFrequency(arr, position = 0) {
 const sortBy = {
     "timeOfDayOption": (a,b) => {
 
-        let timeOfDayArray = Object.values(timeOfDayObject).reduce((acc, val) => acc.concat(val), []);
+        let timeOfDayArray = Object.values(userDefault.timeOfDayObject).reduce((acc, val) => acc.concat(val), []);
         keyA = timeOfDayArray.indexOf(a.timeOfDay)
         keyB = timeOfDayArray.indexOf(b.timeOfDay)
         if (keyA < keyB) return -1;
@@ -747,9 +814,21 @@ const sortBy = {
         return 0
     },
     "location": (a,b) => {
-
-        const filteredA = a.sublocations.filter(location => !documentSetting.groupExclusions.includes(location));
-        const filteredB = b.sublocations.filter(location => !documentSetting.groupExclusions.includes(location));
+        
+        let filteredA = a.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
+        let filteredB = b.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
+     
+        //this code is now redundant bc if groupBy is on, parenthesis is moved to front
+        // //here, we add addOns first in array if turned on in settings
+        // if (documentSetting.groupByParenthesis) {
+        //     // filteredA.push(...a.other);
+        //     // filteredB.push(...b.other);
+        //     let otherA = a.other || [];
+        //     let otherB = b.other || [];
+        //     filteredA = otherA.concat(filteredA);
+        //     filteredB = otherB.concat(filteredB);
+        //     console.log(filteredA, filteredB)
+        // }
    
         keyA = filteredA.join(',')
         keyB = filteredB.join(',')
@@ -808,12 +887,19 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
     
 }
 
+/* :has(.scenestab:not(.selectedtab)) #scenespanelbuttons{ */
+:not(:has(.scenestab.selectedtab)) #scenespanelbuttons{
+    
+    display: none !important;
+
+}
+    
+
 #scenespanelbuttons > *{
     vertical-align: middle;
 }
 
 #sortDropDown{
-    /* width: 200px !important; */
     color: black !important;
 }
 
@@ -824,27 +910,33 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
     display: inline-block;
     vertical-align: middle;
     margin-left: 3px;
-    margin-right: 30px;
+    margin-right: 52px;
 
+    white-space: nowrap !important;
     overflow: hidden;
+    /* text-overflow: ellipsis; */
 
     flex-grow: 1;
     flex-shrink: 1;
 
-    white-space: nowrap !important;
     
     & label{
-        /* position: relative; */
-        /* width: auto !important; */
-        /* display: inline; */
-        /* overflow: hidden; */
+    
+        position: relative;
+        display: inline-block;
+        
+        /* outline: 1px solid lime;  */
         text-overflow: ellipsis !important;
+        /* overflow: hidden !important; */
         white-space: nowrap !important;
     }
 
 }
 
 #mergeSimilarLocations, #mergeSimilarLocations + label{
+
+    position: relative;
+
     margin-left: 2px;
     margin-right: 0px;
     display: none;
@@ -858,6 +950,9 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
 }
 
 #onlyShowTypos, #onlyShowTypos + label{
+
+    position: relative;
+
     margin-left: 2px;
     margin-right: 0px;
     display: inline-block;
@@ -892,17 +987,42 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
 
 }
 
+#scenepanelHelpButton{
+
+    position: absolute;
+    right: 28px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+
+    font-size: 10px;
+    text-align: center;
+    
+    display: inline-block;
+    font-weight: normal;
+
+    border: 2px solid white;
+    border-radius: 50%;
+
+    /* &:is(:has(#sortDropDown.location) #scenepanelSettingsButton){
+        display: inline-block;
+    } */
+
+}
+
 #scenespanelcontent{
 
     --scenesPanelLeftColumnWidth: 300px;
 
-    background: #555 !important;
+    background: #888 !important;
 
     position: absolute;
-    width: calc(100% + 4px);
+    width: calc(100% + 3px);
     margin-left: -8px;
     margin-right: -4px;
     padding: 8px !important;
+    padding-top: 0px !important;
+    padding-right: 12px !important;
     overflow-x: hidden;
     overflow-y: visible;
     text-overflow: ellipsis;
@@ -911,6 +1031,20 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
     font-size: calc(11px * var(--fontSizeFactor));
     font-weight: bold;
     color: white;
+
+    /* border-top: 2px groove #555 !important; */
+
+    &::xx.after{
+
+        content: "";
+        position: fixed;
+        top: 0px;
+        left: 0;
+        width: calc(100% - 8px);
+        margin-left: 4px;
+
+        border-top: 2px groove #555 !important;
+    }
 
     & #dividerline{        
         
@@ -954,9 +1088,10 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
         border-radius: 12px;
         /* margin-top: 2px;
         margin-bottom: 33px; */
+        background-color: #555;
 
-        margin-top: 2px;
-        margin-bottom: 10px;
+        margin-top: 4px;
+        margin-bottom: 8px;
 
         overflow: hidden;
 
@@ -966,6 +1101,13 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
 
         padding-top: 26px;
         box-shadow: inset 0 26px 0 0px rgba(255, 255, 255, 0.6);
+
+        &.singlegroup{
+            /* border-color: rgba(220, 100, 100, 0.6) !important;
+            box-shadow: inset 0 26px 0 0px rgba(220, 100, 100, 0.6); */
+            border-color: var(--singlegroupColor) !important;
+            box-shadow: inset 0 26px 0 0px var(--singlegroupColor);
+        }
 
     }
 
@@ -1151,7 +1293,7 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
     & .location{
 
         position: relative;
-        background-color: hsl(200, 100%, 20%);
+        background-color: hsl(200, 40%, 30%);
         transition: height 0.5s 0s, width 0.5s 0s, opacity 0.4s 0.1s !important;
 
         text-overflow: ellipsis;
@@ -1171,7 +1313,8 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
             font-weight: bold;
 
             &.majority{
-                background-color: hsl(135, 60%, 40%);
+                /* background-color: hsl(135, 60%, 40%); */
+                background-color: hsl(50, 70%, 40%);
                 color: white;
                 font-weight: bold;
             }
@@ -1389,5 +1532,72 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
 
 }
 
+
+html[data-outdoors="1"] #scenespanelbuttons{
+
+    color: black !important;
+
+    & *{
+        color: black !important;
+        border-color: black !important;
+        fill: black !important;
+    }
+
+}
+
+html[data-outdoors="1"] #scenespanelcontent{
+
+    background: white !important;
+
+    & .item{
+
+        /* box-shadow: inset 0 0 0 1px black; */
+        border: 1px black solid;
+        padding-top: 1px !important;
+        box-shadow: none !important;
+
+        /* margin-bottom: 1px; */
+
+    }
+
+    & .scenepanelgroup{
+
+        /* border-color: #ddd; */
+        outline: 1px solid black;
+        background: #ddd;
+        
+    }
+
+    & .line{
+
+        border: 1px 1px 0px 1px solid black !important;
+        /* padding-bottom: 1px; */
+
+    }
+
+    & .location{
+
+        background-color: #fff;
+        color: black;
+
+        &:hover, &.highlighted{
+            /* color: white !important; */
+        }
+
+        &.highlighted{
+            background-color: black !important;
+            color: white !important; 
+        }
+    }
+
+    & .pagesForLine *{
+
+        font-weight: bold;
+        color: black !important;
+
+    }
+
+
+}
 
 </style>

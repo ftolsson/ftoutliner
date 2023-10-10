@@ -83,8 +83,8 @@ function __________APP_MENUBAR(){}
 
 function createMenu(htmlWindow){
 
-	viewSubMenuItems.push(Beat.menuItem("Flexible", ["alt", "ctrl", "f"], function () { htmlWindow.runJS("toggleProportional('on')") }))
-	viewSubMenuItems.push(Beat.menuItem("Fixed", ["alt", "ctrl", "f"], function () { htmlWindow.runJS("toggleProportional('off')") }))
+	viewSubMenuItems.push(Beat.menuItem("Flexible", ["alt", "ctrl", "f"], function () { htmlWindow.runJS("toggleProportional(true)") }))
+	viewSubMenuItems.push(Beat.menuItem("Fixed", ["alt", "ctrl", "f"], function () { htmlWindow.runJS("toggleProportional(false)") }))
 	viewSubMenuItems.push(Beat.menuItem("Index Cards", ["alt","ctrl", "x"], function () { htmlWindow.runJS("toggleIndexCardMode()") }))
 
 	showSubMenuItems.push(Beat.menuItem("Notes", ["alt", "ctrl", "n"], function () { htmlWindow.runJS("toggleDisplayNotes()") }))
@@ -130,10 +130,10 @@ function createMenu(htmlWindow){
 		menuDivider2,
 		viewSubMenu, 
 		showSubMenu, 
-		sidePanelMenuItem,
 		notesSubMenu, 
 		dialogSubMenu,
 		menuDivider3,
+		sidePanelMenuItem,
 		highlightCharacterMenuItem,
 		menuDivider4,
 		splitScreenMenuItem, 
@@ -225,6 +225,8 @@ Beat.custom.sendToMain = function(key, value, nameOfVariable){
 					`)
 
 }
+
+Beat.custom.reApplySettings = function(){ htmlWindow.runJS("applySettings()") }
 
 function __________RELOADERS(){}
 
@@ -1829,33 +1831,29 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 	
 	if(!name){
 
-		if(!["Character", "Dialogue", "Parenthetical"].includes(line.typeAsString())) {
-			//htmlWindow.runJS("unShowCharacterBubbles()")	
-			//return
-			name = "ALL"
-		}else{
-
+		name = "ALL"
+				
+		if(["Character", "Dialogue", "Parenthetical"].includes(line.typeAsString())) {
 			while(line.typeAsString() != "Character" && line.position > 1){
 				pos = line.position - 1
 				line = Beat.lineAtPosition(pos)
 			}
-
-			name = (line.typeAsString() == "Character") ? line.string.replace(/\(.*\)/, "").trim() : "ALL"
+			name = (line.typeAsString() == "Character") ? line.string.replace(/\(.*\)/, "").trim().toUpperCase() : "ALL"
 		}
 
-		if(onlyHighlightScenes){
-			
+		if(onlyHighlightScenes){			
 			let jsToRun = `toggleSoloCharacter(0, "${name}")`
 			htmlWindow.runJS(jsToRun)
 			return
 		}
 
-		htmlWindow.runJS(`
+		htmlWindow.runJS(/*html*/`
 			cycleTabs($(".dialogtab"))
-			$id("allDialogFor").selectedIndex = ([...$id("allDialogFor").options].map(option => option.value.toUpperCase())).indexOf("${name}")
+			$id("allDialogFor").selectedIndex = Array.from($id("allDialogFor").options).map(option => option.value.toUpperCase()).indexOf("${name}")
+			showCharacterBubbles("${name}")
 		`)
+		return
 	}
-	
 
 
 	Beat.dispatch(function(){	

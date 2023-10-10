@@ -17,6 +17,7 @@
 	<div id="characterButton" class="bottomButton" onclick="mylog('clicked TrackingButton'); toggleNewMenu('trackingMenu')"></div>
 	<div id="zoomButton" class="bottomButton" onclick="mylog('clicked zoomButton'); toggleNewMenu('zoomMenu')"></div>
 </div>
+<div id="notepanelOpener" onclick="toggleNotepanel()"></div>
 
 <div id="notepanel" class="">
 	<div id="tabsRow">
@@ -50,7 +51,7 @@
 	<div id="scenespanelcontent" class="scenespanelcontent">
 		<div id="dividerline"></div>
 	</div>
-	<div id="drag-bar" onmousedown="resizeNotepanel()"></div>
+	<div id="drag-bar" onmousedown="resizeNotepanel()" ondblclick="toggleNotepanel()"></div>
 </div>
 
 <!-- ================================================== -->
@@ -377,6 +378,7 @@ function updateEntireOutline(json, location, length, absoluteLength, linesAsJson
 
 	//Building the outline!
 		divMaker() 
+		youAreHere(location, length) 
 		
 	//Post-building the outline: Add data to existing, already painted divs
 		if (characterMenuList.selectedIndex != -1){
@@ -390,7 +392,6 @@ function updateEntireOutline(json, location, length, absoluteLength, linesAsJson
 		updateScenePanel()
 		updateSelectionInfo()
 
-		youAreHere(location, length) 
 		toggleWaitState(false)	
 
 		if(weAreCurrentlyEditingText){ // this is if update takes place when live editing outline text -- can this happen??
@@ -1552,7 +1553,6 @@ function applySettings(){
 			width: 0, 
 			height: 0
 		},
-
 	}
 
 	let knownUserDefaults = {
@@ -1562,6 +1562,21 @@ function applySettings(){
 		warningsAreOn: true, 
 		invertTextOnDark: true,
 		excludeVoiceOvers: false,
+
+		timeOfDayObject: {
+        	day: [
+            	"DAY", "DAWN", "MORNING", "EARLY MORNING", "SUNRISE", "EARLY", "AFTERNOON", 
+            	"DAG", "GRYNING", "MORGON", "TIDIG MORGON", "SOLUPPGÅNG", "TIDIGT", "EFTERMIDDAG",
+        	],
+        	night: [
+            	"NIGHT", "DUSK", "EVENING", "LATE EVENING", "SUNSET", "LATE", "MIDNIGHT", 
+            	"NATT", "SKYMNING", "KVÄLL", "SEN KVÄLL", "SOLNEDGÅNG", "SENT", "MIDNATT",  
+        	],
+        	same: [
+            	"LATER", "MOMENTS LATER", "CONTINUOUS", "SAME", "SIMULTANEOUSLY",
+            	"SENARE", "LITE SENARE", "ÖGONBLICKET SENARE", "FORTSÄTTNING", "DIREKT FORTSÄTTNING", "SAMMA", "SAMTIDIGT",
+        	]
+    	},
 	}
 
 	Object.keys(knownDocumentSettingDefaults)
@@ -1710,6 +1725,8 @@ function applySettings(){
 
 function saveCurrentState() {
 	mylog()
+
+	console.log(userDefault)
 
 	rememberCardState()
 

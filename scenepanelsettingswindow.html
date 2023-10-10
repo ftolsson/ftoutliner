@@ -1,0 +1,485 @@
+<!-- <p class="headline">Advanced Settings</p>
+	<hr> -->
+<div id = "main">
+
+
+
+
+	<ul>
+		<strong class="subheading">Group and sorting preferences</strong><!--br/-->&nbsp;
+		<li  onclick="toggleThis('sortNoneAsSame', 'buttonFor-sortNoneAsSame')">
+			<input id="buttonFor-sortNoneAsSame" type="checkbox">
+			<label for="buttonFor-sortNoneAsSame">Consider NONE/UNKNOWN times-of-day SAME as previous<span class="shortcut" ></span></label>
+			<span class="explanation">When off, no or unknown times-of-day are colored red (and sorted in their own sheduling group).</span>
+		</li>
+		<br/>
+		<li  onclick="toggleThis('singleAtTop', 'buttonFor-singleAtTop')">
+			<input id="buttonFor-singleAtTop" type="checkbox">
+			<label for="buttonFor-singleAtTop">Group single locations at the top<span class="shortcut" ></span></label>
+		</li>
+		<li id="singlegroupAsRed" onclick="toggleThis('singleGroupAsRed', 'buttonFor-singleGroupAsRed')" style="margin-left: 20px">
+			<input id="buttonFor-singleGroupAsRed" type="checkbox">
+			<label for="buttonFor-singleGroupAsRed">and highlight group in red<span class="shortcut" ></span></label>
+		</li>
+		<br/>
+		<li  onclick="toggleThis('ShowParenthesis', 'buttonFor-ShowParenthesis')">
+			<input id="buttonFor-ShowParenthesis" type="checkbox">
+			<label for="buttonFor-ShowParenthesis">Show parentheticals too<span class="shortcut" ></span></label>
+			<span class="explanation" style="margin-left: 20px">When off, parentheticals like (MOVING) or (FLASHBACK) are not shown.</span>
+		</li>
+		<li id="groupByParenthesis" onclick="toggleThis('groupByParenthesis', 'buttonFor-groupByParenthesis')" style="margin-left: 20px">
+			<input id="buttonFor-groupByParenthesis" type="checkbox">
+			<label for="buttonFor-groupByParenthesis">and put first on line for grouping purposes in LOCATION mode<span class="shortcut" ></span></label>
+		</li>
+		<span class="explanation" style="margin-left: 60px">When both boxes are ON, grouping looks at parenthesis first, e.g. putting all (FLASHBACK) scenes in one group.</span>
+	</ul>
+	<br/>
+	<hr>
+	<ul>
+		<br/><strong class="subheading">Color left column items by...</strong><!--br/-->&nbsp;
+		<li  onclick="toggleThis('schedulingColors', 'buttonFor-schedulingColors')">
+			<input id="buttonFor-schedulingColors" type="radio" name="colorBy">
+			<label for="buttonFor-schedulingColors">Scheduling colors<span class="shortcut" ></span></label>
+		</li>
+		<li  onclick="toggleThis('schedulingColors', 'buttonFor-schedulingColors')">
+			<input id="buttonFor-outlineColors" type="radio" name="colorBy">
+			<label for="buttonFor-outlineColors">Script outline colors<span class="shortcut" ></span></label>
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<br/>
+	<ul>
+		<strong>Known Times-of-Day</strong><br/>
+		Below, add and delete any custom times-of-day. This allows them to not be sorted as locations, and for correct coloring/grouping in scheduling mode.<br/>
+	</ul>
+
+	<div id="timeOfDayWrapper">
+		<div id="day"></div>
+		<div id="night"></div>
+		<div id="same"></div>
+	</div>
+	<div style="width: calc(100% - 80px); text-align: right; margin: 2px 40px;">
+		<button class="generalButtonStyle" style="position: relative; right: 0px !important;" onclick=" Beat.call(`	Beat.custom.sendToMain('${timeOfDayObject}', '', 'userDefault') `); ">Reset list to defaults</button>
+	</div>
+
+
+		<!--li  onclick="toggleThis('autoWiden', 'buttonFor-autoWiden')">
+			<input id="buttonFor-autoWiden" type="checkbox">
+			<label for="buttonFor-autoWiden">Automatically widen index cards when editing<span class="shortcut" ></span></label>
+		</li>
+		<li  onclick="toggleThis('widenedColumnsGetAutoHeight', 'buttonFor-widenedColumnsGetAutoHeight')">
+			<input id="buttonFor-widenedColumnsGetAutoHeight" type="checkbox">
+			<label for="buttonFor-widenedColumnsGetAutoHeight">Widened cards also adjust height to fit<span class="shortcut" ></span></label>
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<ul>
+		<br/><strong class="subheading">Production Helpers</strong><br/>&nbsp;
+		<li onclick="toggleThis('showSelectionInfo', 'buttonFor-showSelectionInfo')">
+			<input id="buttonFor-showSelectionInfo" type="checkbox">
+			<label for="buttonFor-showSelectionInfo">Show info in bottom bar for selected/filtered scenes<span class="shortcut" ></span></label>
+			<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
+		</li>
+		<li onclick="toggleThis('showRevisions', 'buttonFor-showRevisions')">
+			<input id="buttonFor-showRevisions" type="checkbox">
+			<label for="buttonFor-showRevisions">Indicate lines with revision marks<span class="shortcut" >*</span></label>
+			<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
+		</li>
+		<li onclick="toggleThis('colorByPercentage', 'buttonFor-colorByPercentage')">
+			<input id="buttonFor-colorByPercentage" type="checkbox">
+			<label for="buttonFor-colorByPercentage">Color scenes by progress instead of COLOR attribute<span class="shortcut" >%</span></label>
+			<span class="explanation">When ON, a note or marker with a percentage such as [[50%]] anywhere in a scene will display that scene ranging from red to green based on the value. Scenes with no percentage will show as white.<br/>
+				Toggle this by typing % to temporarily switch to see what scenes remain to finish.</span>
+		</li>
+	</ul>
+	<br/>
+	<hr>
+	<ul>
+	<br/><strong class="subheading">Behavior Settings</strong><br/>&nbsp;
+	<li onclick="toggleThis('clickingFocusesEditor', 'buttonFor-clickingFocusesEditor')">
+		<input id="buttonFor-clickingFocusesEditor" type="checkbox">
+		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" ></span></label>
+		<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
+	</li>
+	<li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
+		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
+		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" ></span></label>
+		<span class="explanation">When OFF, the same can be achieved ad hoc with ctrl+alt+cmd+click.</span>
+	</li>
+	<li onclick="toggleThis('allowMarkerTextInAllViews', 'buttonFor-allowMarkerTextInAllViews')">
+		<input id="buttonFor-allowMarkerTextInAllViews" type="checkbox">
+		<label for="buttonFor-allowMarkerTextInAllViews">Allow marker text in all views<span class="shortcut" ></span></label>
+		<span class="explanation">When OFF, markers don't display text in non-proportional and index card mode. When ON, marker text is visible, but markers may obscure each other as well as the content of index cards. Use wisely!</span>
+	</li>
+	<br/>
+	<li  onclick="toggleThisUserDefault('warningsAreOn', 'buttonFor-warningsAreOn', true)">
+		<input id="buttonFor-warningsAreOn" type="checkbox">
+		<label for="buttonFor-warningsAreOn">Show Warning Messages when deleting and moving<span class="shortcut" >^P</span></label>
+	</li-->
+	<!--li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
+		<input id="buttonFor-realTimeIsOn" type="checkbox">
+		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" >^P</span></label><br/>
+		<class="explanation">This is generally not recommended</class>
+	</li-->
+	</ul>
+
+	<p><br/></p>
+	<div class="dialogBottomButtonRow">
+		<!-- <button class="generalButtonStyle" onclick="for (butn of $$('#advancedSettings input')){if(butn.checked){butn.click()}}">Revert to defaults</button> -->
+		<button class="generalButtonStyle" onclick="Beat.call('Beat.custom.closeSecondWindow()')">Close</button>
+	</div>
+</div>
+
+<script>
+
+	//STARTUP SEQUENCE:
+
+	var userDefault = {}
+	var documentSetting = {}
+    
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject")
+        return(ftoutlinerObject)
+    })
+    .then(
+        response => { userDefault = JSON.parse(response)
+
+			// //Apply the correct checkbox states on open:
+			// for ([key, value] of Object.entries(userDefault)){					
+			// 		let button = document.getElementById("buttonFor-" + key)
+			// 			if(button){ 
+			// 				if(value == true) button.setAttribute("checked", true) 
+			// 			}
+			// 	}
+
+			populateTimeOfDay()
+		},
+        error => { 
+			console.log("Error retrieving userDefault") }
+    )
+
+    Beat.callAndWait(() => {
+        let ftoutlinerObject = Beat.getDocumentSetting("ftoutlinerObject")
+        return ftoutlinerObject
+    	})
+		.then(
+			response => { documentSetting = JSON.parse(response)
+		
+				//Apply the correct checkbox states on open:
+					for ([key, value] of Object.entries(documentSetting)){					
+						let button = document.getElementById("buttonFor-" + key)
+							if(button){ 
+								if(value == true) button.setAttribute("checked", true) 
+							}
+					}
+					document.getElementById("buttonFor-schedulingColors").checked = documentSetting.schedulingColors
+					document.getElementById("buttonFor-outlineColors").checked = !documentSetting.schedulingColors
+			},
+			error => { console.log("Error retrieving documentSetting") }
+		)
+
+
+	function populateTimeOfDay(){
+
+		// if (!userDefault.timeOfDay || userDefault.timeOfDay.length == 0) return
+
+		// Beat.call(`	Beat.alert("${userDefault.timeOfDayObject.day}") `)
+
+
+		userDefault.timeOfDayObject.day.forEach ( val => {
+			document.getElementById("day").innerHTML += "<div>" + val + "</div>"
+		})
+		userDefault.timeOfDayObject.night.forEach ( val => {
+			document.getElementById("night").innerHTML += "<div>" + val + "</div>"
+		})
+		userDefault.timeOfDayObject.same.forEach ( val => {
+			document.getElementById("same").innerHTML += "<div>" + val + "</div>"
+		})
+
+	}
+
+
+	//FUNCTIONS:
+
+	function toggleThis(settingName, settingButton, invertSelection){
+
+		documentSetting[settingName] = document.getElementById("buttonFor-" + settingName).checked
+
+		let valueAsJSON = JSON.stringify(documentSetting[settingName])
+			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "documentSetting") `)
+
+			//note to self: To save me one step, go directly to applySettings in outline.html.
+			//that's where sendToMain will send the setting, so next step is now to add code to apply it.
+
+	}
+
+	function toggleThisUserDefault(settingName, settingButton, invertSelection){
+
+		userDefault[settingName] = document.getElementById("buttonFor-" + settingName).checked
+
+		let valueAsJSON = JSON.stringify(userDefault[settingName])
+			Beat.call(`	Beat.custom.sendToMain("${settingName}", ${valueAsJSON}, "userDefault") `)
+
+			//note to self: To save me one step, go directly to applySettings in outline.html.
+			//that's where sendToMain will send the setting, so next step is now to add code to apply it.
+
+	}
+
+
+</script>
+
+<style>
+
+    :root{
+
+        --menu-background: hsla(25, 64%, 96%, 1.00);/* rgb(240, 240, 240); /*was 232*/
+	    --menu-border-color: #c1c1c1;
+	    --menu-color: black; /*rgb(233,233,233);*/
+	    --menu-hover-color: #027aff;
+
+    }
+
+	#timeOfDayWrapper{
+
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		margin: 20px 40px 0px 40px;
+
+		/* border: 1px solid black;
+		background: white; */
+		width: calc(100% - 80px);
+
+	}
+	#day, #night, #same{
+
+		/* display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start; */
+
+		border: 1px solid black;
+		background: white;
+		width: 80%;
+
+		margin: 0 2px 0 2px ;
+		padding: 5px;
+		border: 1px inset var(--menu-border-color);
+		/* border-radius: 6px; */
+
+		box-shadow: inset 0px 0px 6px 0px rgba(0, 0, 0, 0.2);
+
+	}
+
+	:is(#day, #night, #same) > div {
+
+		font-weight: bold;
+
+		position: relative;
+		display: inline-block;
+
+		width: auto;
+		height: auto;
+        font-size: 12px !important; 
+        line-height: 14px !important;
+            
+        display: inline-block;
+        padding: 2px 6px 2px 6px;
+		margin: 1px;
+        
+        box-shadow: inset 0.5px 0.5px 0px 0.5px rgba(255, 255, 255, 0.4),
+                    inset -0.5px -0.5px 0px 0.5px rgba(0, 0, 0, 0.4);
+
+        border-radius: 10px;
+        border: none;
+        vertical-align: middle;
+
+        overflow: hidden;
+        opacity: 1;
+
+	}
+
+	#day > div {
+
+		background: hsla(47, 60%, 80%, 1.00)
+
+	}
+
+	#night > div {
+
+		background: hsla(210, 60%, 80%, 1.00)
+
+	}
+
+	#same > div {
+
+		background: hsla(0, 0%, 80%, 1.00)
+
+	}
+
+	.subheading{
+
+		line-height: 35px !important;
+
+	}
+
+	ul:has(#buttonFor-singleAtTop:not(:checked))  #singlegroupAsRed,
+	ul:has(#buttonFor-ShowParenthesis:not(:checked))  #groupByParenthesis{
+
+		opacity: 0.4 !important;
+		pointer-events: none !important;
+
+	}
+
+	input[type="radio"] {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+
+		position: relative;
+		display: inline-block;
+		top: 2px;
+
+		border: 1px solid var(--menu-border-color);
+		border-radius: 50%;
+		box-shadow: inset 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+
+		width: 16px;
+		height: 16px;
+		margin-right: 2px;
+
+		outline: none;
+	}
+
+	input[type="radio"]:checked::after {
+
+		position: absolute;
+  		content: "";
+		display: block;
+
+		left: 0px;
+		top: 0px;
+
+		width: 14px;
+		height: 14px;
+		margin: 0px;
+		background-color: white;
+		border: 4px solid var(--menu-hover-color);
+		border-radius: 50%;
+
+		box-sizing: border-box !important;
+	}
+
+    @media (prefers-color-scheme: dark) {
+
+        :root{
+
+            --menu-background: hsla(25, 10%, 24%, 1.00);
+            --menu-border-color: rgb(81,81,81);
+            --menu-color: rgb(233,233,233);
+
+            --inkOnPaper: 0, 0%, 100%;
+            --paperBehindInk: 0, 0%, 0%;
+
+        }
+    }
+
+    body{
+
+        background-color: var(--menu-background);
+		color: var(--menu-color);
+
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-size: 13px;
+        font-weight: normal;
+        line-height: 17px;
+
+    }
+
+    li {
+
+        list-style-type: none;
+        padding-top: 3px;
+		padding-left: 20px;
+    }
+
+	.shortcut {
+
+		opacity: 0;
+		padding-left: 10px;
+		/* display: none; */
+
+		transition: opacity 0.5s ease-out;
+
+	}
+
+
+	li:hover .shortcut {
+
+		opacity: 50%;
+		/* display: inline; */
+
+		transition: 0ms;
+
+	}
+
+	.explanation {
+
+		font-size: 11px;
+		line-height: 14px;
+		margin-left: 40px;
+		margin-top: -2px;
+		margin-top: -0px;
+		display: block;
+
+		font-style: italic;
+		opacity: 60%;
+
+		padding-right: 40px
+
+	}
+
+	.dialogBottomButtonRow {
+
+		position: absolute;
+		bottom: 20px;
+		right: 20px;
+
+	}
+
+	button{
+
+		font-size: 13px;
+
+	}
+
+	button:hover{
+
+		border: initial !important;
+		border-radius: 4px !important; 
+		padding: 2px 8px 3px 8px;
+		background-color: var(--menu-hover-color);
+		color: white;
+		/* pointer-events: none; */
+
+	}
+
+	hr {
+
+		opacity: 50%;
+		margin: 0 40px;
+		mix-blend-mode: multiply;
+
+	}
+
+	ul {
+
+		margin-top: 0px;
+		margin-bottom: 0px;
+
+	}
+
+
+</style>
