@@ -104,7 +104,7 @@ function populateScenesPanelButtons(){
         scenepanelSettingsButton.innerHTML = gearIcon
         scenepanelSettingsButton.onclick = () => {
             // displayContextMenu(null, scenepanelSettingsButton)
-            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Settings", "scenepanelsettingswindow.html", 800, 800)`)
+            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Settings", "scenepanelsettingswindow.html", 800, 800, false)`)
 
         }
     document.getElementById("scenespanelbuttons").appendChild(scenepanelSettingsButton)
@@ -118,7 +118,11 @@ function parseSceneHeadings(){
 
     if(!outline) return
     
-    if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) applySettings()
+    // if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) applySettings()
+    if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) {
+        userDefault.timeOfDayObject = knownTimesOfDayObject
+        saveCurrentState()
+    }
     if(!$id("sortDropDown")) populateScenesPanelButtons()
 
     let schedulingColors = {
@@ -461,7 +465,11 @@ function parseSceneHeadings(){
                 switch ($id("sortDropDown").value) {
                     case "location":
                         
-                        headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> at main location <strong>${mainLocation}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
+                        let typeOfFirstItem = "at main location"
+                            if (documentSetting.groupByParenthesis && group.querySelector(".rightItem:not(.dontCompare)").classList.contains("addon")) typeOfFirstItem = "with parenthesis"
+
+                        headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> ${typeOfFirstItem} <strong>${mainLocation}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
+                        
                         if (group.classList.contains("singlegroup")) headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> at <strong>NON-RECURRING LOCATIONS</strong>, in total <strong>${lengthOfScenes} pages</strong> `
                         break;
                 
@@ -529,7 +537,6 @@ function parseSceneHeadings(){
 
     })
     
-    
     //size all items equally
         selectors = [".sceneNum", ".prefix"]
         selectors.forEach(selector => setMutualSize(selector))
@@ -568,7 +575,6 @@ function flagLinesWithSingleLocation(){
         if(!onlyOneLine) return
 
         let linecopy = group.querySelector(".line").cloneNode(true)
-            // linecopy.classList.add("linecopy")
             linecopy.classList.toggle("odd", allGroups.indexOf(group) % 2 == 0)
             linecopy.classList.toggle("even", allGroups.indexOf(group) % 2 == 1)
             linecopy.classList.toggle("newgroup", allGroups.indexOf(group) == 0)
@@ -585,18 +591,8 @@ function flagLinesWithSingleLocation(){
 function addDividerLine(){
     $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 300) + "px")
     $id("scenespanelcontent").innerHTML = "<div id='dividerline' draggable='true'></div>"
-        // $id("dividerline").ondrag = (e) => {
-        //     e.preventDefault()
-        //     // e.dataTransfer.setDragImage(this, this.offsetWidth/2, this.offsetHeight/2);
-        //     let newWidth = e.clientX - $id("scenespanelcontent").getBoundingClientRect().left
-        //     $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", newWidth + "px")
-        //     documentSetting.scenesPanelLeftColumnWidth = newWidth
-        //     saveCurrentState()
-        // }
     
         $id("dividerline").ondragstart = (e) => {
-            // e.preventDefault();
-            // e.dataTransfer.setDragImage(null, 0, 0);
             $id("scenespanelcontent").addEventListener("dragover", onDragOverLocal);
             $id("scenespanelcontent").classList.add("dragging")
         }
@@ -711,39 +707,39 @@ function levenshteinDistance(str1 = '', str2 = '') {
 }
 
 function damerauLevenshtein(str1, str2) {
-  const len1 = str1.length;
-  const len2 = str2.length;
-  const matrix = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
 
-  // Initialize the matrix
-  for (let i = 0; i <= len1; i++) {
-    matrix[i][0] = i;
-  }
-  for (let j = 0; j <= len2; j++) {
-    matrix[0][j] = j;
-  }
-
-  // Compute distances
-  for (let i = 1; i <= len1; i++) {
-    for (let j = 1; j <= len2; j++) {
-      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1, // Deletion
-        matrix[i][j - 1] + 1, // Insertion
-        matrix[i - 1][j - 1] + cost // Substitution
-      );
-
-      // Transposition
-      if (i > 1 && j > 1 && str1[i - 1] === str2[j - 2] && str1[i - 2] === str2[j - 1]) {
-        matrix[i][j] = Math.min(
-          matrix[i][j],
-          matrix[i - 2][j - 2] + cost
-        );
-      }
+    // Initialize the matrix
+    for (let i = 0; i <= len1; i++) {
+        matrix[i][0] = i;
     }
-  }
+    for (let j = 0; j <= len2; j++) {
+        matrix[0][j] = j;
+    }
 
-  return matrix[len1][len2];
+    // Compute distances
+    for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1, // Deletion
+            matrix[i][j - 1] + 1, // Insertion
+            matrix[i - 1][j - 1] + cost // Substitution
+        );
+
+        // Transposition
+        if (i > 1 && j > 1 && str1[i - 1] === str2[j - 2] && str1[i - 2] === str2[j - 1]) {
+            matrix[i][j] = Math.min(
+            matrix[i][j],
+            matrix[i - 2][j - 2] + cost
+            );
+        }
+        }
+    }
+
+    return matrix[len1][len2];
 }
 
 function sortByFrequency(arr, position = 0) {
@@ -767,17 +763,6 @@ function sortByFrequency(arr, position = 0) {
     let sublocsA = a.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
     let sublocsB = b.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
 
-    //This code is now redundant bc if groupBy is on, parenthesis is moved to front
-        //if grouping by parenthesis is turned on, add the other array to the sublocations array
-        // if (documentSetting.groupByParenthesis) {
-        //     // sublocsA.push(...a.other);
-        //     // sublocsB.push(...b.other);
-        //     let otherA = a.other || [];
-        //     let otherB = b.other || [];
-        //     sublocsA = otherA.concat(sublocsA);
-        //     sublocsB = otherB.concat(sublocsB);
-        // }
-
     if (sublocsA.length <= position || sublocsB.length <= position) {
       return 0; // Objects don't have a value in the specified position, so no need to sort further
     }
@@ -786,8 +771,7 @@ function sortByFrequency(arr, position = 0) {
     if (documentSetting.groupExclusions?.includes(valA) || documentSetting.groupExclusions?.includes(valB)) { // Exclude groupExclusions here
       return 0;
     }
-    // const freqA = freqMap.get(sublocsA[position].trim());
-    // const freqB = freqMap.get(sublocsB[position].trim());
+    
     const freqA = freqMap.get(valA);
     const freqB = freqMap.get(valB);
     return freqB - freqA; // Sort in descending order of frequency
@@ -817,18 +801,6 @@ const sortBy = {
         
         let filteredA = a.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
         let filteredB = b.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
-     
-        //this code is now redundant bc if groupBy is on, parenthesis is moved to front
-        // //here, we add addOns first in array if turned on in settings
-        // if (documentSetting.groupByParenthesis) {
-        //     // filteredA.push(...a.other);
-        //     // filteredB.push(...b.other);
-        //     let otherA = a.other || [];
-        //     let otherB = b.other || [];
-        //     filteredA = otherA.concat(filteredA);
-        //     filteredB = otherB.concat(filteredB);
-        //     console.log(filteredA, filteredB)
-        // }
    
         keyA = filteredA.join(',')
         keyB = filteredB.join(',')

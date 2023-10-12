@@ -1,11 +1,23 @@
 #v 1.8 (xxx)
 
+Is the slide-in SIDE PANEL too tucked away to be useful? Or even to be discovered that it's there to begin with?
+Well, now it's more accessible than ever. In addition to the shortcuts `§` or `\`` (depending on keyboard lanugauge) you can now
+* Rest the mouse at the left end of the screen (if FTOutliner is set up to fill the left half of the screen -- otherwise rest at the left edge of the FTOutliner window) and a clickable edge of the side panel will appear. (You can close it by clicking in the same place)
+* Click the dedicated Side Panel Icon in the button row.
+
 The NOTEPANEL has been somewhat hidden away -- here's hoping more will find it now: Put your mouse at the far left of the plugin, and an area will appear. Double click that area to open the notepanel.
 
 An all new *SCENE MANAGER* has been added -- this is the preflight 
 
-* Reconnected broken app menu commands
-* Minor rearrangements of the app menu 
+Trying to make the SCENE PANEL 
+
+Some fixes to the neglected app menu, to make it work again:
+* Reconnected broken commands and shortcuts from the main app menu
+* Changed shortcut for VIEWS>FIXED to ctrl+alt+D 
+* Other minor rearrangements of the app menu 
+
+Bugfixes:
+
 
 
 #v 1.72 (September 10, 2023)

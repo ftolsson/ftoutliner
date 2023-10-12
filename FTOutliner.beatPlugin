@@ -212,13 +212,16 @@ Beat.custom.sendToMain = function(key, value, nameOfVariable){
 	// 			contents += ((value == true) ? "✅ " : "❌ ") + key + " ----- " + value + "\n"
 	// 		}
 	// 		Beat.alert(`contents of sent variable ${nameOfVariable}:`, contents) 
-
+	Beat.log(typeof value)
 	Beat.log("💜" + "," + key + "," + value + "," + nameOfVariable)
+	
+	if (["object", "array", "string"].includes(typeof value)) value = JSON.stringify(value)
 
-	htmlWindow.runJS(`${nameOfVariable}.${key} = ${value}
+	htmlWindow.runJS(`	console.log("start of sendToMain")
+						${nameOfVariable}.${key} = ${value};
 			
-						Beat.log("${nameOfVariable}" + ", " + "${key}")
-						Beat.log(JSON.stringify(${nameOfVariable}.${key}))
+						console.log("${nameOfVariable}" + ", " + "${key}")
+						console.log(JSON.stringify(${nameOfVariable}.${key}))
 
 						applySettings()
 						saveCurrentState()

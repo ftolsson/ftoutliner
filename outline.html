@@ -1563,20 +1563,7 @@ function applySettings(){
 		invertTextOnDark: true,
 		excludeVoiceOvers: false,
 
-		timeOfDayObject: {
-        	day: [
-            	"DAY", "DAWN", "MORNING", "EARLY MORNING", "SUNRISE", "EARLY", "AFTERNOON", 
-            	"DAG", "GRYNING", "MORGON", "TIDIG MORGON", "SOLUPPGÅNG", "TIDIGT", "EFTERMIDDAG",
-        	],
-        	night: [
-            	"NIGHT", "DUSK", "EVENING", "LATE EVENING", "SUNSET", "LATE", "MIDNIGHT", 
-            	"NATT", "SKYMNING", "KVÄLL", "SEN KVÄLL", "SOLNEDGÅNG", "SENT", "MIDNATT",  
-        	],
-        	same: [
-            	"LATER", "MOMENTS LATER", "CONTINUOUS", "SAME", "SIMULTANEOUSLY",
-            	"SENARE", "LITE SENARE", "ÖGONBLICKET SENARE", "FORTSÄTTNING", "DIREKT FORTSÄTTNING", "SAMMA", "SAMTIDIGT",
-        	]
-    	},
+		timeOfDayObject: knownTimesOfDayObject,
 	}
 
 	Object.keys(knownDocumentSettingDefaults)
@@ -1587,7 +1574,7 @@ function applySettings(){
   		});
 
 	Object.keys(knownUserDefaults)
-		.filter(key => !(key in userDefault))
+		.filter(key => !(key in userDefault) || userDefault[key] == undefined || userDefault[key] == null)
   		.forEach(key => {
 			console.log("Didn't find " + key + " in userDefault, so setting it to default value '" + knownUserDefaults[key] + "'.");
 			userDefault[key] = knownUserDefaults[key];

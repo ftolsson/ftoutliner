@@ -418,11 +418,11 @@
             butNotFor: ["excludedLocation"],
             butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
             command: (item) => { },
-        },
+            },
         {
             menuItem: "replaceAllLocations",
             showFor: ["special case for similarLocation"],
-        },
+            },
         {
             menuItem: "New name for all occurences...",
             menuName: (item) => {
@@ -455,10 +455,11 @@
         //     showFor: ["similarLocation"],
         //     butNotFor: ["excludedLocation"],
         //     butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
-        // },
+            // },
         {
             menuItem: "divider",
             showFor: ["location"],
+            butDontShowIf: (item) => { return Array.from($$(".location")).filter(location => location.textContent == item.textContent).length < 2 },
         },
         {
             menuItem: "Exclude this location name from being checked",

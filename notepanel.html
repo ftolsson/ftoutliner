@@ -378,7 +378,9 @@ right: 8.5px;
     width: 10px;
     height: calc(100% - 20px);
     /* right: 0px; */
-    left: calc(var(--note-panel-width) - 10px);
+    /* left: calc(var(--note-panel-width) - 10px); */
+    left: calc(min(var(--note-panel-width), 90vw) - 10px);
+
     bottom: 0px;
 
     /* margin-top: auto;

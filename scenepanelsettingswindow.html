@@ -2,7 +2,23 @@
 	<hr> -->
 <div id = "main">
 
+	<ul>
+		<strong>Known Times-of-Day</strong><br/><br/>
+		In order to strip out the times-of-day from your scene headings, FTOutliner needs to know what they are. If you are writing in a language that is not represented below, add your own times-of-day to the list.
+		<br/><br/>
+		Double-click on white space in any column to add a new item, or drag and drop to reorder existing ones.
+		<!-- <div id="addNewToD-wrapper"><div id="addNewTod" class="item" style = "min-width: 60px; text-transform: uppercase; display: inline-block;">Double-click to type</div>&nbsp;When done, drag into the desired column</div> -->
+	</ul>
 
+	<div id="timeOfDayWrapper">
+		<div id="day" ondblclick="addItem(event)"></div>
+		<div id="night" ondblclick="addItem(event)"></div>
+		<div id="same" ondblclick="addItem(event)"></div>
+	</div>
+	<div style="width: calc(100% - 80px); text-align: right; margin: 2px 40px;">
+		<button class="generalButtonStyle" style="position: relative; right: 0px !important;" onclick=" Beat.call(`	Beat.custom.sendToMain('timeOfDayObject', '', 'userDefault'); `); fetchUserDefault() ">Reset lists to default set</button>
+	</div>
+	</ul>
 
 
 	<ul>
@@ -29,7 +45,7 @@
 		</li>
 		<li id="groupByParenthesis" onclick="toggleThis('groupByParenthesis', 'buttonFor-groupByParenthesis')" style="margin-left: 20px">
 			<input id="buttonFor-groupByParenthesis" type="checkbox">
-			<label for="buttonFor-groupByParenthesis">and put first on line for grouping purposes in LOCATION mode<span class="shortcut" ></span></label>
+			<label for="buttonFor-groupByParenthesis">and in LOCATION mode, put last-on-line parenthesis first for grouping purposes<span class="shortcut" ></span></label>
 		</li>
 		<span class="explanation" style="margin-left: 60px">When both boxes are ON, grouping looks at parenthesis first, e.g. putting all (FLASHBACK) scenes in one group.</span>
 	</ul>
@@ -46,84 +62,9 @@
 			<label for="buttonFor-outlineColors">Script outline colors<span class="shortcut" ></span></label>
 		</li>
 	</ul>
-	<br/>
-	<hr>
-	<br/>
-	<ul>
-		<strong>Known Times-of-Day</strong><br/>
-		Below, add and delete any custom times-of-day. This allows them to not be sorted as locations, and for correct coloring/grouping in scheduling mode.<br/>
-	</ul>
-
-	<div id="timeOfDayWrapper">
-		<div id="day"></div>
-		<div id="night"></div>
-		<div id="same"></div>
-	</div>
-	<div style="width: calc(100% - 80px); text-align: right; margin: 2px 40px;">
-		<button class="generalButtonStyle" style="position: relative; right: 0px !important;" onclick=" Beat.call(`	Beat.custom.sendToMain('${timeOfDayObject}', '', 'userDefault') `); ">Reset list to defaults</button>
-	</div>
-
-
-		<!--li  onclick="toggleThis('autoWiden', 'buttonFor-autoWiden')">
-			<input id="buttonFor-autoWiden" type="checkbox">
-			<label for="buttonFor-autoWiden">Automatically widen index cards when editing<span class="shortcut" ></span></label>
-		</li>
-		<li  onclick="toggleThis('widenedColumnsGetAutoHeight', 'buttonFor-widenedColumnsGetAutoHeight')">
-			<input id="buttonFor-widenedColumnsGetAutoHeight" type="checkbox">
-			<label for="buttonFor-widenedColumnsGetAutoHeight">Widened cards also adjust height to fit<span class="shortcut" ></span></label>
-		</li>
-	</ul>
-	<br/>
-	<hr>
-	<ul>
-		<br/><strong class="subheading">Production Helpers</strong><br/>&nbsp;
-		<li onclick="toggleThis('showSelectionInfo', 'buttonFor-showSelectionInfo')">
-			<input id="buttonFor-showSelectionInfo" type="checkbox">
-			<label for="buttonFor-showSelectionInfo">Show info in bottom bar for selected/filtered scenes<span class="shortcut" ></span></label>
-			<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
-		</li>
-		<li onclick="toggleThis('showRevisions', 'buttonFor-showRevisions')">
-			<input id="buttonFor-showRevisions" type="checkbox">
-			<label for="buttonFor-showRevisions">Indicate lines with revision marks<span class="shortcut" >*</span></label>
-			<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
-		</li>
-		<li onclick="toggleThis('colorByPercentage', 'buttonFor-colorByPercentage')">
-			<input id="buttonFor-colorByPercentage" type="checkbox">
-			<label for="buttonFor-colorByPercentage">Color scenes by progress instead of COLOR attribute<span class="shortcut" >%</span></label>
-			<span class="explanation">When ON, a note or marker with a percentage such as [[50%]] anywhere in a scene will display that scene ranging from red to green based on the value. Scenes with no percentage will show as white.<br/>
-				Toggle this by typing % to temporarily switch to see what scenes remain to finish.</span>
-		</li>
-	</ul>
-	<br/>
-	<hr>
-	<ul>
-	<br/><strong class="subheading">Behavior Settings</strong><br/>&nbsp;
-	<li onclick="toggleThis('clickingFocusesEditor', 'buttonFor-clickingFocusesEditor')">
-		<input id="buttonFor-clickingFocusesEditor" type="checkbox">
-		<label for="buttonFor-clickingFocusesEditor">Clicking scenes in FTOutliner immediately focuses main editor<span class="shortcut" ></span></label>
-		<span class="explanation">When on, use cmd+click to override this and keep focus in FTOutliner.<br/>cmd+click on empty space to avoid/reset selecting multiple.</span>
-	</li>
-	<li onclick="toggleThis('clickingSelectsInEditor', 'buttonFor-clickingSelectsInEditor')">
-		<input id="buttonFor-clickingSelectsInEditor" type="checkbox">
-		<label for="buttonFor-clickingSelectsInEditor">Clicking scenes in FTOutliner selects text in main editor<span class="shortcut" ></span></label>
-		<span class="explanation">When OFF, the same can be achieved ad hoc with ctrl+alt+cmd+click.</span>
-	</li>
-	<li onclick="toggleThis('allowMarkerTextInAllViews', 'buttonFor-allowMarkerTextInAllViews')">
-		<input id="buttonFor-allowMarkerTextInAllViews" type="checkbox">
-		<label for="buttonFor-allowMarkerTextInAllViews">Allow marker text in all views<span class="shortcut" ></span></label>
-		<span class="explanation">When OFF, markers don't display text in non-proportional and index card mode. When ON, marker text is visible, but markers may obscure each other as well as the content of index cards. Use wisely!</span>
-	</li>
-	<br/>
-	<li  onclick="toggleThisUserDefault('warningsAreOn', 'buttonFor-warningsAreOn', true)">
-		<input id="buttonFor-warningsAreOn" type="checkbox">
-		<label for="buttonFor-warningsAreOn">Show Warning Messages when deleting and moving<span class="shortcut" >^P</span></label>
-	</li-->
-	<!--li  onclick="toggleThis('realTimeIsOn', 'buttonFor-realTimeIsOn', true)">
-		<input id="buttonFor-realTimeIsOn" type="checkbox">
-		<label for="buttonFor-realTimeIsOn">Disable Real Time Updating	<span class="shortcut" >^P</span></label><br/>
-		<class="explanation">This is generally not recommended</class>
-	</li-->
-	</ul>
+	<!-- <br/> -->
+	<!-- <hr> -->
+	<!-- <br/> -->
 
 	<p><br/></p>
 	<div class="dialogBottomButtonRow">
@@ -138,7 +79,15 @@
 
 	var userDefault = {}
 	var documentSetting = {}
+
+	document.addEventListener("DOMContentLoaded", function(event) { 
+		fetchUserDefault()
+	});
+	document.addEventListener("keydown", keypress);
+
+	//FUNCTIONS:
     
+	function fetchUserDefault(){
     Beat.callAndWait(() => {
         let ftoutlinerObject = Beat.getUserDefault("ftoutlinerObject")
         return(ftoutlinerObject)
@@ -179,29 +128,51 @@
 			},
 			error => { console.log("Error retrieving documentSetting") }
 		)
-
+	}
 
 	function populateTimeOfDay(){
 
-		// if (!userDefault.timeOfDay || userDefault.timeOfDay.length == 0) return
-
-		// Beat.call(`	Beat.alert("${userDefault.timeOfDayObject.day}") `)
-
+		document.getElementById("day").innerHTML = ""
+		document.getElementById("night").innerHTML = ""
+		document.getElementById("same").innerHTML = ""
 
 		userDefault.timeOfDayObject.day.forEach ( val => {
-			document.getElementById("day").innerHTML += "<div>" + val + "</div>"
+			document.getElementById("day").appendChild(makeItem(val))
+			// document.getElementById("day").innerHTML += "<div class='item'>" + val + "</div>"
 		})
 		userDefault.timeOfDayObject.night.forEach ( val => {
-			document.getElementById("night").innerHTML += "<div>" + val + "</div>"
+			document.getElementById("night").appendChild(makeItem(val))
+			// document.getElementById("night").innerHTML += "<div class='item'>" + val + "</div>"
 		})
 		userDefault.timeOfDayObject.same.forEach ( val => {
-			document.getElementById("same").innerHTML += "<div>" + val + "</div>"
+			document.getElementById("same").appendChild(makeItem(val))
+			// document.getElementById("same").innerHTML += "<div class='item'>" + val + "</div>"
 		})
-
 	}
 
+	function makeItem(val){
 
-	//FUNCTIONS:
+		let item = document.createElement("div")
+			item.textContent = val
+			item.classList.add("item")
+			item.classList.add("untouched")
+			item.setAttribute("draggable", true)
+			item.setAttribute("ondragstart", "drag(event)")
+			item.setAttribute("ondragover", "allowDrop(event)")
+			item.setAttribute("ondrop", "drop(event)")
+			item.setAttribute("ondragend", "dragEnd(event)")
+			item.ondblclick = function() {
+				item.setAttribute("draggable", false)
+				event.stopImmediatePropagation(); 
+				editItem(item)}
+			item.onclick = function() {
+				event.stopImmediatePropagation(); 
+				document.querySelectorAll(".isSelected").forEach(item => item.classList.remove("isSelected"))
+				item.classList.add("isSelected")}
+
+		return item
+
+	}
 
 	function toggleThis(settingName, settingButton, invertSelection){
 
@@ -227,6 +198,228 @@
 
 	}
 
+	function addItem(event){
+
+		event.preventDefault()
+		event.stopImmediatePropagation()
+
+		let parentCol = event.target
+		let newElementText = "NEW TIME OF DAY"
+		let newItem = makeItem(newElementText)
+		
+		parentCol.appendChild(newItem)
+		newItem.scrollIntoView({ behavior: "smooth" });
+		
+		newItem.setAttribute("draggable", false)
+		editItem(newItem)
+
+		
+	}
+
+	function editItem(item){
+
+		item.contentEditable = true
+		item.focus()
+		item.classList.add("isBeingEdited")
+		item.dataset.originalText = item.textContent
+
+		item.addEventListener("blur", function removeme(){
+					item.removeEventListener("blur", removeme)
+					item.classList.remove("isBeingEdited")
+					event.stopImmediatePropagation()
+					item.contentEditable = false
+					item.setAttribute("draggable", true)
+					saveItemChanges(item)
+				})
+
+  		let range = document.createRange();
+  			range.selectNodeContents(item);
+  			// range.collapse(false);
+  		let selection = window.getSelection();
+  			selection.removeAllRanges();
+  			selection.addRange(range);
+
+	}
+
+	function saveItemChanges(item){
+
+		if(item.textContent == item.dataset.originalText){
+			if (item.classList.contains("untouched")){ item.remove() }
+			return
+		} 
+
+		//trim whitespace:
+			item.textContent = item.textContent.trim()
+
+		//remove empty items:
+			if(item.textContent == ""){
+				item.remove()
+			}
+		
+		//as soon as we actually save, remove the untouched class:
+			item.classList.remove("untouched")
+
+		//if duplicate, don't allow exiting:
+		item.classList.add("justCreated")
+		let allItems = Array.from(document.querySelectorAll(".item:not(.justCreated)"))
+		let allItemsText = allItems.map(el => el.textContent)	
+			if(allItemsText.includes(item.textContent)){
+				let columnName = allItemsText.find(val => val == item.textContent)?.parentElement?.id.toUpperCase()
+				Beat.call(/*html*/`Beat.alert("Duplicate Time Of Day", "${item.textContent} is already present in the ${columnName} column.")`)
+				editItem(item)
+				return
+			}
+		item.classList.remove("justCreated")
+
+		saveListToUserDefault()
+
+	}
+
+function saveListToUserDefault(){
+
+		let day = Array.from(document.getElementById("day").children).map(item => item.textContent.toUpperCase())
+		let night = Array.from(document.getElementById("night").children).map(item => item.textContent.toUpperCase())
+		let same = Array.from(document.getElementById("same").children).map(item => item.textContent.toUpperCase())
+
+		userDefault.timeOfDayObject.day = day
+		userDefault.timeOfDayObject.night = night
+		userDefault.timeOfDayObject.same = same
+
+		let valueAsJSON = JSON.stringify(userDefault.timeOfDayObject)
+			Beat.call(`	console.log("🟪", ${valueAsJSON})`)
+			Beat.call(`	Beat.custom.sendToMain("timeOfDayObject", ${valueAsJSON}, "userDefault") `)
+
+	}
+
+	function isThisOffScreen(element){
+
+		if(!element) return
+		let rect = element.getBoundingClientRect()
+
+		let result = (
+			(rect.x + rect.width) < 0 
+				|| 
+			(rect.y) < 20
+				|| 
+			(rect.x > element.parentElement.clientWidth 
+				|| 
+			rect.y + rect.height > (element.parentElement.clientHeight - 20))
+		)
+
+		return result
+		}
+
+	function scrollNicelyIntoView(element, whichContainer){
+
+		if(!element) return
+
+		if(!whichContainer) whichContainer = element.parentElement
+
+			let elementRect = element.getBoundingClientRect()
+			let frameRect = whichContainer.getBoundingClientRect()
+			let currentScroll = whichContainer.scrollTop
+			let currentBottom = frameRect.height + currentScroll
+			
+			let oldPos = elementRect.top
+			let targetPos = currentScroll + oldPos - frameRect.bottom/2
+
+			let diff = (targetPos - currentScroll) / 10
+			let newPos = currentScroll
+
+			if (targetPos > currentScroll){
+				function stepUp() {
+					newPos = newPos + diff
+					whichContainer.scrollTo(0, newPos)
+
+					if (newPos < targetPos) {
+						mylog("animating UP")
+						window.requestAnimationFrame(stepUp)
+					}
+				}
+				window.requestAnimationFrame(stepUp)
+			}
+
+			if (targetPos < currentScroll){
+				function stepDown() {
+					newPos = newPos + diff
+					whichContainer.scrollTo(0, newPos)
+
+					if (newPos > targetPos) {
+						mylog("animating DOWN")
+						window.requestAnimationFrame(stepDown)
+					}
+				}
+				window.requestAnimationFrame(stepDown)
+			}
+	}
+
+	function keypress(event){
+
+		if(event.altKey) altIsBeingPressed = true
+
+		const shortcut = shortcutKeys.find((shortcut) => {
+
+			// Check if all the modifier keys are pressed
+			const modifiersMatch =
+				(shortcut.key.includes("Meta") === event.metaKey) &&
+				(shortcut.key.includes("Control") === event.ctrlKey) &&
+				(shortcut.key.includes("Alt") === event.altKey) &&
+				(shortcut.key.includes("Shift") === event.shiftKey);
+
+			// Check if the main key matches
+			const keyMatch = shortcut.key.at(-1) == event.key;
+
+			// Return true if both the modifier keys and main key match
+			return modifiersMatch && keyMatch;
+		})
+
+		if (shortcut) {
+			event.preventDefault()
+			event.stopPropagation()
+			shortcut.command(event);
+		}
+
+	}
+
+	shortcutKeys = [
+		{
+			key: ["Backspace"],
+			command: (event) => {
+					if(document.querySelector(".item.isBeingEdited")) return
+					let selectedElement = document.querySelector(".item.isSelected")
+					if(selectedElement){ 
+						selectedElement.remove()
+						saveListToUserDefault()
+					}
+			}
+		},
+		{
+			key: ["Enter"],
+			command: (event) => {
+					if(document.querySelector(".item.isBeingEdited")){
+						document.querySelector(".item.isBeingEdited").blur()
+					}
+			}
+		},
+		{
+			key: ["Escape"],
+			command: (event) => {
+					if(document.querySelector(".item.isBeingEdited")){
+						if (document.querySelector(".item.isBeingEdited").classList.contains("untouched")){
+							document.querySelector(".item.isBeingEdited").remove()
+							return
+						}
+						document.querySelector(".item.isBeingEdited").textContent = document.querySelector(".item.isBeingEdited").dataset.originalText
+						document.querySelector(".item.isBeingEdited").blur()
+						return
+					}
+					Beat.call("Beat.custom.closeSecondWindow()")
+			}
+		},
+
+
+	]
+
 
 </script>
 
@@ -239,7 +432,13 @@
 	    --menu-color: black; /*rgb(233,233,233);*/
 	    --menu-hover-color: #027aff;
 
+		--listBackground: 0, 0%, 100%;
+
     }
+
+	body{
+		overflow: hidden;
+	}
 
 	#timeOfDayWrapper{
 
@@ -251,9 +450,10 @@
 		/* border: 1px solid black;
 		background: white; */
 		width: calc(100% - 80px);
+		height: 180px;
 
 	}
-	#day, #night, #same{
+	#day, #night, #same {
 
 		/* display: flex;
 		flex-direction: column;
@@ -261,7 +461,7 @@
 		align-items: flex-start; */
 
 		border: 1px solid black;
-		background: white;
+		background: hsl(var(--listBackground));
 		width: 80%;
 
 		margin: 0 2px 0 2px ;
@@ -269,13 +469,16 @@
 		border: 1px inset var(--menu-border-color);
 		/* border-radius: 6px; */
 
+		overflow: auto;
+
 		box-shadow: inset 0px 0px 6px 0px rgba(0, 0, 0, 0.2);
 
 	}
 
-	:is(#day, #night, #same) > div {
+	:is(#day, #night, #same) > div, .item {
 
 		font-weight: bold;
+		color: black;
 
 		position: relative;
 		display: inline-block;
@@ -284,6 +487,8 @@
 		height: auto;
         font-size: 12px !important; 
         line-height: 14px !important;
+
+		text-transform: uppercase;
             
         display: inline-block;
         padding: 2px 6px 2px 6px;
@@ -298,6 +503,31 @@
 
         overflow: hidden;
         opacity: 1;
+
+		&:hover, &.isSelected{
+
+			background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.6) 100%);
+			color: white
+
+		}
+
+		&::selection{
+
+			background: black;
+			color: white;
+
+		}
+
+		&:focus{
+
+			outline: none;
+		}
+
+	}
+
+	.item{
+
+		background-color: #ccc;
 
 	}
 
@@ -382,6 +612,8 @@
 
             --inkOnPaper: 0, 0%, 100%;
             --paperBehindInk: 0, 0%, 0%;
+
+			--listBackground: 0, 0%, 20%;
 
         }
     }
