@@ -573,71 +573,61 @@
                 parseSceneHeadings()
             },
         },
-    //scenepanelSettingsButton
-        {
-            menuItem: "Color left column items by...",
-            icon: "",
-            iconColor: "",
-            nonSelectable: true,
-            showFor: ["scenepanelSettingsButton"],
-        },
-        {
-            menuItem: "Scheduling colors",
-            icon: "",
-            iconColor: "",
-            indent: () => {return true},
-            checkedIf: () => { return documentSetting.schedulingColors },
-            showFor: ["scenepanelSettingsButton"],
-            command: () => { documentSetting.schedulingColors = true; saveCurrentState(); parseSceneHeadings() },
-        },
-        {
-            menuItem: "Outline scene colors",
-            icon: "",
-            iconColor: "",
-            indent: () => {return true},
-            checkedIf: () => { return !documentSetting.schedulingColors },
-            showFor: ["scenepanelSettingsButton"],
-            command: () => { documentSetting.schedulingColors = false; saveCurrentState(); parseSceneHeadings() },
-        },
+    //make location into ToD
         {
             menuItem: "divider",
-            showFor: ["scenepanelSettingsButton"],
-        },
+            showFor: ["location"],
+            butDontShowIf: (item) => { 
+                locationsOnLine = Array.from(item.closest(".line").querySelectorAll(".location:not(.addon)"))
+                return !(item == locationsOnLine.at(-1) && item != locationsOnLine.at(0))},        },
         {
-            menuItem: "UNKNOWN sorts/groups as SAME",
-            icon: "",
-            iconColor: "",
-            checkedIf: () => { return documentSetting.sortNoneAsSame },
-            showFor: ["scenepanelSettingsButton"],
-            command: () => { documentSetting.sortNoneAsSame = !documentSetting.sortNoneAsSame; saveCurrentState(); parseSceneHeadings() },
-        },
-        {
-            menuItem: "divider",
-            showFor: ["scenepanelSettingsButton"],
-        },
-        {
-            menuItem: "Group single locations at the top",
-            icon: "",
-            iconColor: "",
-            checkedIf: () => { return documentSetting.singleAtTop },
-            showFor: ["scenepanelSettingsButton"],
-            command: () => { documentSetting.singleAtTop = !documentSetting.singleAtTop; saveCurrentState(); parseSceneHeadings() },
-        },
-        {
-            menuItem: "and highlight in red",
-            icon: "",
-            indent: () => {return true},
-            iconColor: "",
-            checkedIf: () => { return documentSetting.singleGroupAsRed && documentSetting.singleAtTop },
-            greyOutIf: () => { return !documentSetting.singleAtTop },
-            showFor: ["scenepanelSettingsButton"],
-            command: () => { 
-                documentSetting.singleGroupAsRed = !documentSetting.singleGroupAsRed
-                    // $$("singlegroup").forEach(group => group.classList.toggle("singlegroupAsRed", documentSetting.singleGroupAsRed))
-                    $("#scenespanelcontent").style.setProperty("--singlegroupColor", documentSetting.singleGroupAsRed ? "rgba(220, 100, 100, 0.6)" : "rgba(255, 255, 255, 0.6)")
-                    saveCurrentState()
+            menuItem: "Make this location a Time of Day",
+            menuName: (item) => {
+                return "Make " + item.textContent + " a Time of Day..."
                 },
+            icon: "",
+            iconColor: "",
+            showFor: ["location"],
+            butDontShowIf: (item) => { 
+                locationsOnLine = Array.from(item.closest(".line").querySelectorAll(".location:not(.addon)"))
+                return !(item == locationsOnLine.at(-1) && item != locationsOnLine.at(0))},
+            whenHovering: (item) => { 
+                itemsToColor = Array.from($$(".location")).filter(location => location.textContent == item.textContent) 
+                itemsToColor.forEach(item => item.classList.toggle("highlighted", true))
+                },
+            whenUnHovering: (item) => { 
+                // if($id("contextMenu")) {
+                    $$(".location.highlighted").forEach(item => item.classList.toggle("highlighted", false)) 
+                // }
+            },
+            command: (item) => { makeLocationToD(item) },
         },
+        //make ToD into Location
+        {
+            menuItem: "Make this location a Time of Day",
+            menuName: (item) => {
+                return "Remove " + item.textContent + " from list of Times-of-Day..."
+                },
+            icon: "",
+            iconColor: "",
+            showFor: ["timeOfDay"],
+            butDontShowIf: (item) => { return item.textContent == "UNKNOWN"},
+            whenHovering: (item) => { 
+                itemsToColor = Array.from($$(".timeOfDay")).filter(location => location.textContent == item.textContent) 
+                itemsToColor.forEach(item => item.classList.toggle("highlighted", true))
+                },
+            whenUnHovering: (item) => { 
+                // if($id("contextMenu")) {
+                    $$(".timeOfDay.highlighted").forEach(item => item.classList.toggle("highlighted", false)) 
+                // }
+            },
+            command: (item) => { makeTodLocation(item) },
+        },
+        // {
+        //     menuItem: "divider",
+        //     showFor: ["timeOfDay"],
+        //     butDontShowIf: (item) => { return item.textContent == "UNKNOWN"},      
+        // },
     ])
 
 function __________END_OF_MENU_OBJECT(){}
@@ -681,10 +671,8 @@ function displayContextMenu(event, element){
     event?.stopPropagation()
     closeNewMenu()
 
-    console.log("conconcon")
-
     element = element || event.target //the element is sent when triggering menu with keys
-    let item = element.closest(".synopsis, .scene, .section, .flexiContainer, .location, #scenespanelcontent, #scenepanelSettingsButton, #notepanel")
+    let item = element.closest(".synopsis, .scene, .section, .flexiContainer, .location, .timeOfDay, #scenespanelcontent, #scenepanelSettingsButton, #notepanel")
         if (!item) return
         console.log("right clicked " + item.id + ": " + item.classList)
 
@@ -765,6 +753,7 @@ function displayContextMenu(event, element){
             }
 
         let listItem = document.createElement("li")
+            if(contentLine.class) listItem.classList.add(contentLine.class) //for special cases
          
         if(contentLine.hoverColor) listItem.style.setProperty("--menuHover", contentLine.hoverColor)
         if(contentLine.greyOutIf) listItem.classList.toggle("greyedOut", contentLine.greyOutIf(item))

@@ -48,7 +48,7 @@
 	</div>
 	<div id="dialogpanelcontent">
 	</div>
-	<div id="scenespanelcontent" class="scenespanelcontent">
+	<div id="scenespanelcontent" class="scenespanelcontent" onclick="deselectAllScenepanelItems()">	
 		<div id="dividerline"></div>
 	</div>
 	<div id="drag-bar" onmousedown="resizeNotepanel()" ondblclick="toggleNotepanel()"></div>
@@ -172,11 +172,12 @@ if(!document.createElement('dialog').showModal){
 //	EVENTLISTENER ON LOAD: FETCH DATA FROM PLUGIN, THEN BUILD THE COMPLETE OUTLINE:
 
 window.addEventListener('load', function () {
+
 	flexiContainer.classList.add("focused") //in order to correctly switch focus between main app and plugin right from the start
 	setAllEventlisteners()
 	getSettings()
-	//firstRun()
-		Beat.call("Beat.custom.updateEntireOutline()")
+	
+	Beat.call("Beat.custom.updateEntireOutline()")
 
 })
 

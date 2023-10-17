@@ -173,6 +173,10 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, se
 	let html = Beat.assetAsString(file)
 	selfCloseString = selfClose ? `
 		window.addEventListener("blur", function (){
+			if (typeof temporarilyDisableClose !== 'undefined' && temporarilyDisableClose == true) {
+				temporarilyDisableClose = false
+				return
+			}
 			Beat.call("Beat.custom.closeSecondWindow()")
 		})` : ``
 
@@ -589,9 +593,17 @@ function outlineWithPagination() {
 
 		let data = scene.json()
 
-		data.numberOfPages = pagination.heightForRange({ location: scene.position, length: scene.length }) / Beat.currentPagination().maxPageHeight
+		try{
+			data.numberOfPages = pagination.heightForRange({ location: scene.position, length: scene.length }) / Beat.currentPagination().maxPageHeight
 			//the above replaces the below, because of faulty values in heightForScene. This may or may not have been fixed in Beat already.
 			//data.numberOfPages = pagination.heightForScene(scene) / Beat.currentPagination().maxPageHeight
+		}catch{
+			//this try/catch is here because of a bug in Beat that sometimes claims pagination.heightForRange is undefined
+			Beat.sync(function () {
+				Beat.alert("An error has occured.", "The pagination has returned a faulty value, and FTOutliner cannot continue.\n\nWhen you hit ENTER, FTOutliner will try again. If the error persists, please try to restart FTOutliner. Also, please report the incident to the developer.")
+				Beat.resetPreview()
+			})
+		}
 
 		data.startsOnPage = pagination.pageNumberAt(scene.position)
 		data.positionOnPage = 0.0

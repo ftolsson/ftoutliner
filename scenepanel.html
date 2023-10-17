@@ -104,7 +104,8 @@ function populateScenesPanelButtons(){
         scenepanelSettingsButton.innerHTML = gearIcon
         scenepanelSettingsButton.onclick = () => {
             // displayContextMenu(null, scenepanelSettingsButton)
-            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Settings", "scenepanelsettingswindow.html", 800, 800, false)`)
+            let allTod = JSON.stringify(Array.from($$(".timeOfDay")).map(tod => tod.textContent))
+            Beat.call(/*html*/`Beat.custom.displaySecondWindow("Scene Panel Settings", "scenepanelsettingswindow.html", 800, 800, true, '${allTod}')`)
 
         }
     document.getElementById("scenespanelbuttons").appendChild(scenepanelSettingsButton)
@@ -117,6 +118,7 @@ function parseSceneHeadings(){
     mylog()
 
     if(!outline) return
+    if(!($("#notepanel.expanded .scenestab.selectedtab"))) return
     
     // if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) applySettings()
     if(!userDefault.timeOfDayObject || Object.keys(userDefault.timeOfDayObject)?.length == 0) {
@@ -192,7 +194,7 @@ function parseSceneHeadings(){
             let dayOrNight
                 for (key in userDefault.timeOfDayObject){
 
-                    if (userDefault.timeOfDayObject[key].indexOf(parts.at(-1).toUpperCase()) > -1){
+                    if (userDefault.timeOfDayObject[key].indexOf(parts.at(-1)?.toUpperCase()) > -1){
                         timeOfDay = userDefault.timeOfDayObject[key][userDefault.timeOfDayObject[key]?.indexOf(parts.at(-1)?.toUpperCase())] || "UNKNOWN"
                         dayOrNight = key.toUpperCase()
 
@@ -217,7 +219,8 @@ function parseSceneHeadings(){
         if (documentSetting.ShowParenthesis && documentSetting.groupByParenthesis) {
             parts = removedAddons.concat(parts)
             partsIndex = removedIndex.concat(partsIndex)
-        }else{
+        }
+        if (documentSetting.ShowParenthesis && !documentSetting.groupByParenthesis) {
             parts = parts.concat(removedAddons)
             partsIndex = partsIndex.concat(removedIndex)
         }
@@ -446,14 +449,15 @@ function parseSceneHeadings(){
         }
     }
 
-    flagLinesWithSingleLocation()
+    flagLinesWithSingleLocation() 
 
     $$(".scenepanelgroup").forEach(group => {
 
         let headlineDiv = document.createElement("div")
             headlineDiv.classList.add("groupHeadline")
         
-        let mainLocation = group.querySelector(".location:not(.dontCompare)")?.textContent || (group.querySelector(".location")?.textContent ? (group.querySelector(".location")?.textContent + "</strong> without sublocations") : "")
+        // let mainLocation = group.querySelector(".location:not(.dontCompare)")?.textContent || (group.querySelector(".location")?.textContent ? (group.querySelector(".location")?.textContent + "</strong> without sublocations") : "")
+        let mainLocation = group.querySelector(".location:not(.dontCompare)")?.textContent || (group.querySelector(".item")?.textContent ? "WITH NO NAME" : "")
         let todHeadline = group.querySelector(".timeOfDay")?.textContent
         let prefixHeadline = group.querySelector(".prefix")?.textContent
         let scheduleHeadline = group.querySelector(".prefix")?.textContent + " " + group.querySelector(".timeOfDay")?.textContent
@@ -466,7 +470,7 @@ function parseSceneHeadings(){
                     case "location":
                         
                         let typeOfFirstItem = "at main location"
-                            if (documentSetting.groupByParenthesis && group.querySelector(".rightItem:not(.dontCompare)").classList.contains("addon")) typeOfFirstItem = "with parenthesis"
+                            if (documentSetting.groupByParenthesis && group.querySelector(".rightItem:not(.dontCompare)")?.classList.contains("addon")) typeOfFirstItem = "with parenthesis"
 
                         headlineDiv.innerHTML = `<strong>${numberOfScenes} scene${numberOfScenes > 1 ? "s" : ""}</strong> ${typeOfFirstItem} <strong>${mainLocation}</strong>, in total <strong>${lengthOfScenes} pages</strong> `
                         
@@ -509,7 +513,14 @@ function parseSceneHeadings(){
     //add eventhandlers
     Array.from($$(".location")).forEach(subloc => {
 
+        subloc.onclick = (event) => {
+                event.stopPropagation()
+                //this empty onclick is to prevent the event from bubbling up to the group
+        }
         subloc.ondblclick = (event) => {
+                event.stopPropagation()
+                event.preventDefault()
+                event.stopImmediatePropagation()
                 // newNameDialog(Array.from($$(".isSelected")).push(event.target))
                 let selectedItems = Array.from($$(".isSelected"))
                     selectedItems.forEach(item => { item.classList.remove("isSelected") })
@@ -564,8 +575,15 @@ function flagLinesWithSingleLocation(){
 
     if($id("sortDropDown").value !== "location") return
     if(!documentSetting.singleAtTop) return
+
+    //add a new group before the first
+    let newGroup = document.createElement("div")
+        newGroup.classList.add("scenepanelgroup")
+        newGroup.id = "scenepanelgroup_0"
+        $id("scenespanelcontent").insertBefore(newGroup, $(".scenepanelgroup"))
     
     let allGroups = Array.from($$(".scenepanelgroup"))
+
     allGroups.forEach(group => {
 
         let onlyOneLine = group.querySelectorAll(".line").length == 1
@@ -582,6 +600,7 @@ function flagLinesWithSingleLocation(){
             allGroups[0].classList.add("singlegroup")
 
             group.remove()
+            // group.style.opacity = "0.3"
     })
 
     allGroups[0].querySelector(".line").classList.add("newgroup")
@@ -801,6 +820,11 @@ const sortBy = {
         
         let filteredA = a.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
         let filteredB = b.sublocations.filter(location => !documentSetting.groupExclusions?.includes(location));
+
+        if(!documentSetting.groupByParenthesis){
+            filteredA = filteredA.filter(location => !a.other.includes(location));
+            filteredB = filteredB.filter(location => !b.other.includes(location));
+        }
    
         keyA = filteredA.join(',')
         keyB = filteredB.join(',')
@@ -840,6 +864,97 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
     Beat.call(`
         Beat.replaceRange(${startIndex}, ${endIndex - startIndex}, "${newText}")`
     )
+
+}
+
+function makeLocationToD(item) {
+
+    $$(".item").forEach(el => {if (el.textContent == item.textContent) el.classList.add("highlighted")})
+
+    let text = item.textContent.toUpperCase() 
+    let occurences = Array.from($$(".item")).filter(el => el.textContent == text).length
+
+    Beat.callAndWait(([text, occurences]) => {
+        let result = Beat.dropdownPrompt(`Do you want to add\n${text} (occurs ${occurences} times)\nto the list of Times-of-Day?`, `Sort ${text} as...`, ["DAY", "NIGHT", "SAME AS PREVIOUS"])
+        console.log("will return", result)
+        return result
+    }, [text, occurences])
+    .then(
+        response => {
+
+            let val = response
+
+                if(val == ""){
+                    Beat.callAndWait(() => {
+                        Beat.alert("Selection needed", "The Scene Manager needs all Time-of-Days to be sorted as one of either DAY, NIGHT or SAME.\n\nPlease make a selection in the dropdown box, or hit cancel to abort.")
+                        return "whatever"
+                    })
+                    .then(
+                        response => {
+                            makeLocationToD(item)
+                        })
+                }
+
+                console.log("OK was pressed and returned with the value", val)
+                val = val.split(" ")[0] //get only first word if several (to get "SAME" from "SAME AS PREVIOUS")
+            
+                userDefault.timeOfDayObject[val.toLowerCase()]?.push(text)
+                $$(`.item.highlighted`).forEach(el => el.classList.remove("highlighted"))
+                updateScenePanel()
+        },
+        error => {
+            
+            console.log(error)
+            console.log("Make Location ToD cancelled (or ran into an error)")
+            $$(`.item.highlighted`).forEach(el => el.classList.remove("highlighted"))
+            
+        }
+    )
+}
+
+function makeTodLocation(item) {
+
+    $$(".item").forEach(el => {if (el.textContent == item.textContent) el.classList.add("highlighted")})
+
+    let text = item.textContent.toUpperCase() 
+    let occurences = Array.from($$(".item")).filter(el => el.textContent == text).length
+
+    Beat.callAndWait(([text, occurences]) => {
+        let result = Beat.confirm(`This will remove\n${text}\nfrom the list of Times-of-Day. \n\nGo ahead?`, `${text} currently occurs ${occurences} times in your sceneheadings. Removing it from the list will treat it as a location, and sceneheadings ending with ${text} will be considered having no Time-of-day.`)
+        
+            console.log("will return", result)
+            return JSON.stringify(result)
+    }, [text, occurences])
+    .then(
+        response => {
+
+            console.log(response, typeof response)
+
+            if (response == "false") return
+
+            for (key in userDefault.timeOfDayObject) {
+                userDefault.timeOfDayObject[key] = userDefault.timeOfDayObject[key].filter(item => item !== text)
+            }
+
+            $$(`.item.highlighted`).forEach(el => el.classList.remove("highlighted"))
+            updateScenePanel()
+        },
+        error => {
+            
+            console.log(error)
+            console.log("Make Location ToD cancelled (or ran into an error)")
+            $$(`.item.highlighted`).forEach(el => el.classList.remove("highlighted"))
+            
+        }
+    )
+}
+
+function deselectAllScenepanelItems(){
+
+    $$('.item.isSelected, .item.highlighted').forEach(element => {
+        element.classList.remove('isSelected');
+        element.classList.remove('highlighted');
+    })
 
 }
 
@@ -1498,11 +1613,11 @@ function swapLocationParts(startIndex, endIndex, newText, oldText){
 
 }
 
-:has(#onlyShowTypos:checked) .groupHeadline:is(){
+/* :has(#onlyShowTypos:checked) .groupHeadline:is(){
 
     display: none;
 
-}
+} */
 
 
 html[data-outdoors="1"] #scenespanelbuttons{
@@ -1552,9 +1667,9 @@ html[data-outdoors="1"] #scenespanelcontent{
         background-color: #fff;
         color: black;
 
-        &:hover, &.highlighted{
-            /* color: white !important; */
-        }
+        /* &:hover, &.highlighted{
+            color: white !important;
+        } */
 
         &.highlighted{
             background-color: black !important;
