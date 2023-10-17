@@ -618,6 +618,17 @@ function outlineWithPagination() {
 			// If it's below 0, it's probably an outline element
 			let page = pagination.pages[data.startsOnPage - 1]
 				data.positionOnPage = page?.positionOfBlockForLine(scene.line)
+
+				//hack to find the positionOnPage for a section with length, since its inherent positionOnPage is -1 due to not being printed
+					if(scene.typeAsString() == "Section" && data.numberOfPages > 0){
+						let closestPrecedingScene = -1
+						while (sceneData.at(closestPrecedingScene).numberOfPages <= 0 && (sceneData.length + closestPrecedingScene > 0)){
+							closestPrecedingScene --
+						}
+						data.positionOnPage = sceneData.at(closestPrecedingScene)?.positionOnPage + sceneData[outlineCopy.indexOf(scene) - 1].numberOfPages
+						console.log("Section with length! This is its positionOnPage: ", data.positionOnPage)
+					} 
+
 				if (data.positionOnPage < 0) data.positionOnPage = 0.0;
 		} 
 

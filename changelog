@@ -18,7 +18,8 @@ The Scene Manager is a panel that lets you sort and assess your scenes in differ
 * Changed shortcut for VIEWS>FIXED to ctrl+alt+D 
 * Other minor rearrangements of the app menu 
 
-Bugfixes:
+*Bugfixes:*
+* PAGINATION LINES for orphan text (i.e. text immediately following a section heading, with no scene heading) are now correctly positioned.
 
 
 

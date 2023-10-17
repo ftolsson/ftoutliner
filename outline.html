@@ -1092,7 +1092,8 @@ function findPageDividers() {
 
 	if(!outline || outline.length == 0) return
 
-	let scenesOnly = outline.filter(scene => {if(scene.typeAsString == "Heading") return scene})
+	// let scenesOnly = outline.filter(scene => {if(scene.typeAsString == "Heading") return scene})
+	let scenesOnly = outline.filter(scene => {scene.typeAsString == "Heading"})
 		pageDividers = []
 
 	for (let i = 0; i < outline.length; i++) {
@@ -1108,6 +1109,11 @@ function findPageDividers() {
 			if (scene.omitted == true) {
 				outline[i].numberOfPages = 0.0
 				continue
+			}
+
+			//if outline[i] is a section, console.log its positionOnPage and numberOfPages
+			if (scene.typeAsString == "Section") {
+				console.log("Section " + scene.positionOnPage + " " + scene.numberOfPages)
 			}
 		
 		// Finally add all dividers: 
