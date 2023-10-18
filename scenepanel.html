@@ -614,6 +614,20 @@ function addDividerLine(){
         $id("dividerline").ondragstart = (e) => {
             $id("scenespanelcontent").addEventListener("dragover", onDragOverLocal);
             $id("scenespanelcontent").classList.add("dragging")
+
+            let temporaryDragImage = document.createElement("div")
+                temporaryDragImage.id = "temporaryDragImage"
+                temporaryDragImage.style.width = "1px"
+                temporaryDragImage.style.height = "1px"
+                temporaryDragImage.style.position = "absolute"
+                temporaryDragImage.style.top = "0"
+                temporaryDragImage.style.left = "0"
+                temporaryDragImage.style.zIndex = "1000"
+                temporaryDragImage.style.background = "transparent"
+                document.body.appendChild(temporaryDragImage)
+
+                e.dataTransfer.setDragImage(temporaryDragImage, 0, 0);
+
         }
         function onDragOverLocal(e) {
             e.preventDefault();
@@ -622,6 +636,7 @@ function addDividerLine(){
             documentSetting.scenesPanelLeftColumnWidth = newWidth;
         }
         $id("dividerline").ondragend = (e) => {
+            $id("temporaryDragImage").remove()
             $id("scenespanelcontent").removeEventListener("dragover", onDragOverLocal);
             $id("scenespanelcontent").classList.remove("dragging")
             saveCurrentState();
