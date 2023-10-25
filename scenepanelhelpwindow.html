@@ -5,18 +5,27 @@
 	So you're getting close to production? And you want to be your 1st AD's best friend?<br/>
 	Your producer keeps asking about how many shooting days is needed in a certain location?<br/>
 	Or, you're just about to submit your script and want to look good?<br/>
-	Great! Then <strong>the scene manager is for you:</strong><br/>
+	<strong>These are some of the things the scene manager can do for you:</strong><br/>
 	<br/>
-	<ul>
+	<ul style="margin-top: -5px">
 		<li>Find and fix sceneheadings you've spelled differently in different places.</li>
-		If you have a location called <code>CHURCH</code> and another called <code>CHUNCH</code>, chances are one of them was misspelled. The scene manager will highlight both — right-click either to change it to the other.
+		If you have a location called <code>CHURCH</code> and another called <code>CHUNCH</code>, chances are one of them was misspelled. The scene manager will highlight both:<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="item minority">RED</span> locations are in minority, so probably the faulty spelling.<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="item majority">GREEN</span> are in majority, so most likely correct.<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="item equal">YELLOW</span> have equal amounts of both spellings.<br/>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="item">BLUE</span> locations are not suspected to be typos at all. So all good.<br/>
+		To fix a typo, right-click a highlighted item to change it to the other detected variant!
 		<li>Make sure your scene-naming logic is consistent throughout.</li>
 		For your 1st AD, <code>INT. HOTEL/ROOM -- DAY</code> and <code>INT. THE HOTEL ROOM -- DAY</code> will sort as two different locations. The scene manager makes it easier to spot and avoid those almost-matches before they do.
-		<li>See your locations grouped together based on main location </li>
-		Group all your <code>HOTEL</code> scenes together, whether they are <code>HOTEL/ROOM</code>, <code>HOTEL/LOBBY</code>, <code>HOTEL/CORRIDOR</code> etc. The total number of pages for <code>HOTEL</code> will be displayed at the top of each group.
+		<li>Group your locations based on their main location... </li>
+		See all your <code>HOTEL</code> scenes together, whether they are <code>HOTEL/ROOM</code>, <code>HOTEL/LOBBY</code>, <code>HOTEL/CORRIDOR</code> etc. The total number of pages for <code>HOTEL</code> will be displayed at the top of each group.
+		<li>...or based on their time-of-day.</li>
+		Most productions will schedule all scenes into one of four color-coded groups:<br/> 
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="item intday">INTERIOR DAY</span> <span class="item intnight">INTERIOR NIGHT</span> <span class="item extday">EXTERIOR DAY</span> <span class="item extnight">EXTERIOR NIGHT</span><br/>
+		The scene manager can group your scenes by category, quickly letting you assess the number of pages in each.
 	</ul>
 	<br/>
-	<strong>Okay. So what's needed from <i>you</i>?</strong><br/><br/>
+	<strong>So what is <i>your</i> role in making this work?</strong><br/><br/>
 	Well, the scene manager has some expectations to be able to parse your scene headings correctly. Chances are that your 1st AD will expect the same, so perhaps this is what you're already doing.<br/>
 	If not, here's a disclaimer: <i>Whatever production environment you're working in, their rules supersedes anything said in here</i>. But to make the best use of the scene manager (and quite likely your production office too), here are some guidelines:<br/>
 	<ul>
@@ -400,6 +409,61 @@
 		/* color: white; */
 		padding: 0px 4px 1px 4px;
 		border-radius: 3px;
+
+	}
+
+	.item{
+
+		width: auto;
+		height: 15px;
+		line-height: 10px;
+		font-size: 11px;
+		font-weight: bold;
+			
+		display: inline-block;
+		padding: 3px 6px 2px 6px;
+
+		box-shadow: inset 0.5px 0.5px 0px 0.5px rgba(255, 255, 255, 0.4),
+					inset -0.5px -0.5px 0px 0.5px rgba(0, 0, 0, 0.4);
+
+		border-radius: 10px;
+		border: none;
+		vertical-align: middle;
+
+		margin-top: -3px;
+
+		overflow: hidden;
+		opacity: 1;
+
+		background-color: hsl(200, 40%, 30%);
+		color: white;
+
+		&.equal{
+			background-color: hsl(40, 70% , 40%);
+		}
+
+		&.majority{
+			background-color: hsl(90, 40%, 30%);
+		}
+		&.minority{
+			background-color: hsl(0, 60%, 30%);
+		}
+		&.intday{
+			background-color: hsla(210, 100%, 100%, 1.00);
+			color: black;
+		}
+        &.extday{
+			background-color: hsla(47, 60%, 80%, 1.00);
+			color: black;
+		}
+        &.intnight{
+			background-color: hsla(210, 60%, 80%, 1.00);
+			color: black;
+		}
+        &.extnight{
+			background-color: hsla(150, 60%, 80%, 1.00);
+			color: black;
+		}
 
 	}
 

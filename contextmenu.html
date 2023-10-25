@@ -340,15 +340,15 @@
             greyOutIf: () => { return document.querySelectorAll(".isSelected").length > 1 },  
             command: (item) => { addElement(item, "scene") },
         },
-        {   
-            menuItem: "Unlocked scenes to A-scenes",
-            shortcut: ["!"],
-            icon: "",
-            iconColor: "",
-            showFor: ["flexiContainer"],
-            greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
-            command: (item) => { addLetteredScenesWhenLocked() },
-        },
+        // {   
+        //     menuItem: "Unlocked scenes to A-scenes",
+        //     shortcut: ["!"],
+        //     icon: "",
+        //     iconColor: "",
+        //     showFor: ["flexiContainer"],
+        //     greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
+        //     command: (item) => { addLetteredScenesWhenLocked() },
+        // },
         //------------------------------SCENE PANEL
         {
             menuItem: "Change THIS occurrence to:",

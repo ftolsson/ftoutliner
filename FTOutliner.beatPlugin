@@ -3,7 +3,7 @@
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2023
-Version: 1.72
+Version: 1.80
 Compatibility: 1.996.0
 Type: Tool
 Image: screenshot.jpg
@@ -36,7 +36,7 @@ a {
 function __________VARIABLES(){}
 
 //VERSION NUMBER checking -- also change in the download description above!
-var ftoutlinerVersion = "1.72"
+var ftoutlinerVersion = "1.80"
 Beat.setUserDefault("ftoutlinerVersion", ftoutlinerVersion) 
 
 if (!Beat.compatibleWith(1.996)){
@@ -170,7 +170,7 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, se
 	secondWindow = false
 	secondWindow = Beat.htmlWindow("", width, height, function(){}, true);
 
-	let html = Beat.assetAsString(file)
+	let secondHTML = Beat.assetAsString(file)
 	selfCloseString = selfClose ? `
 		window.addEventListener("blur", function (){
 			if (typeof temporarilyDisableClose !== 'undefined' && temporarilyDisableClose == true) {
@@ -181,7 +181,7 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, se
 		})` : ``
 
 	secondWindow.setHTML(`
-		<body>${html}
+		<body>${secondHTML}
 			<script>
 				${selfCloseString}
 				var pageData = ${data}
@@ -195,16 +195,6 @@ Beat.custom.displaySecondWindow = function(name, file, width=800, height=800, se
 	secondWindow.title = name
 
 }
-
-function __________welcomeWindow(){} 
-
-//NOTE: This is runtime code NOT INSIDE A FUNCTION, moved down here to circumvent hoisting issues
-let showWelcome = JSON.parse(Beat.getUserDefault("ftoutlinerObject"))["dontShowWelcomeWindowFor" + ftoutlinerVersion.replace(".", "")]
-	if(!showWelcome){
-
-		Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)
-
-	}
 
 Beat.custom.closeSecondWindow = function(){	secondWindow.close() }
 
@@ -620,12 +610,12 @@ function outlineWithPagination() {
 				data.positionOnPage = page?.positionOfBlockForLine(scene.line)
 
 				//hack to find the positionOnPage for a section with length, since its inherent positionOnPage is -1 due to not being printed
-					if(scene.typeAsString() == "Section" && data.numberOfPages > 0){
+					if(sceneData.length > 0 && scene.typeAsString() == "Section" && data.numberOfPages > 0){
 						let closestPrecedingScene = -1
 						while (sceneData.at(closestPrecedingScene).numberOfPages <= 0 && (sceneData.length + closestPrecedingScene > 0)){
 							closestPrecedingScene --
 						}
-						data.positionOnPage = sceneData.at(closestPrecedingScene)?.positionOnPage + sceneData[outlineCopy.indexOf(scene) - 1].numberOfPages
+						data.positionOnPage = sceneData.at(closestPrecedingScene)?.positionOnPage + sceneData[outlineCopy.indexOf(scene) - 1]?.numberOfPages
 						console.log("Section with length! This is its positionOnPage: ", data.positionOnPage)
 					} 
 
@@ -1292,51 +1282,6 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		warningsAreOn = false
 	}
 
-	// if(warningsAreOn){
-
-	// 	let rangeOfScenes = ""
-	// 	let numberOfScenesToMove = 0
-	// 	for (scenes = firstScene; scenes<lastScene+1; scenes++){
-	// 		if(outline[scenes].typeAsString() == "Synopse"){continue}
-	// 		rangeOfScenes +=
-	// 		((outline[scenes].sceneNumber != undefined) ? 
-	// 			"(" + outline[scenes].sceneNumber + ") " : 
-	// 			"") +
-	// 			outline[scenes].string.toUpperCase() + "\n" +
-	// 			((outline[scenes].sceneNumber == undefined) ? 
-	// 			"\ncontaining\n\n" : 
-	// 			"")
-	// 			numberOfScenesToMove++
-	// 	}
-
-	// 	let reallyMove = Beat.confirm("Verify Move!",
-	// 		"\nYou are about to move " + 
-	// 		((outline[firstScene].typeAsString() != "Section") ?
-	// 			"the scene" 
-	// 			: "the section") +
-	// 		(((outline[firstScene].typeAsString() != "Section") && numberOfScenesToMove > 1) ? 
-	// 			"s" 
-	// 			: "") +
-	// 		"\n\n" + 
-	// 		(((outline[firstScene].typeAsString() != "Section")) ? 
-	// 			rangeOfScenes 
-	// 			: (outline[firstScene].string.toUpperCase()) + "\n") + 
-	// 		((outline[insertBeforeScene]) ? 
-	// 			("\nto immediately before\n\n" + 
-	// 			(outline[insertBeforeScene].omitted == 1 ? "the omitted scene called \n" 
-	// 			: "") +
-	// 		(((outline[insertBeforeScene] && outline[insertBeforeScene].typeAsString() == "Heading") 
-	// 			? ("(" + outline[insertBeforeScene].sceneNumber + ") ") : "") +
-	// 			outline[insertBeforeScene].string.toUpperCase()))
-	// 			: "\nto immediately after the last scene of your script.")
-	// 		+ 
-	// 		"\n\nDo you want to proceed?\n")
-	// 	if (!reallyMove) {
-	// 		htmlWindow.runJS(`onDragEnd(false, true)`)
-	// 		return
-	// 	}
-	// }
-
 	if(warningsAreOn){
 
 		let rangeOfScenes = ""
@@ -1410,12 +1355,9 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 	//catch-all to make end of selection not out-of-range
 	endPosition = Math.min(endPosition, Beat.getText().length)
 
-
-	// Beat.onTextChangeDisabled = true
-	// Beat.onOutlineChangeDisabled = true
-	// Beat.onSelectionChangeDisabled = true
-
 	var theTextToMove
+
+	let movedTextIncludesOmittedScene = Beat.outline().find(scene => scene.omitted == 1 && scene.position >= startPosition && scene.position <= endPosition)
 
 	//first of all all all: synopsismove. Which is its own thing now.
 	if (synopsisMove){
@@ -1440,31 +1382,37 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 
 	}else{ //the rest is for non-synopsis!
 
-		//even before first: check if we are dropping among omitted scenes!
+		//THIS CHECK should be redundant because made in the HTML already
+		//but currently leaving it in for good measure even though it can't happen
 		let sceneBelowDroppedWasOmitted = (outline[insertBeforeScene] && outline[insertBeforeScene].omitted == 1)
-		let theSceneAbove = insertBeforeScene - 1
-		while (outline[theSceneAbove] && outline[theSceneAbove]?.typeAsString() == "Synopse"){theSceneAbove --}
-		let sceneAboveDroppedWasOmitted = (outline[theSceneAbove]?.omitted == 1)
-
-		if (sceneBelowDroppedWasOmitted){
-			this.unOmitScene([insertBeforeScene], true)
-		}
-		if (sceneAboveDroppedWasOmitted){
-			this.unOmitScene([theSceneAbove], true)
-		}
-
-		//first check so that we don't break omitted scenes!
-		//unomitting and reomitting the scene before will make sure it stays intact.
-			if(outline[firstScene - 1] && outline[firstScene - 1].omitted){
-				Beat.custom.unOmitScene([firstScene - 1])
-				Beat.custom.omitScene(0, [firstScene - 1])
+		let sceneAboveDroppedWasOmitted = (outline[insertBeforeScene - 1]?.omitted == 1)
+			if(sceneBelowDroppedWasOmitted || sceneAboveDroppedWasOmitted){
+				Beat.alert("Cannot drop immediately before or after an omitted (hidden) scene", "Due to the fountain logic for hiding scenes, dropping scenes adjacent to hidden ones is a very risky business that may end up hiding text you want to display, or showing text you dont.\n\nPlease manually unhide or delete the hidden scenes before moving scenes around.")
+				htmlWindow.runJS(`onDragEnd(false, true)`)
+				return
 			}
-		//then, we need to unomit the scene after, but re-omit it once the scenes are moved
-			let firstSceneAfterWasOmitted = false
-			if(outline[lastScene + 1] && outline[lastScene + 1].omitted){
-				firstSceneAfterWasOmitted = true
-				Beat.custom.unOmitScene([lastScene+1])
-			}
+
+		// commented out: do not un-omit scenes programatically!
+			// if (sceneBelowDroppedWasOmitted){
+			// 	this.unOmitScene([insertBeforeScene], true)
+			// }
+			// if (sceneAboveDroppedWasOmitted){
+			// 	this.unOmitScene([theSceneAbove], true)
+			// }
+
+		//This un-omitting code has been commented out because it caused serious problems when moving omitted scenes!
+			// //first check so that we don't break omitted scenes!
+			// //unomitting and reomitting the scene before will make sure it stays intact.
+			// 	if(outline[firstScene - 1] && outline[firstScene - 1].omitted){
+			// 		Beat.custom.unOmitScene([firstScene - 1])
+			// 		Beat.custom.omitScene(0, [firstScene - 1])
+			// 	}
+			// //then, we need to unomit the scene after, but re-omit it once the scenes are moved
+			// 	let firstSceneAfterWasOmitted = false
+			// 	if(outline[lastScene + 1] && outline[lastScene + 1].omitted){
+			// 		firstSceneAfterWasOmitted = true
+			// 		Beat.custom.unOmitScene([lastScene+1])
+			// 	}
 		
 		//collect insertion point
 		var insertionPosition = outline[insertBeforeScene] ? outline[insertBeforeScene].position : Beat.getText().length
@@ -1472,11 +1420,12 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 		//copy text from that range
 		var theTextToMove = Beat.getText().substring(startPosition, endPosition)
 
-		//NOW, re-omit the scene after the range.
-		if (firstSceneAfterWasOmitted){
-			Beat.custom.omitScene(0, [lastScene+1], true) 
-			//NOTE: even if doing this BEFORE moving, it should work fine because we retrieved endPosition already
-		}
+		//Further commenting out of omitting-related code
+			// //NOW, re-omit the scene after the range.
+			// if (firstSceneAfterWasOmitted){
+			// 	Beat.custom.omitScene(0, [lastScene+1], true) 
+			// 	//NOTE: even if doing this BEFORE moving, it should work fine because we retrieved endPosition already
+			// }
 
 		//insert and delete, or delete and insert, depending on wheter move was up or down
 
@@ -1508,6 +1457,10 @@ Beat.custom.moveScenes = function(firstScene, lastScene, insertBeforeScene, warn
 			while (outline[theSceneAboveInserted].typeAsString() == "Synopse"){theSceneAboveInserted --}
 			Beat.custom.omitScene(0, [theSceneAboveInserted], true)
 		}
+	}
+
+	if (movedTextIncludesOmittedScene){
+		Beat.alert("Wait, wait, wait — did I just move a hidden (omitted) scene too?", "Yes, you did. Sorry about that. But since a hidden scene just means that there is an omission starting SOMEWHERE in the previous scene, all kinds of weird things could happen if we didn't (including un-omitting the hidden scene, or leaving behind some hidden text that should rather have moved along with the scene).\n\nPlease take a second to check if you need to move any hidden material back to where it was.")
 	}
 	
 	//finally (2) here are some scope-only functions for inserting and deleting.

@@ -44,11 +44,11 @@
 	</div>
 	<div id="scenespanelbuttons">
 	</div>
-	<div id="notepanelcontent">
+	<div id="notepanelcontent" onscroll="setScrollShadow()">
 	</div>
 	<div id="dialogpanelcontent">
 	</div>
-	<div id="scenespanelcontent" class="scenespanelcontent" onclick="deselectAllScenepanelItems()">	
+	<div id="scenespanelcontent" class="scenespanelcontent" onclick="deselectAllScenepanelItems()" onscroll="setScrollShadow()">	
 		<div id="dividerline"></div>
 	</div>
 	<div id="drag-bar" onmousedown="resizeNotepanel()" ondblclick="toggleNotepanel()"></div>
@@ -175,11 +175,26 @@ window.addEventListener('load', function () {
 
 	flexiContainer.classList.add("focused") //in order to correctly switch focus between main app and plugin right from the start
 	setAllEventlisteners()
-	getSettings()
+	getSettings(true) //true means startup, which will trigger the showWelcomeWindow function
 	
 	Beat.call("Beat.custom.updateEntireOutline()")
-
+	
 })
+
+function launchWelcomeDialog(ftoutlinerVersion){
+	
+	//MOVED THE WELCOME WINDOW TO THE HTML CODE in order to hopefully circumvent weirdness where both windows loaded it
+
+	let showWelcome = userDefault["dontShowWelcomeWindowFor" + ftoutlinerVersion?.replace(".", "")]
+		console.log("✳️✳️✳️🛜🛜🛜")
+		console.log(userDefault)
+		console.log(ftoutlinerVersion)
+		console.log(showWelcome)
+		// Beat.call(`Beat.alert("${JSON.stringify(userDefault)}, ${showWelcome}")`)	 	
+ 	if(!showWelcome){
+		Beat.call(`Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)`)
+	}
+}
 
 //	EVENTLISTENERS FOR keypresses and such
 function setAllEventlisteners(){
@@ -423,7 +438,7 @@ function addSceneEnds(){
 				&& 
 				(hierarchy({...outline[nextSameLevelObject]}) > hierarchy({...outline[i]})
 				||
-				outline[nextSameLevelObject].omitted
+				outline[nextSameLevelObject].omitted //THIS MAKES OMITTED SCENES LIVE INSIDE (AND MOVE WITH) THEIR PREVIOUS SCENES
 				)){
 			nextSameLevelObject++
 		}
@@ -1460,7 +1475,7 @@ function numberIntoEights(theNumber) {
 
 function __________UI_RELATED_STUFF (){}
 
-function getSettings(){
+function getSettings(startup = false){
 
 	mylog()
 
@@ -1492,10 +1507,28 @@ function getSettings(){
 					response => { 
 						Object.assign( documentSetting, JSON.parse(response))
 						applySettings()
+
+						getVersionNumber()
 					},
 					error => { console.log("Error retrieving documentSetting") }
 			)
 		}
+
+	//Step 3: getting the current version number!
+		function getVersionNumber(){	
+				Beat.callAndWait(() => {
+					let ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion") || {}
+					return ftoutlinerVersion
+					})
+					.then(
+						response => { 
+							
+							if(startup){ launchWelcomeDialog(response) }
+						
+						},
+						error => { console.log("Error retrieving version number") }
+				)
+			}
 
 	//no more code can go here because of synchronicity!
 

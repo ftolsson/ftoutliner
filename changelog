@@ -1,25 +1,33 @@
-#v 1.8 (xxx)
+#v 1.8 (October 25, 2023)
 
-Is the slide-in SIDE PANEL too tucked away to be useful? Or even discovered that it's there to begin with? Well, now it's more accessible than ever. In addition to the shortcuts `§` or `\`` (depending on keyboard lanugauge) you can now
-* Rest the mouse at the left end of the screen (if FTOutliner is set up to fill the left half of the screen -- otherwise rest at the left edge of the FTOutliner window) and a clickable edge of the side panel will appear. (You can close it again by clicking in the same place.)
-* Click the dedicated Side Panel Icon in the button row.
+This release introduces the *ALL NEW SCENE MANAGER* tab in the side panel:
 
-That paves the way for the *ALL NEW SCENE MANAGER* tab in the side panel:
 The Scene Manager is a panel that lets you sort and assess your scenes in different ways. It's also a great pre-flight feature, to check spelling and consistency of your sceneheadings before submitting. More info is availabe from the ? button in the panel, but some highlights are:
 * Catch suspected typos or almost-matches, to avoid submitting scripts where the same location has unintentional variations (such as HOTEL vs THE HOTEL etc)
 * Rename locations, either individually or for all scenes in that location at once
-* Find single locations, either before your production office asks you to reduce them, or just to find any almost-matches that deviated too much for the fuzzy logic to find for you
+* Find single locations (i.e. those that only appear once) — either before your production office asks you to reduce them, or just in order to find any almost-matches that deviated too much for the fuzzy logic to find for you
 * Group scenes per Main Location (HOTEL/ROOM, HOTEL/LOBBY etc sorts under HOTEL) or Scheduling Group (INT or EXT, DAY or NIGHT) to quickly asses the page amount for a location or time
 
-...and more! While I realize this panel may look a bit daunting at first — and while most certainly it is geared more towards scripts close to production than those in the early stages of writing — I hope you'll give it a try! Let me know your reactions -- what could be added, what could be simpler?
+...and more! While this panel may look a bit daunting at first — and while most certainly it is geared more towards scripts close to production than those in the early stages of writing — I hope you'll give it a try! Let me know your reactions — what could be added, what sits so-so with your productions' routines?
 
-*Some fixes to the neglected app menu*, to make it work again:
-* Reconnected broken commands and shortcuts from the main app menu
-* Changed shortcut for VIEWS>FIXED to ctrl+alt+D 
-* Other minor rearrangements of the app menu 
+*IMPROVEMENTS:* 
 
-*Bugfixes:*
+* Is the slide-in *SIDE PANEL* too tucked away to be useful? Or had you even discovered that it's there to begin with? Well, it should now be more accessible than before:
+  - Rest the mouse at the left end of the screen (if FTOutliner is set up to fill the left half of the screen — otherwise rest at the left edge of the FTOutliner window) and a clickable edge of the side panel will appear. 
+  - Close the side panel again by clicking in the same place.
+  - In addition to that, the old shortcuts `§` or `\`` (depending on keyboard lanugauge) are of course still available.
+* The Menu Bar menu — the one at the top of the screen, next to Beat's own menus — is now behaving well again:
+  - Broken commands were reconnected
+  - The shortcut for VIEWS>FIXED was changed to ctrl+alt+D 
+  - Plus some other minor rearrangements of the commands
+
+*BUG FIXES:*
+
+* IMPORTANT FIX to adapt to a new naming convention of windows, where this very dialog would open in the main plugin window too, making the actual plugin unreachable. That should be gone now.
 * PAGINATION LINES for orphan text (i.e. text immediately following a section heading, with no scene heading) are now correctly positioned.
+* Worked around a couple of related critical bugs where hidden material may become visible, or the other way around, when dragging and dropping scenes:
+  - When moving scenes, FTOutliner now disallows dropping them next to hidden/omitted scenes. 
+  - Any hidden scenes immediately following one that you move will now move along with it. 
 
 
 

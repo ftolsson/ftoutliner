@@ -25,13 +25,20 @@
     &::after{
 
         position: absolute;
+        white-space: pre;
         top: 50%;
-        left: 2px;
-        width: 100%;
+        left: -8.5px;
+        /* width: 100%; */
         font-size: 8px;
-        color: white;
-        content: "\25B6";
+        color: #444;
+        
+        content: "\25BC   \25BC   \25BC";
         opacity: 0;
+
+        rotate: -90deg;
+        transform-origin: 50% 50%;
+
+        text-shadow: -0.5px 0px 0px white;
 
     }
 
@@ -43,8 +50,9 @@
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
     
-        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-	
+        box-shadow: 6px 0px 4px -4px rgba(0, 0, 0, 0.6);
+	    height: calc(100vh - 65px);
+
         transition: background-color 0.2s;
 
         &::after{
@@ -62,16 +70,27 @@
 
     opacity: 0;
     z-index: 999999;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    /* box-shadow: none; */
+    /* backdrop-filter: none; */
+    /* -webkit-backdrop-filter: none; */
+    border-right: 0.5px solid #999;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 
     &::after{
-        content: "\25C2";
+        /* color: #999; */
+        rotate: 90deg;
+        translate: -1.5px;
+        /* text-shadow: -0.5px 0px 0px black; */
+
+        transform-origin: 50% 50%;
     }
 
     &:hover{
+        /* background-color: #555; */
         background-color: transparent;
+        /* width: 30px; */
+        /* background: linear-gradient(to right, #555, #555 20%, transparent 100%); */
         opacity: 1;
     }
 

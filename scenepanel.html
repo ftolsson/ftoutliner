@@ -293,7 +293,7 @@ function parseSceneHeadings(){
                     // let startNewGroup = (documentSetting.groupByParenthesis && scene.other) ?
                     //     scene.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] :
                     //     scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
-                    let startNewGroup = scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
+                    let startNewGroup = scene == sortedScenes.at(0) || scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] 
                     
                     // if (scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]) { 
                     if (startNewGroup) { 
@@ -608,7 +608,7 @@ function flagLinesWithSingleLocation(){
 }
 
 function addDividerLine(){
-    $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 300) + "px")
+    $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 120) + "px")
     $id("scenespanelcontent").innerHTML = "<div id='dividerline' draggable='true'></div>"
     
         $id("dividerline").ondragstart = (e) => {
@@ -708,6 +708,8 @@ function compareAllLocations() {
                     location2.dataset.representation = Array.from(allLocations).filter(loc => loc.textContent == locationString2).length
                     location1.classList.toggle("majority", location1.dataset.representation > location2.dataset.representation)
                     location2.classList.toggle("majority", location2.dataset.representation > location1.dataset.representation)
+                    location1.classList.toggle("minority", location1.dataset.representation < location2.dataset.representation)
+                    location2.classList.toggle("minority", location2.dataset.representation < location1.dataset.representation)
 
             }
         });
@@ -973,6 +975,20 @@ function deselectAllScenepanelItems(){
 
 }
 
+function setScrollShadow(){
+
+    // let myDiv = $id("scenespanelcontent")
+    let myDiv = event.target
+
+    if (myDiv.scrollTop > 0) {
+        myDiv.classList.add('scrolled');
+    } else {
+        myDiv.classList.remove('scrolled');
+    }
+
+
+}
+
 </script>
 
 <style>
@@ -1103,8 +1119,17 @@ function deselectAllScenepanelItems(){
     display: inline-block;
     font-weight: normal;
 
-    border: 2px solid white;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
+
+    color: black;
+    background: white;
+    opacity: 0.4;
+
+        &:hover{
+            opacity: 1;
+            cursor: pointer;
+        }
 
     /* &:is(:has(#sortDropDown.location) #scenepanelSettingsButton){
         display: inline-block;
@@ -1114,25 +1139,28 @@ function deselectAllScenepanelItems(){
 
 #scenespanelcontent{
 
-    --scenesPanelLeftColumnWidth: 300px;
+    --scenesPanelLeftColumnWidth: 120px;
 
     background: #888 !important;
 
     position: absolute;
     width: calc(100% + 3px);
+    height: calc(100% - 48px);
     margin-left: -8px;
     margin-right: -4px;
     padding: 8px !important;
     padding-top: 0px !important;
     padding-right: 12px !important;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: auto;
     text-overflow: ellipsis;
 
-    white-space: pre !important;
+    /* white-space: pre !important; */
     font-size: calc(11px * var(--fontSizeFactor));
     font-weight: bold;
     color: white;
+
+    border-bottom-right-radius: 10px;
 
     /* border-top: 2px groove #555 !important; */
 
@@ -1410,13 +1438,19 @@ function deselectAllScenepanelItems(){
 
         &.similarLocation:not(.excludedLocation){
 
-            background-color: hsl(0, 60% , 40%);
+            background-color: hsl(40, 70% , 40%);
             color: white;
             font-weight: bold;
 
             &.majority{
                 /* background-color: hsl(135, 60%, 40%); */
-                background-color: hsl(50, 70%, 40%);
+                background-color: hsl(90, 40%, 30%);
+                color: white;
+                font-weight: bold;
+            }
+            &.minority{
+                /* background-color: hsl(135, 60%, 40%); */
+                background-color: hsl(0, 60%, 30%);
                 color: white;
                 font-weight: bold;
             }
@@ -1443,6 +1477,33 @@ function deselectAllScenepanelItems(){
 
     }    
 }
+
+#notepanelcontent::before,
+#scenespanelcontent::before {
+        
+        content: "";
+        display: block;
+        opacity: 0;
+        
+        z-index:99999;
+        
+        position: sticky;
+        top: 0;
+        left: -10px;
+        width: 1000px !important;
+        height: 50px !important;
+        margin-bottom: -50px !important;
+        
+        box-shadow: inset 0 30px 30px -30px rgba(0, 0, 0, 0.7);
+        
+        pointer-events: none;
+
+    }
+
+#notepanelcontent.scrolled::before,
+#scenespanelcontent.scrolled::before {
+        opacity: 1;
+    }
 
 .line{
 

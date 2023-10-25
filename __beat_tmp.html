@@ -8022,15 +8022,15 @@ function paintRevisions(changedAsJSON, reviewAsJSON){
             greyOutIf: () => { return document.querySelectorAll(".isSelected").length > 1 },  
             command: (item) => { addElement(item, "scene") },
         },
-        {   
-            menuItem: "Unlocked scenes to A-scenes",
-            shortcut: ["!"],
-            icon: "",
-            iconColor: "",
-            showFor: ["flexiContainer"],
-            greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
-            command: (item) => { addLetteredScenesWhenLocked() },
-        },
+        // {   
+        //     menuItem: "Unlocked scenes to A-scenes",
+        //     shortcut: ["!"],
+        //     icon: "",
+        //     iconColor: "",
+        //     showFor: ["flexiContainer"],
+        //     greyOutIf: () => { return !outline.find(scene => (/(?:#)(.+)(?:#){1}\s*$/.test(scene.string))) },  
+        //     command: (item) => { addLetteredScenesWhenLocked() },
+        // },
         //------------------------------SCENE PANEL
         {
             menuItem: "Change THIS occurrence to:",
@@ -10942,13 +10942,20 @@ DISABLED.indexcards .level1 > .synopsiscontainer > .synopsis::before {
     &::after{
 
         position: absolute;
+        white-space: pre;
         top: 50%;
-        left: 2px;
-        width: 100%;
+        left: -8.5px;
+        /* width: 100%; */
         font-size: 8px;
-        color: white;
-        content: "\25B6";
+        color: #444;
+        
+        content: "\25BC   \25BC   \25BC";
         opacity: 0;
+
+        rotate: -90deg;
+        transform-origin: 50% 50%;
+
+        text-shadow: -0.5px 0px 0px white;
 
     }
 
@@ -10960,8 +10967,9 @@ DISABLED.indexcards .level1 > .synopsiscontainer > .synopsis::before {
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
     
-        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-	
+        box-shadow: 6px 0px 4px -4px rgba(0, 0, 0, 0.6);
+	    height: calc(100vh - 65px);
+
         transition: background-color 0.2s;
 
         &::after{
@@ -10979,16 +10987,27 @@ DISABLED.indexcards .level1 > .synopsiscontainer > .synopsis::before {
 
     opacity: 0;
     z-index: 999999;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    /* box-shadow: none; */
+    /* backdrop-filter: none; */
+    /* -webkit-backdrop-filter: none; */
+    border-right: 0.5px solid #999;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 
     &::after{
-        content: "\25C2";
+        /* color: #999; */
+        rotate: 90deg;
+        translate: -1.5px;
+        /* text-shadow: -0.5px 0px 0px black; */
+
+        transform-origin: 50% 50%;
     }
 
     &:hover{
+        /* background-color: #555; */
         background-color: transparent;
+        /* width: 30px; */
+        /* background: linear-gradient(to right, #555, #555 20%, transparent 100%); */
         opacity: 1;
     }
 
@@ -12234,7 +12253,7 @@ function parseSceneHeadings(){
                     // let startNewGroup = (documentSetting.groupByParenthesis && scene.other) ?
                     //     scene.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.other.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] :
                     //     scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
-                    let startNewGroup = scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]
+                    let startNewGroup = scene == sortedScenes.at(0) || scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] 
                     
                     // if (scene.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0] != sortedScenes[sortedScenes.indexOf(scene) - 1]?.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc))[0]) { 
                     if (startNewGroup) { 
@@ -12549,7 +12568,7 @@ function flagLinesWithSingleLocation(){
 }
 
 function addDividerLine(){
-    $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 300) + "px")
+    $id("scenespanelcontent").style.setProperty("--scenesPanelLeftColumnWidth", (documentSetting.scenesPanelLeftColumnWidth || 120) + "px")
     $id("scenespanelcontent").innerHTML = "<div id='dividerline' draggable='true'></div>"
     
         $id("dividerline").ondragstart = (e) => {
@@ -12649,6 +12668,8 @@ function compareAllLocations() {
                     location2.dataset.representation = Array.from(allLocations).filter(loc => loc.textContent == locationString2).length
                     location1.classList.toggle("majority", location1.dataset.representation > location2.dataset.representation)
                     location2.classList.toggle("majority", location2.dataset.representation > location1.dataset.representation)
+                    location1.classList.toggle("minority", location1.dataset.representation < location2.dataset.representation)
+                    location2.classList.toggle("minority", location2.dataset.representation < location1.dataset.representation)
 
             }
         });
@@ -12914,6 +12935,20 @@ function deselectAllScenepanelItems(){
 
 }
 
+function setScrollShadow(){
+
+    // let myDiv = $id("scenespanelcontent")
+    let myDiv = event.target
+
+    if (myDiv.scrollTop > 0) {
+        myDiv.classList.add('scrolled');
+    } else {
+        myDiv.classList.remove('scrolled');
+    }
+
+
+}
+
 </script>
 
 <style>
@@ -13044,8 +13079,17 @@ function deselectAllScenepanelItems(){
     display: inline-block;
     font-weight: normal;
 
-    border: 2px solid white;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
+
+    color: black;
+    background: white;
+    opacity: 0.4;
+
+        &:hover{
+            opacity: 1;
+            cursor: pointer;
+        }
 
     /* &:is(:has(#sortDropDown.location) #scenepanelSettingsButton){
         display: inline-block;
@@ -13055,25 +13099,28 @@ function deselectAllScenepanelItems(){
 
 #scenespanelcontent{
 
-    --scenesPanelLeftColumnWidth: 300px;
+    --scenesPanelLeftColumnWidth: 120px;
 
     background: #888 !important;
 
     position: absolute;
     width: calc(100% + 3px);
+    height: calc(100% - 48px);
     margin-left: -8px;
     margin-right: -4px;
     padding: 8px !important;
     padding-top: 0px !important;
     padding-right: 12px !important;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: auto;
     text-overflow: ellipsis;
 
-    white-space: pre !important;
+    /* white-space: pre !important; */
     font-size: calc(11px * var(--fontSizeFactor));
     font-weight: bold;
     color: white;
+
+    border-bottom-right-radius: 10px;
 
     /* border-top: 2px groove #555 !important; */
 
@@ -13351,13 +13398,19 @@ function deselectAllScenepanelItems(){
 
         &.similarLocation:not(.excludedLocation){
 
-            background-color: hsl(0, 60% , 40%);
+            background-color: hsl(40, 70% , 40%);
             color: white;
             font-weight: bold;
 
             &.majority{
                 /* background-color: hsl(135, 60%, 40%); */
-                background-color: hsl(50, 70%, 40%);
+                background-color: hsl(90, 40%, 30%);
+                color: white;
+                font-weight: bold;
+            }
+            &.minority{
+                /* background-color: hsl(135, 60%, 40%); */
+                background-color: hsl(0, 60%, 30%);
                 color: white;
                 font-weight: bold;
             }
@@ -13384,6 +13437,33 @@ function deselectAllScenepanelItems(){
 
     }    
 }
+
+#notepanelcontent::before,
+#scenespanelcontent::before {
+        
+        content: "";
+        display: block;
+        opacity: 0;
+        
+        z-index:99999;
+        
+        position: sticky;
+        top: 0;
+        left: -10px;
+        width: 1000px !important;
+        height: 50px !important;
+        margin-bottom: -50px !important;
+        
+        box-shadow: inset 0 30px 30px -30px rgba(0, 0, 0, 0.7);
+        
+        pointer-events: none;
+
+    }
+
+#notepanelcontent.scrolled::before,
+#scenespanelcontent.scrolled::before {
+        opacity: 1;
+    }
 
 .line{
 
@@ -17762,9 +17842,6 @@ function onDragEnd(e, cancelButton){
 
         deselectAllElements()
 
-    // Beat.call("Beat.onTextChangeDisabled = false")
-    // Beat.call("Beat.onOutlineChangeDisabled = false")
-	// Beat.call("Beat.onSelectionChangeDisabled = false")
 }
 
 function onDragEnter(e) {
@@ -18359,6 +18436,15 @@ function onDrop(e){
         lastScene = selectedScenes[selectedScenes.length - 1].id
 
         insertBeforeScene = $id("dropDiv").getAttribute("data-insert-before-scene") // written into dropdiv at creation: dataset.beforeScene
+
+        //check if we are dropping next to an omitted scene, and if so CANCEL! Added 2023-10-25 to avoid fountain logic issues
+            let sceneBelowDroppedWasOmitted = (outline[insertBeforeScene - 1].omitted)
+            let sceneAboveDroppedWasOmitted = (outline[insertBeforeScene]?.omitted)
+                if(sceneBelowDroppedWasOmitted || sceneAboveDroppedWasOmitted){
+                    Beat.call(`Beat.alert("Cannot drop immediately before or after an omitted (hidden) scene", "Due to the fountain logic for hiding scenes, dropping scenes adjacent to hidden ones is a very risky business that may end up hiding text you want to display, or showing text you dont.\\n\\nPlease manually unhide or delete the hidden scenes before moving scenes around.")`)
+                    onDragEnd(false, true)
+                    return                    
+                }
     
     }else{
 
@@ -18621,11 +18707,11 @@ function receiveText(allText, startIndex, endIndex){
 	</div>
 	<div id="scenespanelbuttons">
 	</div>
-	<div id="notepanelcontent">
+	<div id="notepanelcontent" onscroll="setScrollShadow()">
 	</div>
 	<div id="dialogpanelcontent">
 	</div>
-	<div id="scenespanelcontent" class="scenespanelcontent" onclick="deselectAllScenepanelItems()">	
+	<div id="scenespanelcontent" class="scenespanelcontent" onclick="deselectAllScenepanelItems()" onscroll="setScrollShadow()">	
 		<div id="dividerline"></div>
 	</div>
 	<div id="drag-bar" onmousedown="resizeNotepanel()" ondblclick="toggleNotepanel()"></div>
@@ -18752,11 +18838,26 @@ window.addEventListener('load', function () {
 
 	flexiContainer.classList.add("focused") //in order to correctly switch focus between main app and plugin right from the start
 	setAllEventlisteners()
-	getSettings()
+	getSettings(true) //true means startup, which will trigger the showWelcomeWindow function
 	
 	Beat.call("Beat.custom.updateEntireOutline()")
-
+	
 })
+
+function launchWelcomeDialog(ftoutlinerVersion){
+	
+	//MOVED THE WELCOME WINDOW TO THE HTML CODE in order to hopefully circumvent weirdness where both windows loaded it
+
+	let showWelcome = userDefault["dontShowWelcomeWindowFor" + ftoutlinerVersion?.replace(".", "")]
+		console.log("✳️✳️✳️🛜🛜🛜")
+		console.log(userDefault)
+		console.log(ftoutlinerVersion)
+		console.log(showWelcome)
+		// Beat.call(`Beat.alert("${JSON.stringify(userDefault)}, ${showWelcome}")`)	 	
+ 	if(!showWelcome){
+		Beat.call(`Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)`)
+	}
+}
 
 //	EVENTLISTENERS FOR keypresses and such
 function setAllEventlisteners(){
@@ -19000,7 +19101,7 @@ function addSceneEnds(){
 				&& 
 				(hierarchy({...outline[nextSameLevelObject]}) > hierarchy({...outline[i]})
 				||
-				outline[nextSameLevelObject].omitted
+				outline[nextSameLevelObject].omitted //THIS MAKES OMITTED SCENES LIVE INSIDE (AND MOVE WITH) THEIR PREVIOUS SCENES
 				)){
 			nextSameLevelObject++
 		}
@@ -20037,7 +20138,7 @@ function numberIntoEights(theNumber) {
 
 function __________UI_RELATED_STUFF (){}
 
-function getSettings(){
+function getSettings(startup = false){
 
 	mylog()
 
@@ -20069,10 +20170,28 @@ function getSettings(){
 					response => { 
 						Object.assign( documentSetting, JSON.parse(response))
 						applySettings()
+
+						getVersionNumber()
 					},
 					error => { console.log("Error retrieving documentSetting") }
 			)
 		}
+
+	//Step 3: getting the current version number!
+		function getVersionNumber(){	
+				Beat.callAndWait(() => {
+					let ftoutlinerVersion = Beat.getUserDefault("ftoutlinerVersion") || {}
+					return ftoutlinerVersion
+					})
+					.then(
+						response => { 
+							
+							if(startup){ launchWelcomeDialog(response) }
+						
+						},
+						error => { console.log("Error retrieving version number") }
+				)
+			}
 
 	//no more code can go here because of synchronicity!
 
