@@ -354,14 +354,12 @@ Beat.onTextChange(function(location, length) {
 				if(!line) return //try to circumvent error when typing on last line
 
 			// First guard clause: If several lines changed (e.g. copy/paste) make full update
-			console.log("Comparing to see if several lines were changed: ", previousLineObject.length != Beat.lines().length)
 			if((previousLineObject.length != Beat.lines().length)){
 				console.log("Sending to previewFinished b/c multiple lines changed")
 				fullUpdateInProgress = true
 				return 
 			} 
 			// Second guard clause: If the number of omitted lines or headings changed, go to full update
-			console.time("checking for headings and hidden lines")
 			if ((previousLineObject.filter(line => ["Heading", "Section"].includes(line.typeAsString)).map(line => line.typeAsString).join(",") != Beat.outline().map(line => line.typeAsString()).join(","))
 				||
 				(previousLineObject.filter(line => line.omitted).length != Beat.lines().filter(line => line.omitted).length)
@@ -369,11 +367,9 @@ Beat.onTextChange(function(location, length) {
 				(previousLineObject.filter(line => line.typeAsString === "Heading").map(line => line.UUID).join(",") !== Beat.outline().filter(line => line.typeAsString() === "Heading").map(line => line.UUID).join(","))
 				){
 				console.log("Deferring to previewFinished b/c number/order of outline objects, or some sceneheading UUID, changed")
-				console.timeEnd("checking for headings and hidden lines")
 				fullUpdateInProgress = true
 				return
 			}
-			console.timeEnd("checking for headings and hidden lines")
 
 		//determine the printing part of the line that has changed
 			let nonPrintingRanges = line.ranges.notes//.concat(line.ranges.omitted)

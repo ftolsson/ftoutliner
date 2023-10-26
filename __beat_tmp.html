@@ -3975,6 +3975,14 @@ var knownTimesOfDayObject = {
         ]
     }
 
+var articleArray = ["THE", 
+                    "LE", "LA", 
+                    "EL", "IL", 
+                    "DER", "DIE", "DAS", 
+                    "O", "A", 
+                    "DE", "HET"]
+
+
 
 </script><style>
 
@@ -12147,8 +12155,6 @@ function parseSceneHeadings(){
                 partsIndex.pop()
             }
 
-        console.log("🟡", removedAddons, removedIndex)
-
         //check for time of day at the end of the array
             let timeOfDay = "UNKNOWN"
             let dayOrNight
@@ -12184,8 +12190,6 @@ function parseSceneHeadings(){
             parts = parts.concat(removedAddons)
             partsIndex = partsIndex.concat(removedIndex)
         }
-            // console.log("REMOVED:", removedAddons, removedIndex)
-            // console.log("RESULT:", parts, partsIndex)
 
     //adding the result to the array
         parsedScene.push({
@@ -12639,7 +12643,6 @@ function compareAllLocations() {
             const locationString2 = location2.textContent
             if (locationString2.length < 3) return
 
-            const articleArray = ["THE", "LE", "LA", "EL", "IL"]
             const articleString = articleArray.join("|")
             const articleRegex = new RegExp(`\\b(${articleString})\\b\\s+`, "gi");
 
@@ -12752,8 +12755,6 @@ function sortByFrequency(arr, position = 0) {
     }
   }
 
-  console.log("Before Sorting:", JSON.parse(JSON.stringify(arr)));
-
   // Sort the objects based on the frequency of the specified position
   arr.sort((a, b) => {
     let sublocsA = a.sublocations.filter(loc => !documentSetting.groupExclusions?.includes(loc));
@@ -12777,8 +12778,6 @@ function sortByFrequency(arr, position = 0) {
       sortByFrequency(arr, nextPosition)
     }
   });
-
-  console.log("After Sorting:", JSON.parse(JSON.stringify(arr))); 
 
   return arr;
 }
@@ -12853,7 +12852,6 @@ function makeLocationToD(item) {
 
     Beat.callAndWait(([text, occurences]) => {
         let result = Beat.dropdownPrompt(`Do you want to add\n${text} (occurs ${occurences} times)\nto the list of Times-of-Day?`, `Sort ${text} as...`, ["DAY", "NIGHT", "SAME AS PREVIOUS"])
-        console.log("will return", result)
         return result
     }, [text, occurences])
     .then(
@@ -12899,13 +12897,10 @@ function makeTodLocation(item) {
     Beat.callAndWait(([text, occurences]) => {
         let result = Beat.confirm(`This will remove\n${text}\nfrom the list of Times-of-Day. \n\nGo ahead?`, `${text} currently occurs ${occurences} times in your sceneheadings. Removing it from the list will treat it as a location, and sceneheadings ending with ${text} will be considered having no Time-of-day.`)
         
-            console.log("will return", result)
             return JSON.stringify(result)
     }, [text, occurences])
     .then(
         response => {
-
-            console.log(response, typeof response)
 
             if (response == "false") return
 
@@ -18849,11 +18844,7 @@ function launchWelcomeDialog(ftoutlinerVersion){
 	//MOVED THE WELCOME WINDOW TO THE HTML CODE in order to hopefully circumvent weirdness where both windows loaded it
 
 	let showWelcome = userDefault["dontShowWelcomeWindowFor" + ftoutlinerVersion?.replace(".", "")]
-		console.log("✳️✳️✳️🛜🛜🛜")
-		console.log(userDefault)
-		console.log(ftoutlinerVersion)
-		console.log(showWelcome)
-		// Beat.call(`Beat.alert("${JSON.stringify(userDefault)}, ${showWelcome}")`)	 	
+		
  	if(!showWelcome){
 		Beat.call(`Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)`)
 	}
@@ -19788,11 +19779,6 @@ function findPageDividers() {
 				outline[i].numberOfPages = 0.0
 				continue
 			}
-
-			//if outline[i] is a section, console.log its positionOnPage and numberOfPages
-			if (scene.typeAsString == "Section") {
-				console.log("Section " + scene.positionOnPage + " " + scene.numberOfPages)
-			}
 		
 		// Finally add all dividers: 
 			let numberOfDividers = ((nextScene?.startsOnPage - scene.startsOnPage 
@@ -20155,9 +20141,7 @@ function getSettings(startup = false){
 				Object.assign( userDefault, JSON.parse(response) )
 				getDocumentSettings() //brings us to step two
 			},
-        	error => { 
-				console.log("Error retrieving userDefault") 
-			}
+        	error => { console.log("Error retrieving userDefault") }
     )
 
 	//Step 2: getting Document Settings
@@ -20391,10 +20375,7 @@ function applySettings(){
 
 	//NOW EXECUTING SOM STUFF BASED ON THE DEFAULTS WE GOT!
 
-	
-	document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
-
-
+		document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
 
 		theRoot.style.setProperty('--showSceneLength', showSceneLengths);
 		theRoot.style.setProperty('--showSceneNum', showSceneNumbers);
@@ -20414,9 +20395,8 @@ function applySettings(){
 }
 
 function saveCurrentState() {
-	mylog()
 
-	console.log(userDefault)
+	mylog()
 
 	rememberCardState()
 

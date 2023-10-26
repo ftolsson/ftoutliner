@@ -186,11 +186,7 @@ function launchWelcomeDialog(ftoutlinerVersion){
 	//MOVED THE WELCOME WINDOW TO THE HTML CODE in order to hopefully circumvent weirdness where both windows loaded it
 
 	let showWelcome = userDefault["dontShowWelcomeWindowFor" + ftoutlinerVersion?.replace(".", "")]
-		console.log("✳️✳️✳️🛜🛜🛜")
-		console.log(userDefault)
-		console.log(ftoutlinerVersion)
-		console.log(showWelcome)
-		// Beat.call(`Beat.alert("${JSON.stringify(userDefault)}, ${showWelcome}")`)	 	
+		
  	if(!showWelcome){
 		Beat.call(`Beat.custom.displaySecondWindow("Welcome", "welcomewindow.html", 800, 650, false)`)
 	}
@@ -1125,11 +1121,6 @@ function findPageDividers() {
 				outline[i].numberOfPages = 0.0
 				continue
 			}
-
-			//if outline[i] is a section, console.log its positionOnPage and numberOfPages
-			if (scene.typeAsString == "Section") {
-				console.log("Section " + scene.positionOnPage + " " + scene.numberOfPages)
-			}
 		
 		// Finally add all dividers: 
 			let numberOfDividers = ((nextScene?.startsOnPage - scene.startsOnPage 
@@ -1492,9 +1483,7 @@ function getSettings(startup = false){
 				Object.assign( userDefault, JSON.parse(response) )
 				getDocumentSettings() //brings us to step two
 			},
-        	error => { 
-				console.log("Error retrieving userDefault") 
-			}
+        	error => { console.log("Error retrieving userDefault") }
     )
 
 	//Step 2: getting Document Settings
@@ -1728,10 +1717,7 @@ function applySettings(){
 
 	//NOW EXECUTING SOM STUFF BASED ON THE DEFAULTS WE GOT!
 
-	
-	document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
-
-
+		document.documentElement.setAttribute('data-theme', userDefault.colorScheme)
 
 		theRoot.style.setProperty('--showSceneLength', showSceneLengths);
 		theRoot.style.setProperty('--showSceneNum', showSceneNumbers);
@@ -1751,9 +1737,8 @@ function applySettings(){
 }
 
 function saveCurrentState() {
-	mylog()
 
-	console.log(userDefault)
+	mylog()
 
 	rememberCardState()
 

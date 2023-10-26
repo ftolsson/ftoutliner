@@ -236,7 +236,6 @@
 
 		if(event.target.closest(".tod-column").classList.contains("notAllowedToDrop")) return
 
-		console.log(event)
 		event.preventDefault();
 		let data = JSON.parse(event.dataTransfer.getData("text"));
 		let newItem = makeItem(data.content)
@@ -412,7 +411,6 @@ function saveListToUserDefault(){
 		userDefault.timeOfDayObject.same = same
 
 		let valueAsJSON = JSON.stringify(userDefault.timeOfDayObject)
-			Beat.call(`	console.log("🟪", ${valueAsJSON})`)
 			Beat.call(`	Beat.custom.sendToMain("timeOfDayObject", ${valueAsJSON}, "userDefault") `)
 
 	}
