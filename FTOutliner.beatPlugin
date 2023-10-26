@@ -99,10 +99,10 @@ function createMenu(htmlWindow){
 
 	let sidePanelMenuItem = Beat.menuItem("Toggle Side Panel", ["alt", "ctrl", "§"], function () { htmlWindow.runJS("toggleNotepanel()") })
 	let highlightCharacterMenuItem = Beat.menuItem("Highlight Current Character's scenes", ["ctrl", "alt", "c"], function () { highlightCharacter(false, true) })
-	dialogSubMenuItems.push(Beat.menuItem("Show Current Character in Dialogue Panel", ["ctrl", "alt", "l"], function () { highlightCharacter(false, false, true) }))
+	dialogSubMenuItems.push(Beat.menuItem("Show Current Character in Dialogue Panel", ["ctrl", "alt", "k"], function () { highlightCharacter(false, false, true) }))
 	dialogSubMenuItems.push(Beat.separatorMenuItem())
-	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Backward", ["ctrl", "alt", ","], function () { htmlWindow.runJS("cycleBubbles('-1')") }))
-	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Forward", ["ctrl", "alt", "."], function () { htmlWindow.runJS("cycleBubbles('1')") }))
+	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Backward", ["ctrl", "alt", "j"], function () { htmlWindow.runJS("cycleBubbles('-1')") }))
+	dialogSubMenuItems.push(Beat.menuItem("Cycle Dialogue Panel Forward", ["ctrl", "alt", "l"], function () { htmlWindow.runJS("cycleBubbles('1')") }))
 
 	let settingsMenuItem = Beat.menuItem("FTOutliner settings", ["alt", "ctrl", ","], function () { htmlWindow.runJS("openSettingsWindow()") })
 	//let aboutMenuItem = Beat.menuItem("About FTOutliner", [], function () { htmlWindow.runJS("displayAboutBox()") })
@@ -1824,10 +1824,12 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 
 		htmlWindow.runJS(/*html*/`
 			cycleTabs($(".dialogtab"))
-			$id("allDialogFor").selectedIndex = Array.from($id("allDialogFor").options).map(option => option.value.toUpperCase()).indexOf("${name}")
-			showCharacterBubbles("${name}")
-		`)
-		return
+			initiateCharacterBubbles("${name}")
+			updateDialogPanelSelection()
+			`)
+			return
+			// $id("allDialogFor").selectedIndex = Array.from($id("allDialogFor").options).map(option => option.value.toUpperCase()).indexOf("${name}")
+			// showCharacterBubbles("${name}")
 	}
 
 

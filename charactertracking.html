@@ -287,7 +287,7 @@ var searchBoxDelay
 var globalScenesWithDialog = []
 
 
-function collectCharacters() {
+function collectCharacters(preselectedCharacter) {
 
     // important note: when this was part of the plugin back-and-forth, the plugin ended this by calling updateFilter()
     // since I do not call updateFilter from the end of this function, be vigilant about whether this may case problems
@@ -446,7 +446,7 @@ function collectCharacters() {
 
     if ((!scenesWithCharacters.length) || (scenesWithCharacters != scenesWithCharactersProxy)){
 
-        let previouslySelectedCharacters
+        let previouslySelectedCharacters = Array.of(preselectedCharacter) || null
         let reselectThese = []
 
         let itemNumber = 0
@@ -454,7 +454,7 @@ function collectCharacters() {
 
         //remember what characters in the menu were selected before
             if ($id("characterMenuList").selectedOptions){        
-                previouslySelectedCharacters = $id("characterMenuList").selectedOptions
+                previouslySelectedCharacters = Array.from($id("characterMenuList").selectedOptions)
                 for (character of previouslySelectedCharacters){
                     reselectThese.push(character.value)
                 }
@@ -716,13 +716,13 @@ function muteColors(theClickedThing, shift){
 
 function _____________(){}
 
-function initiateCharacterBubbles(){
+function initiateCharacterBubbles(characterName = "ALL"){
 
-    collectCharacters()
+    collectCharacters(characterName)
 
     //$id("allDialogFor").selectedIndex = 0
 
-    showCharacterBubbles("ALL")
+    showCharacterBubbles(characterName)
 
 }
 
@@ -854,6 +854,7 @@ function showCharacterBubbles(characterName, redraw){
             chunk.dataset.orphanId = orphanId
             chunk.dataset.parentId = theId
             chunk.style.color = $id(theId).querySelector(".sceneheading").style.color
+            chunk.style.marginBottom = "3px"
             chunk.dataset.charactername = characterName
                 chunk.onmouseenter = function(){
                     $id(chunk.dataset.parentId).classList.add('isHovered')
@@ -867,34 +868,89 @@ function showCharacterBubbles(characterName, redraw){
             chunk.style.width = "100%"
             if (outline[theId].omitted) chunk.classList.add("omitted")
 
-            let chunkHTML = `<p class="chunkHeading"><span style="opacity: 0.4;">${(outline[theId].sceneNumber || "")} </span>&nbsp;${outline[theId].stringForDisplay}</p>`
-            let thisIsTheCurrentChunk = false
-            let dlgNumber
+            chunk.innerHTML = `<p class="chunkHeading"><span style="opacity: 0.4;">${(outline[theId].sceneNumber || "")} </span>&nbsp;${outline[theId].stringForDisplay}</p>`
+
+            let createdChunks = []
+            let chunkNumber = -1
 
             for (line of scene){
 
-                if(line.typeAsString == "Character" && chunk.children) chunkHTML += "</div>"
-                if(line.typeAsString == "Character") {
-                    dlgNumber = line.position
-                    chunkHTML += `<div class='dialogChunk' id='dialog${dlgNumber}'
-                    onclick = selectThisDialog('dialog${dlgNumber}')>`
+                
+                if (line.typeAsString == "Character"){
+
+                    chunkNumber ++
+
+                    createdChunks[chunkNumber] = document.createElement("div")
+                    createdChunks[chunkNumber].classList.add("dialogChunk")
+                    createdChunks[chunkNumber].id = "dialog" + line.position
+                    createdChunks[chunkNumber].dataset.line = line.position
+                    createdChunks[chunkNumber].onclick = function(){selectThisDialog(this.id)}
+
+                    //continue
                 }
 
                 let omittedString = ""
-                    if(line.omitted) omittedString = " omitted"
+                if(line.omitted) omittedString = " omitted"
 
-                chunkHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-length="${line.string.length}">${line.string}</p>`
+                createdChunks[chunkNumber].innerHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-length="${line.string.length}">${line.string}</p>`
 
-                chunkHTML = chunkHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
-                chunkHTML = chunkHTML.replace(/\*\*\*(.*)\*\*\*/g, "<b><i>$1</i></b>")
-                chunkHTML = chunkHTML.replace(/\*\*(.*)\*\*/g, "<b>$1</b>")
-                chunkHTML = chunkHTML.replace(/\*(.*)\*/g, "<i>$1</i>")
-                chunkHTML = chunkHTML.replace(/\_(.*)\_/g, "<u>$1</u>")
+                createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
+                createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\*\*\*(.*)\*\*\*/g, "<b><i>$1</i></b>")
+                createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\*\*(.*)\*\*/g, "<b>$1</b>")
+                createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\*(.*)\*/g, "<i>$1</i>")
+                createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\_(.*)\_/g, "<u>$1</u>")
+
+                //hack to update the endPos of the chunk for as long as we keep adding to it
+                    createdChunks[chunkNumber].dataset.endPos = line.position + line.string.length
+
+                
             }
-            chunkHTML += `</div>` //finalizes the last chunk-in-chunk div
 
-        //add all dialogChunks to the sceneChunk:
-            chunk.innerHTML += chunkHTML
+            console.log(createdChunks)
+
+            for (createdChunk of createdChunks){
+
+                console.log(createdChunk)
+
+                chunk.appendChild(createdChunk)
+
+            }
+            
+
+    // ///REWRITING THIS PART
+
+    //         let chunkHTML = `<p class="chunkHeading"><span style="opacity: 0.4;">${(outline[theId].sceneNumber || "")} </span>&nbsp;${outline[theId].stringForDisplay}</p>`
+    //         let thisIsTheCurrentChunk = false
+    //         let dlgNumber
+
+    //         for (line of scene){
+
+    //             if(line.typeAsString == "Character" && chunk.children) chunkHTML += "</div>"
+    //             if(line.typeAsString == "Character") {
+    //                 dlgNumber = line.position
+    //                 chunkHTML += `<div class='dialogChunk' id='dialog${dlgNumber}' data-line='${line.position}'
+    //                 onclick = selectThisDialog('dialog${dlgNumber}')>`
+    //             }
+
+    //             let omittedString = ""
+    //                 if(line.omitted) omittedString = " omitted"
+
+    //             chunkHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-length="${line.string.length}">${line.string}</p>`
+
+    //             chunkHTML = chunkHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
+    //             chunkHTML = chunkHTML.replace(/\*\*\*(.*)\*\*\*/g, "<b><i>$1</i></b>")
+    //             chunkHTML = chunkHTML.replace(/\*\*(.*)\*\*/g, "<b>$1</b>")
+    //             chunkHTML = chunkHTML.replace(/\*(.*)\*/g, "<i>$1</i>")
+    //             chunkHTML = chunkHTML.replace(/\_(.*)\_/g, "<u>$1</u>")
+
+    //         }
+    //         chunkHTML += `</div>` //finalizes the last chunk-in-chunk div
+
+    //     //add all dialogChunks to the sceneChunk:
+    //         chunk.innerHTML += chunkHTML
+
+    //     //to here.
+
             chunk.dataset.startPos = chunk.firstChild.data-line
             chunk.dataset.endPos = chunk.lastChild.data-line + chunk.lastChild.innerText.length
 
@@ -965,6 +1021,21 @@ function showCharacterBubbles(characterName, redraw){
     if($id("dialogsearch").value) onlyShowMatchingDialogs(true)
 
     console.timeEnd("bubbles")
+
+}
+
+function updateDialogPanelSelection(){
+
+    if (!($id("notepanel").classList.contains("expanded") && $(".selectedtab")?.classList.contains("dialogtab"))){ return }
+
+    
+    let cursorPosition = $id("youAreHere").dataset.location
+
+    $$(".selectedDialog")?.forEach(element => {element.classList.remove("selectedDialog")})
+    $$(".dialogChunk")?.forEach(element => {element.classList.remove("hasCursor")})
+    Array.from($$(".dialogChunk")).find(element => element.dataset.line < cursorPosition && element.dataset.endPos > cursorPosition)?.classList.add("selectedDialog", "hasCursor")
+
+    scrollNicelyIntoView($(".hasCursor"), $id("dialogpanelcontent"))
 
 }
 

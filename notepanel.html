@@ -773,7 +773,7 @@ function cycleTabs(clickedElement, unconditional){
     clickedTab.classList.add("selectedtab")
 
     if($(".selectedtab").classList.contains("dialogtab")) {
-        initiateCharacterBubbles()
+        initiateCharacterBubbles($id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL")
     }else{
         unShowCharacterBubbles()
         reevaluateColorContrast()
