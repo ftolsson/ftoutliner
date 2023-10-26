@@ -1828,8 +1828,6 @@ function highlightCharacter(name, onlyHighlightScenes, straightFromEditorWindow)
 			updateDialogPanelSelection()
 			`)
 			return
-			// $id("allDialogFor").selectedIndex = Array.from($id("allDialogFor").options).map(option => option.value.toUpperCase()).indexOf("${name}")
-			// showCharacterBubbles("${name}")
 	}
 
 

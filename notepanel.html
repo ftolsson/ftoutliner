@@ -992,12 +992,12 @@ function toggleNotepanel() {
     
     unShowCharacterBubbles()
 
-    if(isExpanded){
-
-        setTimeout(() => {
-            cycleTabs($(".selectedtab"), true) //true will unconditionally run the function even if the tab is already selected, essentially updating it
-        }, 600)
-    }
+    //switch to the currently selected tab (and refresh it)
+        if(isExpanded){
+            setTimeout(() => {
+                cycleTabs($(".selectedtab"), true) //true will unconditionally run the function even if the tab is already selected, essentially updating it
+            }, 600)
+        }
 
 
 

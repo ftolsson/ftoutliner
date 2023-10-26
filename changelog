@@ -18,8 +18,8 @@ The Scene Manager is a panel that lets you sort and assess your scenes in differ
   - In addition to that, the old shortcuts `§` or `\`` (depending on keyboard lanugauge) are of course still available.
 * The Menu Bar menu — the one at the top of the screen, next to Beat's own menus — is now behaving well again:
   - Broken commands were reconnected
-  - The shortcut for VIEWS>FIXED was changed to ctrl+alt+D 
-  - Plus some other minor rearrangements of the commands
+  - Some shortcut keys were changed due to conflicts
+  - Some menu items were rearranged
 
 *BUG FIXES:*
 

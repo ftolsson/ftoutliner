@@ -3620,6 +3620,18 @@ input[type=range]:focus::-webkit-slider-thumb {
 
 }
 
+.debug{
+
+	display: none;
+
+}
+
+:has(.loggingIsOn) .debug{
+
+	display: inline-block !important;
+
+}
+
 
 
 </style><script>
@@ -4757,11 +4769,11 @@ function cycleBubbles(direction){ //send here: -1 or +1
     if (selectedNumber > allChunks.length - 1) selectedNumber = 0
     if (selectedNumber < 0) selectedNumber = allChunks.length - 1
 
-    selectThisDialog(allChunks[selectedNumber].id)
+    selectThisDialog(allChunks[selectedNumber].id, true) //if not true, no scroll
 
 }
 
-function selectThisDialog(dlgId){
+function selectThisDialog(dlgId, andScroll = false){
 
     let currentChunk = $(".hoveredSceneChunk")
 
@@ -4779,7 +4791,7 @@ function selectThisDialog(dlgId){
         createOrUpdateConnectorFor($(".hoveredSceneChunk"))
     }
 
-    scrollNicelyIntoView($id(dlgId) || $(".hasCursor"), $id("dialogpanelcontent"))
+    if(andScroll) { scrollNicelyIntoView($id(dlgId) || $(".hasCursor"), $id("dialogpanelcontent")) }
 
 }
 
@@ -4870,7 +4882,7 @@ function showCharacterBubbles(characterName, redraw){
                     createdChunks[chunkNumber].classList.add("dialogChunk")
                     createdChunks[chunkNumber].id = "dialog" + line.position
                     createdChunks[chunkNumber].dataset.line = line.position
-                    createdChunks[chunkNumber].onclick = function(){selectThisDialog(this.id)}
+                    createdChunks[chunkNumber].onclick = function(){selectThisDialog("dialog" + line.position)}
 
                     //continue
                 }
@@ -4878,7 +4890,7 @@ function showCharacterBubbles(characterName, redraw){
                 let omittedString = ""
                 if(line.omitted) omittedString = " omitted"
 
-                createdChunks[chunkNumber].innerHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-length="${line.string.length}">${line.string}</p>`
+                createdChunks[chunkNumber].innerHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-end-pos="${line.position + line.string.length}" data-length="${line.string.length}"><span class="debug">${line.position}-${line.position + line.string.length}</span>${line.string}</p>`
 
                 createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
                 createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\*\*\*(.*)\*\*\*/g, "<b><i>$1</i></b>")
@@ -4888,64 +4900,23 @@ function showCharacterBubbles(characterName, redraw){
 
                 //hack to update the endPos of the chunk for as long as we keep adding to it
                     createdChunks[chunkNumber].dataset.endPos = line.position + line.string.length
-
+                    createdChunks[chunkNumber].querySelector(".debug").innerText = createdChunks[chunkNumber].dataset.line + "-" + createdChunks[chunkNumber].dataset.endPos
                 
             }
 
-            console.log(createdChunks)
-
             for (createdChunk of createdChunks){
-
-                console.log(createdChunk)
 
                 chunk.appendChild(createdChunk)
 
             }
-            
-
-    // ///REWRITING THIS PART
-
-    //         let chunkHTML = `<p class="chunkHeading"><span style="opacity: 0.4;">${(outline[theId].sceneNumber || "")} </span>&nbsp;${outline[theId].stringForDisplay}</p>`
-    //         let thisIsTheCurrentChunk = false
-    //         let dlgNumber
-
-    //         for (line of scene){
-
-    //             if(line.typeAsString == "Character" && chunk.children) chunkHTML += "</div>"
-    //             if(line.typeAsString == "Character") {
-    //                 dlgNumber = line.position
-    //                 chunkHTML += `<div class='dialogChunk' id='dialog${dlgNumber}' data-line='${line.position}'
-    //                 onclick = selectThisDialog('dialog${dlgNumber}')>`
-    //             }
-
-    //             let omittedString = ""
-    //                 if(line.omitted) omittedString = " omitted"
-
-    //             chunkHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-length="${line.string.length}">${line.string}</p>`
-
-    //             chunkHTML = chunkHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
-    //             chunkHTML = chunkHTML.replace(/\*\*\*(.*)\*\*\*/g, "<b><i>$1</i></b>")
-    //             chunkHTML = chunkHTML.replace(/\*\*(.*)\*\*/g, "<b>$1</b>")
-    //             chunkHTML = chunkHTML.replace(/\*(.*)\*/g, "<i>$1</i>")
-    //             chunkHTML = chunkHTML.replace(/\_(.*)\_/g, "<u>$1</u>")
-
-    //         }
-    //         chunkHTML += `</div>` //finalizes the last chunk-in-chunk div
-
-    //     //add all dialogChunks to the sceneChunk:
-    //         chunk.innerHTML += chunkHTML
-
-    //     //to here.
 
             chunk.dataset.startPos = chunk.firstChild.data-line
             chunk.dataset.endPos = chunk.lastChild.data-line + chunk.lastChild.innerText.length
 
-        //and the sceneChunk to the sidepanel:          
-            $id("dialogpanelcontent").appendChild(chunk)
-                // if(thisIsTheCurrentChunk && !redraw) $id(thisIsTheCurrentChunk).classList.add("selectedDialog")
-                //if(thisIsTheCurrentChunk && !redraw) $id(thisIsTheCurrentChunk).classList.add("hasCursor")
+            //and the sceneChunk to the sidepanel:          
+                $id("dialogpanelcontent").appendChild(chunk)
 
-        if($id("dialogsearch").value) chunk.classList.add("displayNone")
+            if($id("dialogsearch").value) chunk.classList.add("displayNone")
                 //chunkSizes = chunk.getBoundingClientRect()
 
         //add number of dialogs to corresponding scene
@@ -4986,15 +4957,15 @@ function showCharacterBubbles(characterName, redraw){
 
         //set listeners to the chunks of the scene
 
-            $$(".dialogChunk").forEach(element => {
+            // $$(".dialogChunk").forEach(element => {
 
-                element.onclick = function(){
-                    $$(".hasCursor").forEach(otherElement => {otherElement.classList.remove("hasCursor")});
-                    $$(".selectedDialog").forEach(otherElement => {otherElement.classList.remove("selectedDialog")});
-                    element.classList.add("hasCursor")
-                    element.classList.add("selectedDialog")
-                }
-            })
+            //     element.onclick = function(){
+            //         $$(".hasCursor").forEach(otherElement => {otherElement.classList.remove("hasCursor")});
+            //         $$(".selectedDialog").forEach(otherElement => {otherElement.classList.remove("selectedDialog")});
+            //         element.classList.add("hasCursor")
+            //         element.classList.add("selectedDialog")
+            //     }
+            // })
     }
 
     $id("dialogpanelcontent").scrollTo({
@@ -5014,12 +4985,15 @@ function updateDialogPanelSelection(){
 
     if (!($id("notepanel").classList.contains("expanded") && $(".selectedtab")?.classList.contains("dialogtab"))){ return }
 
-    
-    let cursorPosition = $id("youAreHere").dataset.location
+    let cursorPosition = Number($id("youAreHere").dataset.location)
 
     $$(".selectedDialog")?.forEach(element => {element.classList.remove("selectedDialog")})
     $$(".dialogChunk")?.forEach(element => {element.classList.remove("hasCursor")})
-    Array.from($$(".dialogChunk")).find(element => element.dataset.line < cursorPosition && element.dataset.endPos > cursorPosition)?.classList.add("selectedDialog", "hasCursor")
+
+    let bestMatch = Array.from($$(".dialogChunk")).find(element => Number(element.dataset.line) <= cursorPosition && Number(element.dataset.endPos) >= cursorPosition)
+    let bestMatchClosestChunk = bestMatch?.closest(".dialogChunk")
+        //console.log(cursorPosition, bestMatch?.dataset.line, bestMatch?.dataset.endPos, bestMatchClosestChunk?.textContent)
+        bestMatchClosestChunk?.classList.add("selectedDialog", "hasCursor")
 
     scrollNicelyIntoView($(".hasCursor"), $id("dialogpanelcontent"))
 
@@ -5044,6 +5018,8 @@ function updateDialogPanelOnScroll(){
 }
 
 function createOrUpdateConnectorFor(element){
+
+    if(!element) return
 
     let delay = ($id(element.closest(".sceneChunk").dataset.parentId).classList.contains("isOmitted")) ? 250 : 0
 
@@ -5278,11 +5254,12 @@ function toInitialsCase(string){
     body:has(.displayNumberOf) .section:is(.isSelected, .isHovered) > .section-heading,
     body:has(.displayNumberOf) .scene:is(.isSelected, .isHovered){
         
-        
+        border-color: black;
         /* border: 1px solid hsl(var(--inkOnPaper)); */
         box-shadow: /*inset 0 calc(12px * var(--fontSizeFactor)) 0 2px hsl(var(--inkOnPaper)),*/
         /* inset 0 0 0 2px hsl(var(--inkOnPaper)); */
-        inset 0 0 0 2px hsl(0, 0%, 0%);
+        inset 0 0 0 1.5px hsl(0, 0%, 0%),
+        /*inset*/ 0 0 0 0.5px hsl(0, 0%, 0%);
         /* background-image: -webkit-linear-gradient(top, rgba(20,20,20,0.60), rgba(20,20,20,0.60) 100%) !important; */
         /* color: white; */
         
@@ -11769,6 +11746,7 @@ function cycleTabs(clickedElement, unconditional){
     clickedTab.classList.add("selectedtab")
 
     if($(".selectedtab").classList.contains("dialogtab")) {
+        alertThis($id("allDialogFor").selectedOptions[0]?.innerText.trim())
         initiateCharacterBubbles($id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL")
     }else{
         unShowCharacterBubbles()
@@ -11988,12 +11966,12 @@ function toggleNotepanel() {
     
     unShowCharacterBubbles()
 
-    if(isExpanded){
-
-        setTimeout(() => {
-            cycleTabs($(".selectedtab"), true) //true will unconditionally run the function even if the tab is already selected, essentially updating it
-        }, 600)
-    }
+    //switch to the currently selected tab (and refresh it)
+        if(isExpanded){
+            setTimeout(() => {
+                cycleTabs($(".selectedtab"), true) //true will unconditionally run the function even if the tab is already selected, essentially updating it
+            }, 600)
+        }
 
 
 
@@ -16416,8 +16394,6 @@ function displayErrorMessage(information){
 			Below are the last up to 100 log entries leading up to the error.%0D%0A%0D%0A 
 			${information.join('%0D%0A').replaceAll('"', '%22').replaceAll("&", "%26").replaceAll(" ", "%20").replaceAll("\n", "%0D%0A")}%0D%0A%0D%0A`
 
-		console.log(hrefText)
-
 	let emergencyLevelText = /*html*/`
 		<p class="errorWindowText"><strong>FIRST OF ALL: </strong><i><b>Your script is most likely okay!</b></i></p>
 		<p class="errorWindowText">Most of the time, FTOutliner does not touch the contents of your script. There is no indication this error occured during one of those few instances.</p>
@@ -18764,7 +18740,7 @@ function receiveText(allText, startIndex, endIndex){
 	<div id="dialogpanelbuttons">
 		<div class="hasSelect dropDownSpan">
 			<select id="allDialogFor" class="colorDropdown" onchange="showCharacterBubbles()">
-				<option>None</option>
+				<option></option>
 			</select>
 		</div>
 		<div id="dialogSearchIcon" class="dialogSearchIcon"></div>
