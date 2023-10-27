@@ -4805,6 +4805,7 @@ function updateDialogPanel(scenesWithDialog){
 
     collectCharacters()
     showCharacterBubbles(alreadySelected, true)
+    updateDialogPanelSelection()
 
 }
 
@@ -4890,6 +4891,8 @@ function showCharacterBubbles(characterName, redraw){
                 let omittedString = ""
                 if(line.omitted) omittedString = " omitted"
 
+
+
                 createdChunks[chunkNumber].innerHTML += `<p class="${line.typeAsString.toLowerCase()} ${omittedString}" data-line="${line.position}" data-end-pos="${line.position + line.string.length}" data-length="${line.string.length}"><span class="debug">${line.position}-${line.position + line.string.length}</span>${line.string}</p>`
 
                 createdChunks[chunkNumber].innerHTML = createdChunks[chunkNumber].innerHTML.replace(/\/\*(.*)\*\//g, "<span class='omitted'>$1</span>")
@@ -4954,18 +4957,6 @@ function showCharacterBubbles(characterName, redraw){
             chunk.style.setProperty("--localColor", window.getComputedStyle($id(theId)).backgroundColor)
             chunk.style.backgroundColor = "var(--localColor)"
 
-
-        //set listeners to the chunks of the scene
-
-            // $$(".dialogChunk").forEach(element => {
-
-            //     element.onclick = function(){
-            //         $$(".hasCursor").forEach(otherElement => {otherElement.classList.remove("hasCursor")});
-            //         $$(".selectedDialog").forEach(otherElement => {otherElement.classList.remove("selectedDialog")});
-            //         element.classList.add("hasCursor")
-            //         element.classList.add("selectedDialog")
-            //     }
-            // })
     }
 
     $id("dialogpanelcontent").scrollTo({
@@ -5121,15 +5112,28 @@ function onlyShowMatchingDialogs(nodelay){
         let searchstring = $id("dialogsearch").value
 
         $$("#dialogpanelcontent :is(.sceneChunk, .dialogChunk)").forEach(dialog => {
-            dialog.classList.toggle("displayNone", !dialog.innerText.toLowerCase().includes(searchstring.toLowerCase())) 
+
+            //remove non-searchable text such as debug numbers and character names
+                dialog.querySelectorAll(".debug, .character, .parenthetical").forEach(debug => {debug.remove()})
+
+            let textToEvaluate = Array.from(dialog.querySelectorAll(":not(.chunkHeading)")).map(element => element.innerText).join(" ")
+            console.log(textToEvaluate)
+
+            // dialog.classList.toggle("displayNone", !dialog.innerText.toLowerCase().includes(searchstring.toLowerCase())) 
+            dialog.classList.toggle("displayNone", !textToEvaluate.toLowerCase().includes(searchstring.toLowerCase())) 
             $id(dialog.closest(".sceneChunk").dataset.parentId).classList.toggle("dimmedScene", dialog.closest(".sceneChunk").classList.contains("displayNone"))
         })
 
         $$("#dialogpanelcontent :is(.dialogChunk:not(.displayNone)) p").forEach(dialog => {
             
+            //remove old match
             dialog.innerHTML = dialog.innerHTML.replace(/\<span class\=\"searchFound\"\>(.*?)\<\/span\>/g, "$1")
 
+            //add new match
                 if(searchstring.length > 0) {
+
+                    //split the dialog.innerHTML into two, the chunkheading and the rest
+                    dialogHeader = dialog.querySelector(".chunkHeading")?.outerHTML
 
                     const text = dialog.textContent;
                     const regex = new RegExp(`(${searchstring})`, 'gi');
@@ -5139,8 +5143,10 @@ function onlyShowMatchingDialogs(nodelay){
                         const newHTML = text.replace(regex, `<span class="searchFound">$1</span>`);
                         dialog.innerHTML = newHTML;
                     }
-                }
+                }                
         })
+
+        $$(".connector").forEach(connector => {connector.remove()})
 
         let provokeRedraw = $id("dialogpanelcontent").getBoundingClientRect()
             
@@ -11746,7 +11752,6 @@ function cycleTabs(clickedElement, unconditional){
     clickedTab.classList.add("selectedtab")
 
     if($(".selectedtab").classList.contains("dialogtab")) {
-        alertThis($id("allDialogFor").selectedOptions[0]?.innerText.trim())
         initiateCharacterBubbles($id("allDialogFor").selectedOptions[0]?.innerText.trim() || "ALL")
     }else{
         unShowCharacterBubbles()
