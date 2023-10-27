@@ -25,6 +25,7 @@ The Scene Manager is a panel that lets you sort and assess your scenes in differ
 
 * IMPORTANT FIX to adapt to a new naming convention of windows, where this very dialog would open in the main plugin window too, making the actual plugin unreachable. That should be gone now.
 * PAGINATION LINES for orphan text (i.e. text immediately following a section heading, with no scene heading) are now correctly positioned.
+* in the DIALOG PANEL, filtering by a specific string now does not look for matches in sceneheadings.
 * Worked around a couple of related critical bugs where hidden material may become visible, or the other way around, when dragging and dropping scenes. As a result,
   - when moving scenes, FTOutliner now disallows dropping them next to hidden/omitted scenes. 
   - any hidden scenes immediately following one that you move will now move along with it. 
