@@ -1,3 +1,0 @@
-              - name: Push a directory to another repository
-                uses: datalbry/copy_folder_to_another_repo_action@1.0.1
-            
