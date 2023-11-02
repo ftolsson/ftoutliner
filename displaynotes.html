@@ -692,7 +692,7 @@ function collectNotes(wherefrom){
 
             copyOfLines.forEach(line => {
 
-                if (!["Heading", "Section", "Synopse"].includes(line.typeAsString)){
+                // if (!["Heading", "Section", "Synopse"].includes(line.typeAsString)){
                     
                     line.notes.forEach(note => {
                         note.range.location += line.range.location
@@ -747,7 +747,7 @@ function collectNotes(wherefrom){
 
                         if(note.content) allNotesRaw.push(note)
                     })
-                }
+                //} //this ends the IF that previously excluded headings and sections. Keeping it in in case needed again.
             })
             
             let endTime = Date.now() - startTime

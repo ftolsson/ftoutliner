@@ -1,3 +1,10 @@
+#v 1.83 (November xxx)
+
+*IMPROVEMENTS:*
+
+* Notes, Beats and Markers now show correctly in the outline view also when on lines that are Sceneheadings, Sections or Synopsis.
+
+
 #v 1.82 (October 31, 2023)
 
 Another quick maintenance update:

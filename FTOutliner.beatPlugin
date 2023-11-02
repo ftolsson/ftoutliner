@@ -22,13 +22,14 @@ a {
 	<li>Right click to color, delete or rename scenes or sequences</li>
 	<li>Drag-and-drop to rearrange scenes or entire sequences</li>
 	<li>Track characters by highlighting scenes, or filter by colors</li>
-	<li>Export your outline to PDF
-	<li>Fully editable index card view
-	<li>Slide-over Note Panel with all your notes in one long list
+	<li>Export your outline to PDF</li>
+	<li>Fully editable index card view</li>
+	<li>Slide-over Note Panel all your notes in one long list</li>
 	<li>Boneyard (for storing scenes outside of the script structure)
+	<li><b>NEW!</b> A pre-flight Scene Manager for checking your sceneheadings for errors and inconsistencies</li>
 	<li>and lots more...
 </ul>
-<p>For more info, questions or support visit <a href="https://github.com/ftolsson/ftoutliner/wiki" target="_default">the FTOutliner wiki</a></p>
+<p>For more info, questions or support visit <a href="https://github.com/ftolsson/ftoutliner/wiki" target="_blank">the FTOutliner wiki</a></p>
 </Description>
 
 */
@@ -223,7 +224,11 @@ Beat.custom.sendToMain = function(key, value, nameOfVariable){
 
 }
 
-Beat.custom.reApplySettings = function(){ htmlWindow.runJS("applySettings()") }
+Beat.custom.reApplySettings = function(){ 
+	
+	htmlWindow.runJS("applySettings()") 
+
+}
 
 function __________RELOADERS(){}
 
@@ -682,37 +687,37 @@ Beat.onSelectionChange(function (location, length) {
 
 function __________HELPERS_____(){}
 
-function numberOfWrappedLines(str, typeAsString) {
+// function numberOfWrappedLines(str, typeAsString) {
 
-	console.time("calculating number of wrapped lines")
+// 	console.time("calculating number of wrapped lines")
 
-	const pageWidths = {
-		Action: 60,
-		Character: 38,
-		Parenthetical: 27,
-		Dialogue: 35,
-		Lyrics: 60,
-		Heading: 60,
-	}
+// 	const pageWidths = {
+// 		Action: 60,
+// 		Character: 38,
+// 		Parenthetical: 27,
+// 		Dialogue: 35,
+// 		Lyrics: 60,
+// 		Heading: 60,
+// 	}
 
-	const pageWidth = pageWidths[typeAsString]
+// 	const pageWidth = pageWidths[typeAsString]
 
-	let words = str.split(' ');
-	let lineLength = 0;
-	let lineCount = 1;
+// 	let words = str.split(' ');
+// 	let lineLength = 0;
+// 	let lineCount = 1;
   
-	for (let word of words) {
-	  if (lineLength + word.length <= pageWidth) {
-		lineLength += word.length + 1; // add 1 for the space
-	  } else {
-		lineCount++;
-		lineLength = word.length + 1; // add 1 for the space
-	  }
-	}
+// 	for (let word of words) {
+// 	  if (lineLength + word.length <= pageWidth) {
+// 		lineLength += word.length + 1; // add 1 for the space
+// 	  } else {
+// 		lineCount++;
+// 		lineLength = word.length + 1; // add 1 for the space
+// 	  }
+// 	}
   
-	console.timeEnd("calculating number of wrapped lines")
-	return lineCount;
-  }
+// 	console.timeEnd("calculating number of wrapped lines")
+// 	return lineCount;
+//   }
 
 function titleCaseThis(str) {
 	let upper = true;
