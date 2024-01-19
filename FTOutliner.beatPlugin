@@ -3,7 +3,7 @@
 Plugin name: FTOutliner
 Description: A Flexible Time Outliner for navigating, structuring and editing your screenplay.
 Copyright: Fredrik T Olsson 2021-2023
-Version: 1.82
+Version: 1.83
 Compatibility: 1.996.0
 Type: Tool
 Image: screenshot.jpg
@@ -37,7 +37,7 @@ a {
 function __________VARIABLES(){}
 
 //VERSION NUMBER checking -- also change in the download description above!
-var ftoutlinerVersion = "1.82"
+var ftoutlinerVersion = "1.83"
 Beat.setUserDefault("ftoutlinerVersion", ftoutlinerVersion) 
 
 if (!Beat.compatibleWith(1.996)){
@@ -522,7 +522,9 @@ Beat.custom.updateEntireOutline = function (location, length, skipPagination = f
 				}
 
 				console.log("SENDING JSON. Skipping pagination: ", skipPagination)
-				htmlWindow.runJS(`updateEntireOutline(${json}, ${location}, ${length}, ${fullScreenplay.length}, ${linesAsJSON})`)
+
+				let novelmode = Beat.getRawDocumentSetting("Stylesheet") == "Novel"
+				htmlWindow.runJS(`updateEntireOutline(${json}, ${location}, ${length}, ${fullScreenplay.length}, ${linesAsJSON}, ${novelmode}, ${JSON.stringify(fullScreenplay)})`)
 			})
 			
 			previousLineObject = JSON.parse(linesAsJSON)
@@ -577,17 +579,43 @@ function outlineWithPagination() {
 		pagination = paginationManager.finishedPagination
 		sceneData = []
 	const outlineCopy = Beat.outline()
+	const parser = Beat.currentParser
+	let boneyardStartsAtIndex = parser?.boneyardAct?.position
+
+	let inBoneyard = false
+	let maxPageHeight = Beat.currentPagination().maxPageHeight
+	let myHeight
 	
 	for (const scene of outlineCopy) {
 
 		if(emergencyExit) break
 
+		if(scene.position > boneyardStartsAtIndex)	inBoneyard = true
+
 		let data = scene.json()
+		
+		if (inBoneyard) {
+
+			let myPagination = Beat.pagination() //starts a new pagination for this scene only
+			let linesToPaginate = Beat.linesForScene(scene)
+				myPagination.paginateLines(linesToPaginate)
+			 	
+				data.numberOfPages = myPagination.heightForScene(scene) 
+				//the rest of the values have no meaning for objects in boneyard so setting them to zero
+					data.lineHeight = 0
+					data.startsOnPage = 0
+					data.positionOnPage = 0.0
+					data.breakLines = []
+					sceneData.push(data)
+
+				continue
+		}
 
 		try{
 			data.numberOfPages = pagination.heightForRange({ location: scene.position, length: scene.length }) / Beat.currentPagination().maxPageHeight
 			//the above replaces the below, because of faulty values in heightForScene. This may or may not have been fixed in Beat already.
 			//data.numberOfPages = pagination.heightForScene(scene) / Beat.currentPagination().maxPageHeight
+			data.lineHeight = pagination.heightForRange({ location: scene.position, length: scene.line.length}) / Beat.currentPagination().maxPageHeight
 		}catch{
 			//this try/catch is here because of a bug in Beat that sometimes claims pagination.heightForRange is undefined
 			Beat.sync(function () {
@@ -600,7 +628,7 @@ function outlineWithPagination() {
 		data.positionOnPage = 0.0
 
 		//BUG HUNT PART I: Checking for zero-height scenes!
-			if (data.numberOfPages == 0 && data.typeAsString == "Heading" && !data.omitted){ 
+			if (data.numberOfPages == 0 && data.typeAsString == "Heading" && !data.omitted && !inBoneyard){ 
 				zeroHeight.push(data)
 			}
 
