@@ -10,8 +10,8 @@
 *FIXES:*
 * Notes, Beats and Markers now show correctly in the outline view also when on lines that are Sceneheadings, Sections or Synopsis.
 * Fixed a bug where dropping scenes at the bottom of the Boneyard would lead to an error.
-* Disabled a shortcut that led to a very experimental mode that no one should need to see. If anyone thought their computer was haunted, that was probably it. Sorry.
-* And some unspottable cosmetical changes of the kind that would each warrant their own article on an Apple rumor site if made to a new version of iOS. Because oookay.
+* Disabled a shortcut that led to a very experimental mode that no one should need to see. Sorry.
+* And some unspottable cosmetical changes of the kind that would each warrant their own article on an Apple rumor site if made to a new version of iOS. Because yeah.
 
 #v 1.82 (October 31, 2023)
 
