@@ -1,4 +1,4 @@
-#v 1.83 (January 22, 2024)
+#v 1.83 (January 24, 2024)
 
 *IMPROVEMENTS:*
 * A new *SCENE POPUP* showing a scene's content will appear when hovering the scene in FTOutliner and pressing ALT. Quickly reference a scene without moving there, or click any line inside the popup to scroll the main document to the exact corresponding place.
