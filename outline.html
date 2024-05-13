@@ -98,6 +98,12 @@ $id("flexiContainer").ondrop = function(event){onDrop(event)}
 $id("flexiContainer").onscroll = function(){flexiContainer.style.setProperty("--flexiScroll", flexiContainer.scrollTop) + "px"}
 $id("flexiContainer").classList.add("positionRelative")
 
+window.addEventListener("blur", minimizeFTOutliner)
+window.addEventListener("focus", maximizeFTOutliner)
+
+function minimizeFTOutliner(){ if(userDefault["hideOnBlur"] == true) Beat.call("Beat.custom.minimizeFTOutliner()") }
+function maximizeFTOutliner(unconditionally){ if(userDefault["hideOnBlur"] == true || unconditionally) Beat.call("Beat.custom.maximizeFTOutliner()") }
+
 document.getElementById("sidepanelButton").innerHTML = sidebarLeftIcon
 document.getElementById("indexCardButton").innerHTML = outlineIcon
 document.getElementById("characterButton").innerHTML = funnelIcon + `<div id="selectedCharacterName"></div>`
